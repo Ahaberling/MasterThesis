@@ -71,6 +71,19 @@ print(len(pat_publn_id_no0))              #18548
 print(len(pat_publn_id_no0.unique()))     #3390
 
 
+### how many of the 3844 patents of "patent" are in "parent"? by id
+
+print(len(patent.pat_publn_id))           #3844
+
+print(len(parent.cited_pat_publn_id))           #18548
+print(len(parent.cited_pat_publn_id.unique()))  #13315
+
+helper = parent.pat_publn_id[parent.pat_publn_id == patent.pat_publn_id]
+do it with numpy
+
+#print(len(helper))
+
+
 # excluding all entries with parent.cited_pat_publn_id == 0, in order to create the network afterwards with edge information
 
 parent_cited_no0 = parent[parent.cited_pat_publn_id != 0]
