@@ -4,6 +4,7 @@ import pandas as pd
 
 
 pd.set_option('display.max_columns', None)
+pd.set_option('display.max_colwidth', None)
 
 patent = pd.read_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents.csv', quotechar='"', skipinitialspace=True)
 #print(patent)
@@ -46,14 +47,18 @@ print(patent)
 for abstract in patent.publn_abstract:
     #print(process_text(abstract))
     #patent.publn_abstract_clean[i] = process_text(abstract)
-    patent.publn_abstract_clean[i] = [" ".join(process_text(abstract))]
+    patent.publn_abstract_clean[i] = " ".join(process_text(abstract))
     i = i+1
     if i % 100 == 0:
         print(i, " / ", len(patent.publn_abstract))
+    #if i >= 100:
+        #break
 
-print(patent)
+print(patent.publn_abstract_clean)
 
 #patent.to_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents_cleanAbstract.csv')
-patent.to_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents_cleanAbstract_noComma.csv')
+#patent.to_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents_cleanAbstract_noComma.csv')
+#patent.to_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents_cleanAbstract_noComma_noKlammer.csv')
+#patent.to_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents_cleanAbstract_noKlammer.csv')
 
 #todo Steeming sucks
