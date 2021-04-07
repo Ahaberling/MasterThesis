@@ -46,19 +46,3 @@ print(parent.cited_pat_publn_id.value_counts())     # 1910/18548 are 0
 
 #print(df)
 
-
-'''
-Memes
-
-x = [1,2,3,4,5,6]
-
-#print(np.median(x))
-
-y = 'uwu'
-y_mod = ''
-
-for i in range(30):
-    y_mod = y_mod + ' ' + y
-    print(y_mod)
-    
-'''

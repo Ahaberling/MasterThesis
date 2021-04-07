@@ -2,14 +2,12 @@ import re
 import nltk
 import pandas as pd
 
-#from gensim import corpora
 
 pd.set_option('display.max_columns', None)
 
 patent = pd.read_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents.csv', quotechar='"', skipinitialspace=True)
+#print(patent)
 
-#print(patent.publn_abstract[0])
-#print(type(patent.publn_abstract))
 
 # We need this dataset in order to use the tokenizer
 nltk.download('punkt')
@@ -41,17 +39,21 @@ def process_text(text):
 
 
 
-
-'''
 patent['publn_abstract_clean'] = 0
 i = 0
 print(patent)
 
 for abstract in patent.publn_abstract:
     #print(process_text(abstract))
-    patent.publn_abstract_clean[i] = process_text(abstract)
+    #patent.publn_abstract_clean[i] = process_text(abstract)
+    patent.publn_abstract_clean[i] = [" ".join(process_text(abstract))]
     i = i+1
     if i % 100 == 0:
-        print(i)
+        print(i, " / ", len(patent.publn_abstract))
 
-print(patent)'''
+print(patent)
+
+#patent.to_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents_cleanAbstract.csv')
+patent.to_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents_cleanAbstract_noComma.csv')
+
+#todo Steeming sucks
