@@ -109,13 +109,12 @@ patent_cleanAbs.T[8:,] = abstracts_clean
 
 #print(patent_cleanAbs)
 #print('\n ------------------------------------------------------------------------------------ \n ')
-print(patent_cleanAbs.T)
+#print(patent_cleanAbs.T)
 
 #patent.to_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents_cleanAbstract.csv')
 #patent.to_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents_cleanAbstract_noComma.csv')
 #patent.to_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents_cleanAbstract_noComma_noKlammer.csv')
 #patent.to_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents_cleanAbstract_noKlammer.csv')
-np.savetxt(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents_07_04.csv', patent_cleanAbs, delimiter=",")
+#np.savetxt(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents_07_04.csv', patent_cleanAbs, fmt='%s', delimiter=",")
 
-
-
+pd.DataFrame(patent_cleanAbs).to_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents_07_04.csv', index=None)
