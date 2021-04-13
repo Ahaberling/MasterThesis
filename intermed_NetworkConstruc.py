@@ -27,10 +27,7 @@ cited_pat_publn_id = parent[:,(0,2)]
 #print(patent_topicDist[-2])
 #print(patent_topicDist.T[0])
 
-plain = nx.Graph()
-bipart = nx.Graph()
-topic_similar = nx.Graph()
-topic_net = nx.Graph()
+
 
 #dict(enumerate(arr.sum(axis=1)))
 
@@ -41,13 +38,7 @@ topic_net = nx.Graph()
 
 patent_topicDist_prep = patent_topicDist[:,1:]
 
-inner_dic = [dict(enumerate(patent_topicDist_prep[i])) for i in range(len(patent_topicDist_prep))]
-#print(top_dic[0])
-#print(dict(enumerate(top_dic[0])))
-print(inner_dic)
 
-outer_dic = dict(enumerate(inner_dic))
-#print(outer_dic)
 
 inner_keys = ['publn_auth', 'publn_nr', 'publn_date', 'publn_claims', 'publn_title',
                     'publn_abstract', 'nb_IPC', 'abstract_clean', 'topic_list']
@@ -55,13 +46,42 @@ outer_keys = patent_topicDist[:,0]
 
 helper = int(len(patent_topicDist_prep.T[9:,:])/3)
 
-for i in range(1,helper):
+for i in range(1,helper+1):
     inner_keys.append('{0}_topicID'.format(i))
     inner_keys.append('{0}_topicName'.format(i))
     inner_keys.append('{0}_topicCover'.format(i))
     #print(i)
 
-#print(inner_keys)
+#print(len(inner_keys))
+
+
+
+#inner_dic = [dict(enumerate(patent_topicDist_prep[i])) for i in range(len(patent_topicDist_prep))]
+
+inner_dic = []
+for i in range(len(patent_topicDist_prep)):
+
+    helper = dict(enumerate(patent_topicDist_prep[i]))
+    for key, n_key in zip(helper.copy().keys(), inner_keys):
+        helper[n_key] = helper.pop(key)
+
+    inner_dic.append(helper)
+
+#print( inner_dic == inner_dic2)
+
+#print(top_dic[0])
+#print(dict(enumerate(top_dic[0])))
+#print(inner_dic)
+'''
+for key, n_key in zip(inner_dic.copy().keys(), inner_keys):
+    inner_dic[n_key] = inner_dic.pop(key)
+    # print(key,n_key)
+'''
+
+
+outer_dic = dict(enumerate(inner_dic))
+
+#print(outer_dic)
 
 '''
 print((len(patent_topicDist_prep.T[9:,:])+1)/3)
@@ -80,12 +100,21 @@ for x in range(1, 10):
 
 #print(outer_keys)
 #print(len(outer_keys))
+#print(outer_dic)
 #print(len(outer_dic))
 
 
 for key, n_key in zip(outer_dic.copy().keys(), outer_keys):
     outer_dic[n_key] = outer_dic.pop(key)
     # print(key,n_key)
+
+#print(outer_dic[487839054])
+#print(len(outer_dic[487839054]))
+#print(outer_dic[487839054].keys())
+#print(inner_keys)
+#print(len(inner_keys))
+
+#print(outer_dic)
 
 #print(outer_dic)
 #print(outer_dic.values())
@@ -111,7 +140,6 @@ columns = np.array(['pat_publn_id', 'publn_auth', 'publn_nr', 'publn_date', 'pub
                     'publn_abstract', 'nb_IPC', 'abstract_clean', 'topic_list', 
                     '1st_topic_id', '1st_topic_name', '1st_topic_cover', ...])
 '''
-
 '''
 attrs = {0: {"attr1": 20, "attr2": "nothing"}, 1: {"attr2": 3}}
 nx.set_node_attributes(G, attrs)
@@ -122,11 +150,24 @@ G.nodes[0]["attr2"]
 G.nodes[1]["attr2"]
 3
 G.nodes[2]
-{}
-'''
-#plain.add_nodes_from(patent_topicDist.T[0])
-#plain.add_nodes_from(patent_topicDist.T[0], test = 'lala')
+{}'''
 
+
+plain = nx.Graph()
+bipart = nx.Graph()
+topic_similar = nx.Graph()
+topic_net = nx.Graph()
+
+plain.add_nodes_from(patent_topicDist.T[0])
+nx.set_node_attributes(plain, outer_dic)
+
+print("\n\n\n", plain.nodes[487838990])
+print(plain.nodes[487839054])
+
+print(plain.nodes[487838990]["publn_claims"])
+print(plain.nodes[487839054]["publn_claims"])
+
+#plain.add_nodes_from(patent_topicDist.T[0], test = 'lala')
 
 
 
