@@ -9,7 +9,7 @@ pd.set_option('display.max_columns', None)
 patent_topicDist = pd.read_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents_07_04_topicNameMissing.csv', quotechar='"', skipinitialspace=True)
 topics = pd.read_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents_07_04_topics.csv', quotechar='"', skipinitialspace=True)
 parent = pd.read_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_backward_citations.csv', quotechar='"', skipinitialspace=True)
-#print(patent_topicDist)
+#print(parent)
 
 
 patent_topicDist = patent_topicDist.to_numpy()
@@ -18,7 +18,9 @@ parent = parent.to_numpy()
 
 
 cited_pat_publn_id = parent[:,(0,2)]
-#print(cited_pat_publn_id)
+print(cited_pat_publn_id)
+print(len(cited_pat_publn_id))
+print(len(parent))
 
 #todo gibt es node ids in parent[:,(0,2)], die nicht in patent_topicDist auftauchen? Falls ja, how do we handle them?
 #todo how do we handle patents that cite things that are not patents (parent[,2] = 0)?
@@ -161,16 +163,56 @@ topic_net = nx.Graph()
 plain.add_nodes_from(patent_topicDist.T[0])
 nx.set_node_attributes(plain, outer_dic)
 
-print("\n\n\n", plain.nodes[487838990])
-print(plain.nodes[487839054])
+print(plain.nodes[487838990])
+#print(plain.nodes[487839054])
 
-print(plain.nodes[487838990]["publn_claims"])
-print(plain.nodes[487839054]["publn_claims"])
+#print(plain.nodes[487838990]["publn_claims"])
+#print(plain.nodes[487839054]["publn_claims"])
+
+
+
 
 #plain.add_nodes_from(patent_topicDist.T[0], test = 'lala')
 
+set_nodeID = set(patent_topicDist.T[0])
+set_edgeID1 = set(cited_pat_publn_id.T[0])
+set_edgeID2 = set(cited_pat_publn_id.T[1])
+
+print(set_edgeID1.issubset(set_nodeID))                 # So, every source of our edge has a corresponding node
+print(set_edgeID1.issubset(set_edgeID2), "\n")          # So, not every target of our edge has a corresponding nodes
+
+print(len(set_edgeID2.difference(set_nodeID)))          # what is in x that is not in y x.difference(y) / number of nodes that are cited in general (zeros not considered)
+print(len(set_edgeID2.intersection(set_nodeID)), "\n")  # what is in x that is also in y / number of nodes that are cited and present in the network
+
+print(len(parent))
+print(len(parent)-len(set_edgeID2.difference(set_nodeID))) # number of edges that are present in the network
+
+#print(cited_pat_publn_id)
+
+intersec_edgeTarget = set_edgeID2.intersection(set_nodeID)
 
 
+'''
+#helper = 0
+
+ind_dict = dict((i,k) for i,k in enumerate(cited_pat_publn_id.T[1]))
+#print(ind_dict)
+inter = set(ind_dict).intersection(patent_topicDist.T[0])
+print(inter)
+indices = [ ind_dict[x] for x in inter ]
+print(indices)
+'''
+#plainEdges = cited_pat_publn_id[helper,:]
+
+'''
+p = np.array([[1.5, 0], [1.4,1.5], [1.6, 0], [1.7, 1.8]])
+print(p, "\n")
+nz = (p == 0).sum(1)
+print(nz)
+#q = p[nz == 0, :]
+#q
+'''
+#print(len(parent))
 '''
 print(len(plain.nodes))
 print(plain.nodes.data)
