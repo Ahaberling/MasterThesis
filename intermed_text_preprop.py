@@ -8,6 +8,8 @@ pd.set_option('display.max_columns', None)
 
 patent = pd.read_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents.csv', quotechar='"', skipinitialspace=True)
 
+
+
 #print(patent.publn_abstract[0])
 #print(type(patent.publn_abstract))
 

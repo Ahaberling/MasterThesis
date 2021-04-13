@@ -27,7 +27,6 @@ parent_IPC = pd.read_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thes
 
 
 
-
 ### Checking for 0 in patent.pat_publn_id (ivalid rows)
 
 print(len(patent.pat_publn_id))           #3844

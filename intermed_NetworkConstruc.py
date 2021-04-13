@@ -9,6 +9,8 @@ pd.set_option('display.max_columns', None)
 patent_topicDist = pd.read_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents_07_04_topicNameMissing.csv', quotechar='"', skipinitialspace=True)
 topics = pd.read_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents_07_04_topics.csv', quotechar='"', skipinitialspace=True)
 parent = pd.read_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_backward_citations.csv', quotechar='"', skipinitialspace=True)
+#print(patent_topicDist)
+
 
 patent_topicDist = patent_topicDist.to_numpy()
 parent = parent.to_numpy()
@@ -16,13 +18,13 @@ parent = parent.to_numpy()
 
 
 cited_pat_publn_id = parent[:,(0,2)]
-print(cited_pat_publn_id)
+#print(cited_pat_publn_id)
 
 #todo gibt es node ids in parent[:,(0,2)], die nicht in patent_topicDist auftauchen? Falls ja, how do we handle them?
 #todo how do we handle patents that cite things that are not patents (parent[,2] = 0)?
 
-print(patent_topicDist)
-#print(patent_topicDist[0])
+#print(patent_topicDist)
+#print(patent_topicDist[-2])
 #print(patent_topicDist.T[0])
 
 plain = nx.Graph()
@@ -30,11 +32,121 @@ bipart = nx.Graph()
 topic_similar = nx.Graph()
 topic_net = nx.Graph()
 
-plain.add_nodes_from(patent_topicDist.T[0], test = patent_topicDist.T[1])
+#dict(enumerate(arr.sum(axis=1)))
 
+#test_dict = dict(patent_topicDist[0,:])
+
+#top_dic = dict(enumerate(patent_topicDist[:,1:]))
+#top_dic = patent_topicDist
+
+patent_topicDist_prep = patent_topicDist[:,1:]
+
+inner_dic = [dict(enumerate(patent_topicDist_prep[i])) for i in range(len(patent_topicDist_prep))]
+#print(top_dic[0])
+#print(dict(enumerate(top_dic[0])))
+print(inner_dic)
+
+outer_dic = dict(enumerate(inner_dic))
+#print(outer_dic)
+
+inner_keys = ['publn_auth', 'publn_nr', 'publn_date', 'publn_claims', 'publn_title',
+                    'publn_abstract', 'nb_IPC', 'abstract_clean', 'topic_list']
+outer_keys = patent_topicDist[:,0]
+
+helper = int(len(patent_topicDist_prep.T[9:,:])/3)
+
+for i in range(1,helper):
+    inner_keys.append('{0}_topicID'.format(i))
+    inner_keys.append('{0}_topicName'.format(i))
+    inner_keys.append('{0}_topicCover'.format(i))
+    #print(i)
+
+#print(inner_keys)
+
+'''
+print((len(patent_topicDist_prep.T[9:,:])+1)/3)
+print(len(patent_topicDist_prep.T[9:,:])+1)
+'''
+
+'''
+d = {}
+for x in range(1, 10):
+    d["string{0}".format(x)] = "Hello"
+'''
+
+#print(len(patent_topicDist_prep.T[9:,:]))
+#print((len(patent_topicDist_prep.T[9:,:]))/3)
+#print(patent_topicDist_prep.T[9:,:])
+
+#print(outer_keys)
+#print(len(outer_keys))
+#print(len(outer_dic))
+
+
+for key, n_key in zip(outer_dic.copy().keys(), outer_keys):
+    outer_dic[n_key] = outer_dic.pop(key)
+    # print(key,n_key)
+
+#print(outer_dic)
+#print(outer_dic.values())
+#487838945 487838990 487839054
+'''
+487838990: {0: 'EP', 1: 3275601.0, 2: '2018-01-31', 3: 8, 4: 'ROBOT AND GEAR DEVICE', 5: 'A robot (100) includes a first member (111), a second member (121) provided to be capable of turning with respect to the first member (111), and a gear device (1) configured to transmit a driving force from one side to the other side of the first member (111) and the second member (121). The gear device (1) includes internal teeth (23) and external teeth (33) provided halfway in a transmission path of the driving force and configured to mesh with each other and lubricant (51) disposed between the internal teeth (23) and the external teeth (33). An average grain size of a constituent material of the external teeth (33) is smaller than an average grain size of a constituent material of the internal teeth (23).', 6: 3, 7: 'robot includ first member second member provid capabl turn respect first member gear devic configur transmit drive forc one side side first member second member gear devic includ intern teeth extern teeth provid halfway transmiss path drive forc configur mesh lubric dispos intern teeth extern teeth averag grain size constitu materi extern teeth smaller averag grain size constitu materi intern teeth', 8: '[(1, 0.13103338), (68, 0.058549438), (93, 0.053261172), (172, 0.26179296), (234, 0.099221155), (241, 0.05149606), (297, 0.05921663)]', 9: 172, 10: nan, 11: 0.26179296, 12: 1.0, 13: nan, 14: 0.13103338, 15: 234.0, 16: nan, 17: 0.099221155, 18: 297.0, 19: nan, 20: 0.05921663, 21: 68.0, 22: nan, 23: 0.058549438, 24: 93.0, 25: nan, 26: 0.053261172, 27: 241.0, 28: nan, 29: 0.05149606, 30: nan, 31: nan, 32: nan, 33: nan, 34: nan, 35: nan, 36: nan, 37: nan, 38: nan, 39: nan, 40: nan, 41: nan, 42: nan, 43: nan, 44: nan, 45: nan, 46: nan, 47: nan, 48: nan, 49: nan, 50: nan}
+487839054: {0: 'EP', 1: 3275603.0, 2: '2018-01-31', 3: 9, 4: 'CONTROL DEVICE, ROBOT, AND ROBOT SYSTEM', 5: 'A control device which controls a robot having a moving part includes: a control unit which causes an end effector provided on the moving part to move an insertion object, bring the insertion object into contact with an insertion hole provided in an insertion target object in the state where the insertion object is tilted from a center axis of the insertion hole, and subsequently insert the insertion object into the insertion hole.', 6: 1, 7: 'control devic control robot move part includ control unit caus end effector provid move part move insert object bring insert object contact insert hole provid insert target object state insert object tilt center axi insert hole subsequ insert insert object insert hole', 8: '[(27, 0.12415153), (126, 0.1388967), (129, 0.05026767), (167, 0.32650527), (204, 0.120582916)]', 9: 167, 10: nan, 11: 0.32650527, 12: 126.0, 13: nan, 14: 0.1388967, 15: 27.0, 16: nan, 17: 0.12415153, 18: 204.0, 19: nan, 20: 0.120582916, 21: 129.0, 22: nan, 23: 0.05026767, 24: nan, 25: nan, 26: nan, 27: nan, 28: nan, 29: nan, 30: nan, 31: nan, 32: nan, 33: nan, 34: nan, 35: nan, 36: nan, 37: nan, 38: nan, 39: nan, 40: nan, 41: nan, 42: nan, 43: nan, 44: nan, 45: nan, 46: nan, 47: nan, 48: nan, 49: nan, 50: nan}
+'''
+'''
+target_dict = {'k1':'v1', 'k2':'v2', 'k3':'v3'}
+new_keys = ['k4','k5','k6']
+
+for i in range(0,100):
+    for key,n_key in zip(target_dict.keys(), new_keys):
+        target_dict[n_key] = target_dict.pop(key)
+        #print(key,n_key)
+
+    print(target_dict)
+'''
+#print(patent_topicDist)
+'''
+columns = np.array(['pat_publn_id', 'publn_auth', 'publn_nr', 'publn_date', 'publn_claims', 'publn_title', 
+                    'publn_abstract', 'nb_IPC', 'abstract_clean', 'topic_list', 
+                    '1st_topic_id', '1st_topic_name', '1st_topic_cover', ...])
+'''
+
+'''
+attrs = {0: {"attr1": 20, "attr2": "nothing"}, 1: {"attr2": 3}}
+nx.set_node_attributes(G, attrs)
+G.nodes[0]["attr1"]
+20
+G.nodes[0]["attr2"]
+'nothing'
+G.nodes[1]["attr2"]
+3
+G.nodes[2]
+{}
+'''
+#plain.add_nodes_from(patent_topicDist.T[0])
+#plain.add_nodes_from(patent_topicDist.T[0], test = 'lala')
+
+
+
+
+'''
 print(len(plain.nodes))
 print(plain.nodes.data)
+print(plain.nodes[487838990], "\n \n")
+'''
+'''
+G = nx.path_graph(3)
+bb = nx.betweenness_centrality(G)
+bb = [0, 1, 0]
+print(isinstance(bb, dict))
 
+nx.set_node_attributes(G, bb, "betweenness")
+print(G.nodes[0]["betweenness"])
+print(G.nodes[1]["betweenness"])
+print(G.nodes[2]["betweenness"])
+print(bb)
+'''
 '''
 unique, counts = np.unique(cited_pat_publn_id, return_counts=True)
 print(np.asarray((unique, counts)).T)
