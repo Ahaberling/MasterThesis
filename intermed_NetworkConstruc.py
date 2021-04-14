@@ -170,7 +170,7 @@ print(plain.nodes[487838990])
 #print(plain.nodes[487839054]["publn_claims"])
 
 
-
+### edge investigation ###
 
 #plain.add_nodes_from(patent_topicDist.T[0], test = 'lala')
 
@@ -178,20 +178,41 @@ set_nodeID = set(patent_topicDist.T[0])
 set_edgeID1 = set(cited_pat_publn_id.T[0])
 set_edgeID2 = set(cited_pat_publn_id.T[1])
 
-print(set_edgeID1.issubset(set_nodeID))                 # So, every source of our edge has a corresponding node
-print(set_edgeID1.issubset(set_edgeID2), "\n")          # So, not every target of our edge has a corresponding nodes
+print("\n", 'Every edge source has a corresponding node in the patent data: ', set_edgeID1.issubset(set_nodeID))                 # So, every source of our edge has a corresponding node
+print('Every edge target has a corresponding node in the patent data: ', set_edgeID1.issubset(set_edgeID2))          # So, not every target of our edge has a corresponding nodes
 
-print(len(set_edgeID2.difference(set_nodeID)))          # what is in x that is not in y x.difference(y) / number of nodes that are cited in general (zeros not considered)
-print(len(set_edgeID2.intersection(set_nodeID)), "\n")  # what is in x that is also in y / number of nodes that are cited and present in the network
+print('# of nodes in the patent data: ', len(patent_topicDist))
+print('# of edges in the parent data: ', len(cited_pat_publn_id))
+print('# of unique edge sources: ', len(np.unique(cited_pat_publn_id.T[0])))
+print('# of unique edge targets: ', len(np.unique(cited_pat_publn_id.T[1])))
 
-print(len(parent))
-print(len(parent)-len(set_edgeID2.difference(set_nodeID))) # number of edges that are present in the network
+print('# of unique edge targets with no correpsonding node in the patent data: ',len(set_edgeID2.difference(set_nodeID)))          # what is in x that is not in y x.difference(y) / number of nodes that are cited in general (zeros not considered)
+print('# of unique edge targets with correpsonding node in the patent data: ', len(set_edgeID2.intersection(set_nodeID)))  # what is in x that is also in y / number of nodes that are cited and present in the network
+
+print('# of edges with source and target in the patent data: ', len(parent)-len(set_edgeID2.difference(set_nodeID))) # number of edges that are present in the network
+# 18548 - 12950
 
 #print(cited_pat_publn_id)
 
+### filtering the edges out that are not contained in the patent data ###
+
+
 intersec_edgeTarget = set_edgeID2.intersection(set_nodeID)
 
+print(intersec_edgeTarget)
 
+#I = cited_pat_publn_id[cited_pat_publn_id[:,1] in patent_topicDist.T[0] ]
+
+validEdges = []
+for i in range(len(cited_pat_publn_id)):
+    if cited_pat_publn_id[i,1] in patent_topicDist.T[0]:
+        validEdges.append(cited_pat_publn_id[i])
+        #print(cited_pat_publn_id[i])
+
+print(len(validEdges))
+print(cited_pat_publn_id[0])
+print(len(cited_pat_publn_id))
+print(patent_topicDist.T[0])
 '''
 #helper = 0
 
