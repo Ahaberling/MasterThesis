@@ -46,7 +46,7 @@ print(len(corpus))
 print(corpus[0])
 
 
-model = models.ldamodel.LdaModel(corpus, num_topics=300, id2word=dictionary, passes=15)
+model = models.ldamodel.LdaModel(corpus, num_topics=100, id2word=dictionary, passes=15)
 
 doc_affili = model.get_document_topics(corpus, minimum_probability=0.05, minimum_phi_value=None, per_word_topics=False)
 #print(doc_affili)

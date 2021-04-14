@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import re
+import sys
 
 pd.set_option('display.max_columns', None)
 
@@ -189,7 +190,7 @@ print('# of unique edge targets: ', len(np.unique(cited_pat_publn_id.T[1])))
 print('# of unique edge targets with no correpsonding node in the patent data: ',len(set_edgeID2.difference(set_nodeID)))          # what is in x that is not in y x.difference(y) / number of nodes that are cited in general (zeros not considered)
 print('# of unique edge targets with correpsonding node in the patent data: ', len(set_edgeID2.intersection(set_nodeID)))  # what is in x that is also in y / number of nodes that are cited and present in the network
 
-print('# of edges with source and target in the patent data: ', len(parent)-len(set_edgeID2.difference(set_nodeID))) # number of edges that are present in the network
+
 # 18548 - 12950
 
 #print(cited_pat_publn_id)
@@ -197,22 +198,128 @@ print('# of edges with source and target in the patent data: ', len(parent)-len(
 ### filtering the edges out that are not contained in the patent data ###
 
 
-intersec_edgeTarget = set_edgeID2.intersection(set_nodeID)
+#intersec_edgeTarget = set_edgeID2.intersection(set_nodeID)
 
-print(intersec_edgeTarget)
+#print(len(intersec_edgeTarget))
 
 #I = cited_pat_publn_id[cited_pat_publn_id[:,1] in patent_topicDist.T[0] ]
 
 validEdges = []
 for i in range(len(cited_pat_publn_id)):
     if cited_pat_publn_id[i,1] in patent_topicDist.T[0]:
-        validEdges.append(cited_pat_publn_id[i])
+        validEdges.append(tuple(cited_pat_publn_id[i]))
         #print(cited_pat_publn_id[i])
 
-print(len(validEdges))
-print(cited_pat_publn_id[0])
-print(len(cited_pat_publn_id))
-print(patent_topicDist.T[0])
+print('# of edges with source and target in the patent data: ', len(validEdges)) # number of edges that are present in the network
+
+#print(validEdges)
+
+plain.add_edges_from(validEdges)
+
+print('# of nodes in plain: ', plain.number_of_nodes())
+print('# of edges in plain: ', plain.number_of_edges())
+
+### bipartite network ###
+
+# node creation
+
+
+bipart.add_nodes_from(patent_topicDist.T[0])
+nx.set_node_attributes(bipart, outer_dic)
+
+topics = topics.to_numpy()
+print(topics[0])
+print(topics[0][0])
+print(topics[0][1][2])
+print(len(topics))
+
+topicNode_list = ['{0}_topic'.format(i) for i in range(len(topics))]
+
+print(topicNode_list)
+
+bipart.add_nodes_from(topicNode_list)
+
+print(bipart.number_of_nodes())
+
+
+
+# edge creation
+
+bipart_edges = np.empty((np.shape(patent_topicDist)[0],7), dtype = object)
+
+bipart_edges = patent_topicDist[:,(0,10,11,12,13,14,15,16,17,18)]
+
+
+print(bipart_edges)
+
+#bipart_edges.T[1] = ['{0}_topic'.format(int(i)) for i in bipart_edges.T[1]]
+bipart_edges.T[1] = ['{0}_topic'.format(int(i)) for i in bipart_edges.T[1]]
+#bipart_edges.T[4] = ['{0}_topic'.format(int(i)) for i in bipart_edges.T[4] if i != np.nan]
+
+c = 0
+for i in bipart_edges.T[4]:
+    if np.isfinite(i):
+        #print(i)
+        bipart_edges[c,4] = '{0}_topic'.format(int(i))
+        #print(bipart_edges.T[4,i])
+        #print(bipart_edges[c,4])
+    c = c + 1
+
+
+c = 0
+for i in bipart_edges.T[7]:
+    if np.isfinite(i):
+        #print(i)
+        bipart_edges[c,7] = '{0}_topic'.format(int(i))
+        #print(bipart_edges.T[4,i])
+        #print(bipart_edges[c,4])
+    c = c + 1
+
+#bipart_edges.T[4] = helper1
+
+#bipart_edges.T[7] = ['{0}_topic'.format(int(i)) for i in bipart_edges.T[7]]
+
+
+#print('done')
+#print(helper1)
+print(bipart_edges)
+#print(bipart_edges.T[1])
+#print(np.unique(bipart_edges.T[4], return_counts = True))
+#print(bipart_edges.T[4].type)
+#print(patent_topicDist.dtype)
+#print(patent_topicDist.T[4].dtype)
+#
+'''
+print(True in pd.isnull(bipart_edges.T[4]))
+
+nanPos_dict = dict(enumerate(pd.isnull(bipart_edges.T[4])))
+
+#print(nanPos_dict)
+
+nanList = []
+for i in nanPos_dict:
+    if nanPos_dict[i] == True:
+        nanList.append(i)
+
+print(nanList)  # [292, 593, 622, 832, 858, 891, 1066, 1269, 1341, 1350, 1355, 1505, 1783, 2053, 2334, 2648, 3001, 3003, 3031, 3244, 3249, 3665, 3666, 3765, 3836]
+'''
+#np.set_printoptions(threshold=sys.maxsize)
+
+#print(patent_topicDist[(292, 593, 622, 832, 858),:])
+
+
+
+#print(bipart_edges.T[2])
+
+#bipart_edges = bipart_edges[:,(0,)]
+
+
+
+#print(np.shape(patent_topicDist)[0])
+
+#print(cited_pat_publn_id[0])
+#print(len(cited_pat_publn_id))
+#print(patent_topicDist.T[0])
 '''
 #helper = 0
 
