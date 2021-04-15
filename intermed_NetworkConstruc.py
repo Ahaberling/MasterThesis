@@ -50,9 +50,10 @@ outer_keys = patent_topicDist[:,0]
 helper = int(len(patent_topicDist_prep.T[9:,:])/3)
 
 for i in range(1,helper+1):
-    inner_keys.append('{0}_topicID'.format(i))
-    inner_keys.append('{0}_topicName'.format(i))
-    inner_keys.append('{0}_topicCover'.format(i))
+    #inner_keys.append('{0}_topicID'.format(i))
+    inner_keys.append('TopicID_{0}'.format(i))
+    inner_keys.append('TopicName_{0}'.format(i))
+    inner_keys.append('TopicCover_{0}'.format(i))
     #print(i)
 
 #print(len(inner_keys))
@@ -224,7 +225,7 @@ print('# of edges in plain: ', plain.number_of_edges())
 # node creation
 
 
-bipart.add_nodes_from(patent_topicDist.T[0])
+bipart.add_nodes_from(patent_topicDist.T[0], bipartite=0)
 nx.set_node_attributes(bipart, outer_dic)
 
 topics = topics.to_numpy()
@@ -237,7 +238,18 @@ topicNode_list = ['{0}_topic'.format(i) for i in range(len(topics))]
 
 print(topicNode_list)
 
-bipart.add_nodes_from(topicNode_list)
+for i in bipart.nodes:
+    if bipart.nodes[i]['publn_title']:
+        del bipart.nodes[i]['publn_title']
+    if bipart.nodes[i]['publn_abstract']:
+        del bipart.nodes[i]['publn_abstract']
+    if bipart.nodes[i]['abstract_clean']:
+        del bipart.nodes[i]['abstract_clean']
+
+
+
+
+bipart.add_nodes_from(topicNode_list, bipartite=1)
 
 print(bipart.number_of_nodes())
 
@@ -275,6 +287,151 @@ for i in bipart_edges.T[7]:
         #print(bipart_edges[c,4])
     c = c + 1
 
+
+#print(bipart_edges.T)
+
+topic1_edges = [(i[0], i[1], {'Weight_1': i[3]}) for i in bipart_edges]
+topic2_edges = [(i[0], i[4], {'Weight_2': i[6]}) for i in bipart_edges]
+topic3_edges = [(i[0], i[7], {'Weight_3': i[9]}) for i in bipart_edges]
+'''
+print(topic1_edges)
+print(topic2_edges)
+print(topic3_edges)
+'''
+
+'''
+bipart.add_edges_from(topic1_edges)
+bipart.add_edges_from(topic2_edges)
+bipart.add_edges_from(topic3_edges)
+'''
+#print(bipart.edges)
+#print(topic1_edges)
+'''
+def isNan(string):
+    return string != string
+
+for i in topic3_edges:
+    #print(i[1])
+    if isNan(i[1]) == True:
+        print('nan')
+'''
+#print(topic2_edges)
+#print(len(topic3_edges))
+
+topic1_edges_clear = list(filter(lambda x: x[1] == x[1], topic1_edges))
+topic2_edges_clear = list(filter(lambda x: x[1] == x[1], topic2_edges))
+topic3_edges_clear = list(filter(lambda x: x[1] == x[1], topic3_edges))
+#print(len(topic3_edges_clear))
+'''
+for i in topic3_edges_clear:
+    #print(i[1])
+    if isNan(i[1]) == True:
+        print('nan')
+'''
+#                 [(1, 2, {'color': 'blue'}), (2, 3, {'weight': 8})]
+
+
+print(len(bipart.nodes))
+print(len(bipart.edges))
+bipart.add_edges_from(topic1_edges_clear)
+print(len(bipart.nodes))
+print(len(bipart.edges))
+print(len(topic1_edges) - len(topic1_edges_clear), '\n')
+
+bipart.add_edges_from(topic2_edges_clear)
+print(len(bipart.nodes))
+print(len(bipart.edges))
+print(len(topic2_edges) - len(topic2_edges_clear), '\n')
+
+bipart.add_edges_from(topic3_edges_clear)
+print(len(bipart.nodes))
+print(len(bipart.edges))
+print(len(topic3_edges) - len(topic3_edges_clear), '\n')
+
+
+
+print(nx.is_connected(bipart))
+
+bottom_nodes, top_nodes = nx.algorithms.bipartite.sets(bipart)
+
+print(bottom_nodes)
+print(len(bottom_nodes))
+print(top_nodes)
+print(len(top_nodes))
+
+
+top_nodes_check = {n for n, d in bipart.nodes(data=True) if d["bipartite"] == 1}
+bottom_nodes_check = set(bipart) - top_nodes_check
+
+print(bottom_nodes_check)
+print(len(bottom_nodes_check))
+print(top_nodes_check)
+print(len(top_nodes_check))
+
+print(bottom_nodes == bottom_nodes_check)
+print(top_nodes == top_nodes_check)
+
+print(round(nx.algorithms.bipartite.density(bipart, bottom_nodes_check), 2))
+print(round(nx.algorithms.bipartite.density(bipart, top_nodes_check), 2))
+
+topicSim_g_unweig = nx.algorithms.bipartite.projected_graph(bipart, bottom_nodes_check)
+topic_g_unweig = nx.algorithms.bipartite.projected_graph(bipart, top_nodes_check)
+
+#print(topicSim_g.nodes)
+print(len(topicSim_g_unweig.nodes))
+print(len(topicSim_g_unweig.edges))
+print(round(nx.density(topicSim_g_unweig), 2))
+
+#print(topic_g.nodes)
+print(len(topic_g_unweig.nodes))
+print(len(topic_g_unweig.edges))
+print(round(nx.density(topic_g_unweig), 2))
+
+'''
+topicSim_g = nx.algorithms.bipartite.generic_weighted_projected_graph(bipart, bottom_nodes_check, weight_function = )
+topic_g = nx.algorithms.bipartite.generic_weighted_projected_graph(bipart, top_nodes_check, weight_function = )
+'''
+
+#todo cant save graph, idk why. Guess: maybe it is the lda output column
+#todo check if it got appended to the graph as well.
+
+print(plain.nodes.data())
+
+
+
+print('\n', len(plain.nodes[487838651]))
+
+for i in plain.nodes:
+    del plain.nodes[i]['publn_title']
+    del plain.nodes[i]['publn_abstract']
+    del plain.nodes[i]['abstract_clean']
+
+
+#del plain.nodes[487838651]['topic_list']
+
+print(plain.nodes[487838651])
+print(len(plain.nodes[487838651]))
+
+
+
+
+#list(G.nodes(data=True))
+
+
+
+#print(plain[0])
+#print(plain.nodes[0][0])
+
+#plain = nx.path_graph(4)
+
+nx.write_gml(plain, r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\plain.gml')
+nx.write_gml(bipart, r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\bipart.gml')
+nx.write_gml(topicSim_g_unweig, r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\topicSim_g_unweig.gml')
+nx.write_gml(topic_g_unweig, r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\topic_g_unweig.gml')
+#nx.write_edgelist(plain, r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\plain.edgelist')
+#nx.write_gml(plain, "plain.gml")
+#nx.write_graphml_lxml(bipart, r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\bipart.graphml')
+
 #bipart_edges.T[4] = helper1
 
 #bipart_edges.T[7] = ['{0}_topic'.format(int(i)) for i in bipart_edges.T[7]]
@@ -282,13 +439,17 @@ for i in bipart_edges.T[7]:
 
 #print('done')
 #print(helper1)
-print(bipart_edges)
+#print(bipart_edges)
 #print(bipart_edges.T[1])
 #print(np.unique(bipart_edges.T[4], return_counts = True))
 #print(bipart_edges.T[4].type)
 #print(patent_topicDist.dtype)
 #print(patent_topicDist.T[4].dtype)
-#
+
+
+
+
+
 '''
 print(True in pd.isnull(bipart_edges.T[4]))
 
