@@ -390,6 +390,7 @@ print(round(nx.density(topic_g_unweig), 2))
 '''
 topicSim_g = nx.algorithms.bipartite.generic_weighted_projected_graph(bipart, bottom_nodes_check, weight_function = )
 topic_g = nx.algorithms.bipartite.generic_weighted_projected_graph(bipart, top_nodes_check, weight_function = )
+# Text Clustering using One-Mode Projection of Document-Word Bipartite Graphs Srivastava et al 2013
 '''
 
 #todo cant save graph, idk why. Guess: maybe it is the lda output column
@@ -430,6 +431,8 @@ print(len(validEdges))
 #print(np.unique(validEdges))
 print(len(set(validEdges)))
 #print(len(validEdges))
+
+#todo ionana phd
 
 
 nx.write_gml(plain, r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\plain.gml')
