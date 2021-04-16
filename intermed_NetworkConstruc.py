@@ -395,7 +395,7 @@ topic_g = nx.algorithms.bipartite.generic_weighted_projected_graph(bipart, top_n
 #todo cant save graph, idk why. Guess: maybe it is the lda output column
 #todo check if it got appended to the graph as well.
 
-print(plain.nodes.data())
+#print(plain.nodes.data())
 
 
 
@@ -423,6 +423,14 @@ print(len(plain.nodes[487838651]))
 #print(plain.nodes[0][0])
 
 #plain = nx.path_graph(4)
+
+
+print(validEdges)
+print(len(validEdges))
+#print(np.unique(validEdges))
+print(len(set(validEdges)))
+#print(len(validEdges))
+
 
 nx.write_gml(plain, r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\plain.gml')
 nx.write_gml(bipart, r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\bipart.gml')

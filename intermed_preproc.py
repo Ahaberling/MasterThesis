@@ -106,6 +106,10 @@ print(patent_topicDist_test.T)
 
 pd.DataFrame(patent_topicDist_test).to_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents_07_04_topicNameMissing.csv', index=None)
 
+#print('\n', patent_topicDist.T[6:9])
+print('\n', patent_topicDist[0:4,(6,8)])
+print('\n', topics[0:4])
+
 #random note
 
 '''
