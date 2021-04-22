@@ -432,7 +432,7 @@ print(len(validEdges))
 print(len(set(validEdges)))
 #print(len(validEdges))
 
-#todo ionana phd
+#todo still german patents in there
 
 
 nx.write_gml(plain, r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\plain.gml')

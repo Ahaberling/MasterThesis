@@ -45,8 +45,10 @@ corpus = [dictionary.doc2bow(abstract.split()) for abstract in patent_clean[:,8]
 print(len(corpus))
 print(corpus[0])
 
+#for i in range(50,450,50):
 
-model = models.ldamodel.LdaModel(corpus, num_topics=100, id2word=dictionary, passes=15)
+model = models.ldamodel.LdaModel(corpus, num_topics=10, id2word=dictionary, passes=15)
+
 
 doc_affili = model.get_document_topics(corpus, minimum_probability=0.05, minimum_phi_value=None, per_word_topics=False)
 #print(doc_affili)
@@ -68,8 +70,24 @@ patent_clean_topicDist.T[9,:] = doc_affili
 
 #print(patent_clean_topicDist.T)
 
-pd.DataFrame(patent_clean_topicDist).to_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents_07_04_topicDist.csv', index=None)
+#pd.DataFrame(patent_clean_topicDist).to_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents_07_04_topicDist.csv', index=None)
 
+
+
+topics = model.print_topics(num_topics= -1, num_words=8)
+#for topic in topics:
+    #print(topic)
+#print(topics[0])
+#print(len(topics))
+
+
+topics_arr = np.array(topics)
+
+print('Number of Topics: ', 325, '\n', topics_arr, '\n\n\n')
+#print(topics_arr)
+
+
+'''
 
 topics = model.print_topics(num_topics= -1, num_words=15)
 #for topic in topics:
@@ -77,11 +95,15 @@ topics = model.print_topics(num_topics= -1, num_words=15)
 #print(topics[0])
 #print(len(topics))
 
+
 topics_arr = np.array(topics)
+
+print(topics_arr)
 #print(topics_arr)
-pd.DataFrame(topics_arr).to_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents_07_04_topics.csv', index=None)
-
-
+'''
+#pd.DataFrame(topics_arr).to_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents_07_04_topics.csv', index=None)
+'''
+'''
 
 '''
 patent_clean['patent_topic_dist'] = 0
