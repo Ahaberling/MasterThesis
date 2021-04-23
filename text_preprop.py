@@ -13,6 +13,8 @@ patent = pd.read_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\O
 patent = patent.to_numpy()
 #print(np.shape(patent))            # (3844, 8)
 
+print(patent[:,7])
+print(np.unique(patent[:,7], return_counts=True))
 
 ### remove german patents ###
 

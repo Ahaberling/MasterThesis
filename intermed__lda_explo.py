@@ -5,7 +5,7 @@ import numpy as np
 from gensim import corpora, models
 
 import warnings
-warnings.filterwarnings('ignore')
+#warnings.filterwarnings('ignore')
 
 pd.set_option('display.max_columns', None)
 

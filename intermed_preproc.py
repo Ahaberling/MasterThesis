@@ -4,9 +4,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import re
 
+pd.set_option('display.max_columns', None)
+
 patent_topicDist = pd.read_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents_07_04_topicDist.csv', quotechar='"', skipinitialspace=True)
 topics = pd.read_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents_07_04_topics.csv', quotechar='"', skipinitialspace=True)
 parent = pd.read_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_backward_citations.csv', quotechar='"', skipinitialspace=True)
+
+print(parent, '\n')
 
 patent_topicDist = patent_topicDist.to_numpy()
 topics = topics.to_numpy()

@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import re
 import sys
+import pickle as pk
 
 pd.set_option('display.max_columns', None)
 
@@ -51,8 +52,8 @@ patent_window1 = patent_topicDist[patent_topicDist[:,3].astype('datetime64')+1 <
 
 print(np.sort(patent_window1[:,3]))
 print(len(patent_window1))
-
 '''
+
 
 '''
 for i in range(max_timeSpan-90):
@@ -77,7 +78,7 @@ print(len(patent_time_unique_filled))
 print(len(patent_time_unique_filled_90))
 
 '''
-'''
+
 window90by1 = {}
 len_window = []
 
@@ -141,10 +142,10 @@ print(len(window60by1))
 
 #print(len(patent_time_unique))
 print(sum(len_window)/len(len_window))
-'''
+
 #-- 90 days sliding by 7 day
 
-'''
+
 patent_time_unique = np.unique(patent_time)                                                                                 #  818
 patent_time_unique_filled = np.arange(np.min(patent_time_unique), np.max(patent_time_unique))                               # 6027
 patent_time_unique_filled_90 = patent_time_unique_filled[patent_time_unique_filled <= max(patent_time_unique_filled)-90]    # 5936
@@ -154,7 +155,7 @@ print(len(patent_time_unique))
 print(len(patent_time_unique_filled))
 print(len(patent_time_unique_filled_90))
 
-'''
+
 
 window90by7 = {}
 len_window = []
@@ -194,13 +195,13 @@ print(sum(len_window)/len(len_window))
 #patent_time_unique_filled = np.arange(np.min(patent_time_unique), np.max(patent_time_unique))                               # 6027
 
 patent_time_unique_filled_60 = patent_time_unique_filled[patent_time_unique_filled <= max(patent_time_unique_filled)-60]    # 5936
-'''
+
 
 print(len(patent_time_unique))
 print(len(patent_time_unique_filled))
 print(len(patent_time_unique_filled_90))
 
-'''
+
 
 window60by7 = {}
 len_window = []
@@ -231,3 +232,26 @@ print(len(window60by7['window_0']))
 print(len(window60by7))
 #print(len(patent_time_unique))
 print(sum(len_window)/len(len_window))
+
+
+
+
+filename = 'window90by1'
+outfile = open(filename,'wb')
+pk.dump(window90by1,outfile)
+outfile.close()
+
+filename = 'window60by1'
+outfile = open(filename,'wb')
+pk.dump(window60by1,outfile)
+outfile.close()
+
+filename = 'window90by7'
+outfile = open(filename,'wb')
+pk.dump(window90by7,outfile)
+outfile.close()
+
+filename = 'window60by7'
+outfile = open(filename,'wb')
+pk.dump(window60by7,outfile)
+outfile.close()
