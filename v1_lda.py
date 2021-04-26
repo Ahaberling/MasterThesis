@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from gensim import corpora, models
+#import pyLDAvis
 
 
 
@@ -16,10 +17,10 @@ patent_clean = patent_clean.to_numpy()
 #--- Preparing dictionary and corpus for lda ---#
 
 dictionary = corpora.Dictionary([d.split() for d in patent_clean[:,8]])
-#print(dictionary)       # 5480 unique tokens
+print(dictionary)       # 5480 unique tokens
 
 corpus = [dictionary.doc2bow(abstract.split()) for abstract in patent_clean[:,8]]
-#print(len(corpus))      # 3781 corpora
+print(len(corpus))      # 3781 corpora
 
 
 
@@ -45,4 +46,10 @@ topics_arr = np.array(topics)
 
 #print('Number of Topics: ', 325, '\n', topics_arr, '\n\n\n')
 
+
+''' # requires IPython 1.0+
+pyLDAvis.enable_notebook() 
+vis = pyLDAvis.gensim.prepare(lda_model, corpus, dictionary=lda_model.id2word)
+vis
+'''
 pd.DataFrame(topics_arr).to_csv(directory + 'patent_topics.csv', index=None)

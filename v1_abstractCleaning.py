@@ -2,6 +2,8 @@ import re
 import nltk
 import pandas as pd
 import numpy as np
+from gensim import models
+import spacy
 
 
 
@@ -95,7 +97,12 @@ stop_words = nltk.corpus.stopwords.words('english')
 stop_words.extend(['from', 'subject', 're', 'edu', 'use', 'not', 'would', 'say', 'could', '_', 'be', 'know', 'good',
                    'go', 'get', 'do', 'done', 'try', 'many', 'some', 'nice', 'thank', 'think', 'see', 'rather', 'easy',
                    'easily', 'lot', 'lack', 'make', 'want', 'seem', 'run', 'need', 'even', 'right', 'line', 'even',
-                   'also', 'may', 'take', 'come'])
+                   'also', 'may', 'take', 'come']) #todo adapt
+custom_filter = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve',
+                 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth',
+                 'eleventh', 'twelfth',
+                 'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii',
+                 'robot'] #todo adapt and unionize
 
 def process_text(text):
 
@@ -104,24 +111,22 @@ def process_text(text):
 
     tokenized_text = nltk.word_tokenize(text)       # Tokenizing the text
 
-    # Define custom filter
-    custom_filter = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve',
-                     'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth',
-                     'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii']
+
+    # Apply stop_words filter
+    clean_text = [word for word in tokenized_text if word not in stop_words]
 
     # Apply custom filter
-    clean_text = [word for word in tokenized_text if word not in custom_filter]
+    clean_text = [word for word in clean_text if word not in custom_filter]
 
-    # Remove nltk-english-stopwords and stem each word to its root
-    clean_text = [
-        stemmer.stem(word) for word in clean_text if word not in stop_words
-    ]
 
-    # Define steemed filter
-    steemed_filter = ['robot']      # adjust if smapling changes and 'clean' is found in every abstract
+    # Stem each word to its root
+    clean_text = [stemmer.stem(word) for word in clean_text]
 
-    # Apply steemed filter
-    clean_text = [word for word in clean_text if word not in steemed_filter]
+    # Apply stop_words filter
+    clean_text = [word for word in clean_text if word not in stop_words]
+
+    # Apply custom filter
+    clean_text = [word for word in clean_text if word not in custom_filter]
 
     return clean_text
 
