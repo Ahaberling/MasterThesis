@@ -91,6 +91,11 @@ patent_cleanAbs[:,:-1] = patent
 nltk.download('punkt')              # tokenizer
 nltk.download('stopwords')          # stopwords filter
 stemmer = nltk.PorterStemmer()
+stop_words = nltk.corpus.stopwords.words('english')
+stop_words.extend(['from', 'subject', 're', 'edu', 'use', 'not', 'would', 'say', 'could', '_', 'be', 'know', 'good',
+                   'go', 'get', 'do', 'done', 'try', 'many', 'some', 'nice', 'thank', 'think', 'see', 'rather', 'easy',
+                   'easily', 'lot', 'lack', 'make', 'want', 'seem', 'run', 'need', 'even', 'right', 'line', 'even',
+                   'also', 'may', 'take', 'come'])
 
 def process_text(text):
 
@@ -109,7 +114,7 @@ def process_text(text):
 
     # Remove nltk-english-stopwords and stem each word to its root
     clean_text = [
-        stemmer.stem(word) for word in clean_text if word not in nltk.corpus.stopwords.words('english')
+        stemmer.stem(word) for word in clean_text if word not in stop_words
     ]
 
     # Define steemed filter

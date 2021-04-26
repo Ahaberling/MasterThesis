@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import re
-
+import sys
 
 
 #--- Initialization ---#
@@ -32,7 +32,7 @@ parent_IPC          = parent_IPC.to_numpy()
 # three columns for each topic represented in a patent          topic_id, topic_name, topic_coverage, topic_id, ... desc ordered by coverage
 # Note: Topic name not inserted yet. 'None' value in place
 
-'''
+
 ### Eliminating round brackets ###
 topic_reg_list = []
 
@@ -73,11 +73,11 @@ for i in topic_reg_list:
         tuple = (i[j], i[j + 1])
         tuple_list.append(tuple)
 
-    ''''''
+    '''
     ggg = patent_topicDist[c, 9]
     print(tuple_list)                      
     print(ggg)
-    ''''''
+    '''
     # todo this is the same except for the ''. upper code seems kinda redundant
 
     # Sort by coverage
@@ -107,113 +107,82 @@ for i in topic_reg_list:
 #print(np.shape(patent_topicDist_filled))              # (3781, 52)
 #print(sum(x is not None for x in patent_topicDist_filled[:,51])) # check if all created columns are used (they are)
 
-'''
 
 
 #--- Append IPC ---#
 
-patent_topicDist_transf    = pd.read_csv(directory + 'patent_topicDist_transf.csv', quotechar='"', skipinitialspace=True)
-patent_topicDist_transf = patent_topicDist_transf.to_numpy()
+# Each Patent has at least one IPC. These IPC'S are appended to the patent_topicDist_filled array in order to facilitate
+# a brief, heuristic evaluation of topic modeling. Additionally they might be used to conceptualize first basic
+# recombination and diffusion measures
 
-#print(patent_topicDist_transf)
-#print(patent_IPC)
+# Structure aimed for:
+# columns of patent_topicDist_filled, IPC, subcategory, subcategory, IPC, subcategory, subcategory, IPC, ...
 
 
-### Prepare new array ###
-val, count = np.unique(patent_topicDist_transf[:,0], return_counts=True)
+### Review patent_topicDist_filled and patent_IPC ###
 
+val, count = np.unique(patent_topicDist_filled[:,0], return_counts=True)
 #print(len(val))                            # 3781
-#print(len(patent_topicDist_transf))        # 3781 all ids of patent_topicDist_transf are unique
+#print(len(patent_topicDist_transf))        # 3781 -> all ids of patent_topicDist_transf are unique
 
 val, count = np.unique(patent_IPC[:,0], return_counts=True)
-
-#print(len(val))                             # 3844
+#print(len(val))                             # 3844 -> There are patents in patent_IPC that have been cleaned earlier (german and france abstracts)
 #print(len(patent_IPC))                      # 9596
-#print(max(count))                           # 13
-# 13 * 3 (relevant columns in patent_IPC) = 39 additional columns are needed in the new array
+
+
+### Clean patent_IPC (remove patents with german and france abstracts)
+patent_IPC_clean = [ i[0] for i in patent_IPC if i[0] in patent_topicDist_filled[:,0]]
+
+val, count = np.unique(patent_IPC_clean, return_counts=True)
+#print(len(val))                             # 3781
+#print(len(patent_IPC_clean))                # 9449
+#print(max(count))                           # 13 -> patents have at most 13 IPC's
+
+# IPC's consist of 3 colums (IPC, subcategory, subcategory)
+# 13 * 3 = 39 additional columns are needed in the new array
 
 new_space_needed = max(count)*3              # 39
 
-patent_join = np.empty((np.shape(patent_topicDist_transf)[0],np.shape(patent_topicDist_transf)[1]+new_space_needed), dtype=object)
-patent_join[:,:-new_space_needed] = patent_topicDist_transf
+#print(np.argmax(count))                     #      3485 index of highest value in count
+#print(val[np.argmax(count)])                # 478449443 id of with highest value in count
+#print(patent_IPC[patent_IPC[:,0] == val[np.argmax(count)]])
 
-#print(patent_join.T)
-#print(np.shape(patent_topicDist_transf))    # (3781, 52)
+
+### Prepare new array patent_join ###
+patent_join = np.empty((np.shape(patent_topicDist_filled)[0],np.shape(patent_topicDist_filled)[1]+new_space_needed), dtype=object)
+patent_join[:,:-new_space_needed] = patent_topicDist_filled
+
+#print(np.shape(patent_topicDist_filled))    # (3781, 52)
 #print(np.shape(patent_join))                # (3781, 91)
 
-#print((patent_IPC))
+### Fill new array ###
 
 count_list = []
-
+count_l = 0
 
 for i in patent_IPC:
 
+    if i[0] in patent_join[:,0]:                        # For each row in patent_IPC, check if id in patent_join (identical to patent_topicDist_filled)
+        count_l = count_list.count(i[0])                # Retrieve how often the id has been seen yet (how often ipc's where appended already
 
-    if i[0] in patent_join[:,0]:
-        count = count_list.count(i[0])
-        #print(count)
+        #if patent_join[patent_join[:,0] == i[0],-(new_space_needed-count_l*3)] == None:
 
-        if patent_join[patent_join[:,0] == i[0],-(new_space_needed+count)] == None:
-            patent_join[patent_join[:,0] == i[0],-(new_space_needed+count)]         = i[1]
-            patent_join[patent_join[:,0] == i[0],-(new_space_needed+count-1)]       = i[2]
-            patent_join[patent_join[:,0] == i[0],-(new_space_needed+count-2)]       = i[3]
+        patent_join[patent_join[:,0] == i[0],-(new_space_needed-count_l*3)]         = i[1]
+        patent_join[patent_join[:,0] == i[0],-(new_space_needed-count_l*3-1)]       = i[2]
+        patent_join[patent_join[:,0] == i[0],-(new_space_needed-count_l*3-2)]       = i[3]
 
     count_list.append(i[0])
 
 
-#print(patent_join.T[new_space_needed:new_space_needed+5,:])
-print(patent_join[:,51])
-print(len(patent_join))
-print(max(patent_join[:,51]))
-print(sum(x is not None for x in patent_join[:,51])) # check if all created columns are used (they are)
-
-newlist = [x for x in patent_join[:,50] if np.isnan(x) == False]
-print(newlist)
-
-'''
-### Keep patent_IPC only if ids in patent_join ###
-
-#patent_IPC_clean = patent_IPC[patent_IPC[:,0] in patent_join[:,0] ]
-
-removal_list = []
-for i in patent_IPC[:,0]:
-    if i not in patent_join[:,0]:
-        removal_list.append(i)
-
-print(len(removal_list))
-print(len(patent_IPC))
-#patent_IPC_clean = np.delete(patent_IPC, removal_list)
-#print(len(patent_IPC_clean))
-'''
-'''
-
-''''''
-comp_list = []
-for i in range(len(patent)):
-    if patent[i,0] in patent_ipc[:,0]:
-        comp_list.append(patent[i,0])
-
-print(len(comp_list))''''''
-
-
-patent_helper = np.empty((np.shape(patent_topicDist_transf)[0],max(count)*3+1), dtype=object)
-
-patent_helper[:,0] = patent_topicDist_transf[:,0]
-
-#print(patent_helper.T)
-
-#for i in patent[:,0]:
-'''
-
-
-
-
-
+### check if all created columns are used ###
+#print(sum(x is not None for x in patent_join[:,90]))       they are
+#print(patent_join[patent_join[:,0] == 478449443])
+#print(patent_join[patent_join[:,0] == val[np.argmax(count)]])
 
 
 
 #--- Save transformation and IPC appendix---#
 
-#pd.DataFrame(patent_topicDist_filled).to_csv(directory + 'patent_topicDist_transf.csv', index=None)
+pd.DataFrame(patent_join).to_csv(directory + 'patent_lda_ipc.csv', index=None)
 
 

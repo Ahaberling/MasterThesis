@@ -7,11 +7,11 @@ import pickle as pk
 
 directory = 'D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots/'
 
-patent_topicDist = pd.read_csv( directory + 'patent_topicDist_transf.csv', quotechar='"', skipinitialspace=True)
+patent_lda_ipc = pd.read_csv( directory + 'patent_lda_ipc.csv', quotechar='"', skipinitialspace=True)
 #topics = pd.read_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents_07_04_topics.csv', quotechar='"', skipinitialspace=True)
 #parent = pd.read_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_backward_citations.csv', quotechar='"', skipinitialspace=True)
 
-patent_topicDist = patent_topicDist.to_numpy()
+patent_lda_ipc = patent_lda_ipc.to_numpy()
 #parent = parent.to_numpy()
 
 window90by1_bool = False
@@ -22,7 +22,7 @@ window60by7_bool = False
 
 #--- Overview ---#
 
-patent_time = patent_topicDist[:,3].astype('datetime64')
+patent_time = patent_lda_ipc[:,3].astype('datetime64')
 
 #print(min(patent_time))        # ealiest day with publication 2001-08-01
 #print(max(patent_time))        # latest  day with publication 2018-01-31
@@ -58,7 +58,7 @@ if window90by1_bool == True:
         lower_limit = i
         upper_limit = i + 90
 
-        patent_window = patent_topicDist[(patent_topicDist[:, 3].astype('datetime64') < upper_limit) & (patent_topicDist[:, 3].astype('datetime64') >= lower_limit)]
+        patent_window = patent_lda_ipc[(patent_lda_ipc[:, 3].astype('datetime64') < upper_limit) & (patent_lda_ipc[:, 3].astype('datetime64') >= lower_limit)]
         len_window.append(len(patent_window))
 
         window90by1['window_{0}'.format(c)] = patent_window
@@ -93,7 +93,7 @@ if window60by1_bool == True:
         lower_limit = i
         upper_limit = i + 60
 
-        patent_window = patent_topicDist[(patent_topicDist[:, 3].astype('datetime64') < upper_limit) & (patent_topicDist[:, 3].astype('datetime64') >= lower_limit)]
+        patent_window = patent_lda_ipc[(patent_lda_ipc[:, 3].astype('datetime64') < upper_limit) & (patent_lda_ipc[:, 3].astype('datetime64') >= lower_limit)]
         len_window.append(len(patent_window))
 
         window60by1['window_{0}'.format(c)] = patent_window
@@ -128,7 +128,7 @@ if window90by7_bool == True:
             lower_limit = i
             upper_limit = i + 90
 
-            patent_window = patent_topicDist[(patent_topicDist[:, 3].astype('datetime64') < upper_limit) & (patent_topicDist[:, 3].astype('datetime64') >= lower_limit)]
+            patent_window = patent_lda_ipc[(patent_lda_ipc[:, 3].astype('datetime64') < upper_limit) & (patent_lda_ipc[:, 3].astype('datetime64') >= lower_limit)]
             len_window.append(len(patent_window))
 
             window90by7['window_{0}'.format(c)] = patent_window
@@ -165,7 +165,7 @@ if window60by7_bool == True:
             lower_limit = i
             upper_limit = i + 60
 
-            patent_window = patent_topicDist[(patent_topicDist[:, 3].astype('datetime64') < upper_limit) & (patent_topicDist[:, 3].astype('datetime64') >= lower_limit)]
+            patent_window = patent_lda_ipc[(patent_lda_ipc[:, 3].astype('datetime64') < upper_limit) & (patent_lda_ipc[:, 3].astype('datetime64') >= lower_limit)]
             len_window.append(len(patent_window))
 
             window60by7['window_{0}'.format(c)] = patent_window
