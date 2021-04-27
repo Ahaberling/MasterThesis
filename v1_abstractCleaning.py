@@ -104,6 +104,8 @@ custom_filter = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight',
                  'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii',
                  'robot'] #todo adapt and unionize
 
+
+
 def process_text(text):
 
     text = re.sub('[^A-Za-z]', ' ', text.lower())   # Make all the strings lowercase and remove non alphabetic characters
@@ -114,7 +116,6 @@ def process_text(text):
 
     # Apply stop_words filter
     clean_text = [word for word in tokenized_text if word not in stop_words]
-
     # Apply custom filter
     clean_text = [word for word in clean_text if word not in custom_filter]
 
@@ -122,11 +123,12 @@ def process_text(text):
     # Stem each word to its root
     clean_text = [stemmer.stem(word) for word in clean_text]
 
+    '''
     # Apply stop_words filter
     clean_text = [word for word in clean_text if word not in stop_words]
-
     # Apply custom filter
     clean_text = [word for word in clean_text if word not in custom_filter]
+    '''
 
     return clean_text
 
@@ -137,6 +139,7 @@ abstracts_clean = np.array([[]])
 i = 0
 
 for abst in patent_cleanAbs.T[6]:
+
     abstracts_clean = np.append(abstracts_clean, ' '.join(process_text(abst)))
     i = i+1
     if i % 100 == 0:

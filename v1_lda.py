@@ -27,9 +27,17 @@ print(len(corpus))      # 3781 corpora
 #--- LDA ---#
 
 print('lda staring')
-model = models.ldamodel.LdaModel(corpus, num_topics=325, id2word=dictionary, passes=15)
+lda_model = models.ldamodel.LdaModel(corpus, num_topics=325, id2word=dictionary, passes=15)
 print('lda done')
-doc_affili = model.get_document_topics(corpus, minimum_probability=0.05, minimum_phi_value=None, per_word_topics=False)
+doc_affili = lda_model.get_document_topics(corpus, minimum_probability=0.05, minimum_phi_value=None, per_word_topics=False)
+
+#--- Perplexity & Coherence ---#
+print('\nPerplexity: ', lda_model.log_perplexity(corpus))  # a measure of how good the model is. lower the better.
+
+# Compute Coherence Score
+coherence_model_lda = models.coherencemodel.CoherenceModel(model=lda_model, corpus=corpus, coherence='u_mass')
+coherence_lda = coherence_model_lda.get_coherence()
+print('\nCoherence Score: ', coherence_lda)
 
 
 ### Append document topic distribution and save ###
@@ -41,7 +49,7 @@ pd.DataFrame(patent_topicDist).to_csv(directory + 'patent_topicDist.csv', index=
 
 
 ### Save topics ###
-topics = model.print_topics(num_topics= -1, num_words=8)
+topics = lda_model.print_topics(num_topics= -1, num_words=8)
 topics_arr = np.array(topics)
 
 #print('Number of Topics: ', 325, '\n', topics_arr, '\n\n\n')
