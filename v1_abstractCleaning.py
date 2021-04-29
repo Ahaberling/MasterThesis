@@ -104,6 +104,22 @@ custom_filter = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight',
                  'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii',
                  'robot'] #todo adapt and unionize
 
+abstracts = patent[:,6]
+
+'''
+# Build the bigram and trigram models
+bigram = models.Phrases(abstracts, min_count=1, threshold=2) # higher threshold fewer phrases.
+trigram = models.Phrases(bigram[abstracts], threshold=2)
+
+# Faster way to get a sentence clubbed as a trigram/bigram
+bigram_mod = models.phrases.Phraser(bigram)
+trigram_mod = models.phrases.Phraser(trigram)
+
+def make_bigrams(texts):
+    return [bigram_mod[doc] for doc in texts]
+def make_trigrams(texts):
+    return [trigram_mod[bigram_mod[doc]] for doc in texts]
+'''
 
 
 def process_text(text):
@@ -113,6 +129,8 @@ def process_text(text):
 
     tokenized_text = nltk.word_tokenize(text)       # Tokenizing the text
 
+    #bigram_text = bigram_mod[tokenized_text]
+    #trigram_text = trigram_mod[bigram_text]
 
     # Apply stop_words filter
     clean_text = [word for word in tokenized_text if word not in stop_words]
@@ -132,6 +150,8 @@ def process_text(text):
 
     return clean_text
 
+def process_text_lemma():
+    return
 
 
 ### Applying defined function on every abstract ###
@@ -141,20 +161,31 @@ i = 0
 for abst in patent_cleanAbs.T[6]:
 
     abstracts_clean = np.append(abstracts_clean, ' '.join(process_text(abst)))
+    #abstracts_clean = np.append(abstracts_clean, process_text(abst))
     i = i+1
     if i % 100 == 0:
         print(i, ' / ', len(patent_cleanAbs.T[6]))
 
     # Small subsample:
-    #if i >= 3:
-        #break
+    if i >= 3:
+        break
 print(len(patent_cleanAbs.T[6]), ' / ', len(patent_cleanAbs.T[6]))
+
+#print(patent_cleanAbs[0:3,6])
+print(abstracts_clean)
+
+'''
+for i in abstracts_clean:
+    if '_' in i:
+        print(i)
+'''
 
 # Small subsample:
 #patent_cleanAbs = patent_cleanAbs[0:3,]
 
-
+'''
 ### Append cleaned abstracts and save ###
 patent_cleanAbs.T[8:,] = abstracts_clean
 pd.DataFrame(patent_cleanAbs).to_csv(directory +'clean_patents.csv', index=None)
 
+'''
