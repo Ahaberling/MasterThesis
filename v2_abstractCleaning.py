@@ -21,6 +21,66 @@ if __name__ == '__main__':
     #print(np.shape(patent))            # (3844, 8)
 
 
+#--- Patent investigation ---#
+
+    # Identifying german and france patents and patents including the term 'robot' or 'clean'
+    # Idea: Data is said to be sampled regarding cleaning robots. If these terms occur in every patent,
+    # then they might as well be excluded from Topic Modelling
+
+    check_list_ger = []
+    check_list_fr = []
+    check_list_robot = []
+    check_list_clean = []
+
+    for i in range(len(patent[:,6])):
+
+       # German abstract check
+        regexp = re.compile(r'\sein')
+        if regexp.search(patent[i,6]):
+            check_list_ger.append(i)
+
+       # France abstract check
+        regexp = re.compile(r'\sune\s')
+        if regexp.search(patent[i,6]):
+            check_list_fr.append(i)
+
+        # 'robot' abstract check
+        regexp = re.compile('robot')
+        if regexp.search(patent[i, 6]):
+            check_list_robot.append(i)
+
+       # 'clean' abstract check
+        regexp = re.compile('clean')
+        if regexp.search(patent[i,6]):
+            check_list_clean.append(i)
+
+    #print(len(removal_list_ger))    #   48/3844 German patents
+    #print(len(removal_list_fr))     #   15/3844 France patents
+
+    #print(len(check_list_robot))    # 3844/3844 patents including 'robot'
+    #print(len(check_list_clean))    #  398/3844 patents including 'clean'
+                                     # todo maybe 'clean' should not be removed in text preprop, ask about
+                                     # sampling method -> better sampling necessary?
+
+
+
+    #--- Removing non-english patents ---#
+
+    # Idea: non-english patents bias topic modeling based on (mostly) english abstracts
+
+    removal_list_all = []
+    removal_list_all.append(check_list_ger)
+    removal_list_all.append(check_list_fr)
+    removal_list_all = [item for sublist in removal_list_all for item in sublist]
+
+    patent = np.delete(patent, removal_list_all, 0)
+
+    #print(len(removal_list_all))    # 48 + 15 = 63 abstracts are non-english and removed 63/3844
+    #print(len(patent))              # 3844 - 63 = 3781 patents remaining
+
+
+
+
     ### New Array ###
     patent_cleanAbs = np.empty((np.shape(patent)[0],np.shape(patent)[1]+1), dtype = object) # todo revisite and decide on dtype
     patent_cleanAbs[:,:-1] = patent
@@ -114,6 +174,18 @@ if __name__ == '__main__':
     from nltk.corpus import stopwords
     stop_words = stopwords.words('english')
     stop_words.extend(['from', 'subject', 're', 'edu', 'use'])
+
+    stop_words.extend(['from', 'subject', 're', 'edu', 'use', 'not', 'would', 'say', 'could', '_', 'be', 'know', 'good',
+                   'go', 'get', 'do', 'done', 'try', 'many', 'some', 'nice', 'thank', 'think', 'see', 'rather', 'easy',
+                   'easily', 'lot', 'lack', 'make', 'want', 'seem', 'run', 'need', 'even', 'right', 'line', 'even',
+                   'also', 'may', 'take', 'come']) #todo adapt
+
+    stop_words.extend(['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve',
+                 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth',
+                 'eleventh', 'twelfth',
+                 'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii',
+                 'robot'])
+
 
     # Define functions for stopwords, bigrams, trigrams and lemmatization
 
@@ -228,9 +300,9 @@ if __name__ == '__main__':
     grid = {}
     grid['Validation_Set'] = {}
     # Topics range
-    min_topics = 2
-    max_topics = 11
-    step_size = 1
+    min_topics = 25
+    max_topics = 425
+    step_size = 25
     topics_range = range(min_topics, max_topics, step_size)
     # Alpha parameter
     alpha = list(np.arange(0.01, 1, 0.3))
@@ -258,9 +330,13 @@ if __name__ == '__main__':
 
     ###### working fine untio here
 
+
+    print(len(corpus_sets), len(topics_range), len(alpha), len(beta))
+
+
     # Can take a long time to run
     if 1 == 1:
-        pbar = tqdm.tqdm(total=540)
+        pbar = tqdm.tqdm(total=960)
 
         # iterate through validation corpuses
         for i in range(len(corpus_sets)):
@@ -288,19 +364,20 @@ if __name__ == '__main__':
         pd.DataFrame(model_results).to_csv('lda_tuning_results.csv', index=False)
         pbar.close()
 
-        print('first loop worked')
-        '''
-                lda_model = models.LdaMulticore(corpus=corpus,
-                                                       id2word=id2word,
-                                                       num_topics=8,
-                                                       random_state=100,
-                                                       chunksize=100,
-                                                       passes=10,
-                                                       alpha=0.01,
-                                                       eta=0.9)
-        
-                coherence_model_lda = CoherenceModel(model=lda_model, texts=data_lemmatized, dictionary=id2word,
-                                                     coherence='c_v')
-                coherence_lda = coherence_model_lda.get_coherence()
-                print('\nCoherence Score: ', coherence_lda)  # baseline with sample(100): 0.33683232393956486
-         '''
+
+
+    '''
+    lda_model = models.LdaMulticore(corpus=corpus,
+                                           id2word=id2word,
+                                           num_topics=8,
+                                           random_state=100,
+                                           chunksize=100,
+                                           passes=10,
+                                           alpha=0.01,
+                                           eta=0.9)
+
+    coherence_model_lda = CoherenceModel(model=lda_model, texts=data_lemmatized, dictionary=id2word,
+                                         coherence='c_v')
+    coherence_lda = coherence_model_lda.get_coherence()
+    print('\nCoherence Score: ', coherence_lda)  # baseline with sample(100): 0.33683232393956486
+    '''
