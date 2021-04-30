@@ -11,7 +11,12 @@ if __name__ == '__main__':
 
 #--- Initialization ---#
 
-    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots/')
+    nltk.download('punkt')              # tokenizer
+    nltk.download('stopwords')          # stopwords filter
+
+    os.chdir('C:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots/')
+
+#C:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots
 
     patent = pd.read_csv('cleaning_robot_EP_patents.csv', quotechar='"', skipinitialspace=True)
     patent = patent.to_numpy()
@@ -167,6 +172,13 @@ if __name__ == '__main__':
     bigram_mod = models.phrases.Phraser(bigram)
     trigram_mod = models.phrases.Phraser(trigram)
 
+    print(trigram_mod[bigram_mod[tokenized_abst[0]]])
+    print(trigram_mod[bigram_mod[tokenized_abst[1]]])
+    print(trigram_mod[bigram_mod[tokenized_abst[2]]])
+    print(trigram_mod[bigram_mod[tokenized_abst[3]]])
+    print(trigram_mod[bigram_mod[tokenized_abst[4]]])
+    print(trigram_mod[bigram_mod[tokenized_abst[5]]])
+
 
     # NLTK Stop words
     # import nltk
@@ -219,6 +231,7 @@ if __name__ == '__main__':
     data_words_bigrams = make_bigrams(data_words_nostops)
     #print(data_words_bigrams)
 
+    # todo check if bigrams at right place. Do we want 'an_independent_claim' and 'also_included' to be tokens? (I assume they are not cleaned afterwards)
 
     # Initialize spacy 'en' model, keeping only tagger component (for efficiency)
     nlp = spacy.load("en_core_web_sm", disable=['parser', 'ner'])
@@ -227,7 +240,7 @@ if __name__ == '__main__':
 
     # Do lemmatization keeping only noun, adj, vb, adv
     data_lemmatized = lemmatization(data_words_bigrams, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV'])
-    print(data_lemmatized)
+    #print(data_lemmatized)
 
 
     import gensim.corpora as corpora
@@ -255,7 +268,7 @@ if __name__ == '__main__':
     # Build LDA model
     lda_model = models.LdaMulticore(corpus=corpus,
                                            id2word=id2word,
-                                           num_topics=10,
+                                           num_topics=325,
                                            random_state=100,
                                            chunksize=100,
                                            passes=10,
@@ -267,6 +280,8 @@ if __name__ == '__main__':
     pprint(lda_model.print_topics())
     #doc_lda = lda_model[corpus]
 
+    # Compute Perplexity
+    print('\nPerplexity: ', lda_model.log_perplexity(corpus))  # a measure of how good the model is. lower the better.
 
     from gensim.models import CoherenceModel
     # Compute Coherence Score
@@ -274,6 +289,23 @@ if __name__ == '__main__':
     coherence_lda = coherence_model_lda.get_coherence()
     print('\nCoherence Score: ', coherence_lda)     # baseline with sample(100): 0.33683232393956486
 
+
+    ### mallet model ###
+    from gensim.models.wrappers import LdaMallet
+
+    mallet_path = r'C:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Mallet\mallet-2.0.8\bin\mallet' # update this path
+
+    ldamallet = models.wrappers.LdaMallet(mallet_path, corpus=corpus, num_topics=20, id2word=id2word)
+
+    # Show Topics
+    pprint(ldamallet.show_topics(formatted=False))
+
+    # Compute Coherence Score
+    coherence_model_ldamallet = CoherenceModel(model=ldamallet, texts=data_lemmatized, dictionary=id2word, coherence='c_v')
+    coherence_ldamallet = coherence_model_ldamallet.get_coherence()
+    print('\nCoherence Score: ', coherence_ldamallet)
+
+    ### Grid search ###
 
     # supporting function
     def compute_coherence_values(corpus, dictionary, k, a, b):
@@ -335,7 +367,7 @@ if __name__ == '__main__':
 
 
     # Can take a long time to run
-    if 1 == 1:
+    if 2 == 1:
         pbar = tqdm.tqdm(total=960)
 
         # iterate through validation corpuses
