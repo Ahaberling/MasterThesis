@@ -363,7 +363,7 @@ if __name__ == '__main__':
     ###### working fine untio here
 
 
-    print(len(corpus_sets), len(topics_range), len(alpha), len(beta))
+    #print(len(corpus_sets), len(topics_range), len(alpha), len(beta))
 
 
     # Can take a long time to run
