@@ -14,7 +14,8 @@ if __name__ == '__main__':
     nltk.download('punkt')              # tokenizer
     nltk.download('stopwords')          # stopwords filter
 
-    os.chdir('C:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots/')
+    #os.chdir('C:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots/')
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
 
 #C:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots
 
@@ -265,6 +266,7 @@ if __name__ == '__main__':
     #print(len(corpus))
 
 #if __name__ == '__main__':
+
     # Build LDA model
     lda_model = models.LdaMulticore(corpus=corpus,
                                            id2word=id2word,
@@ -290,12 +292,15 @@ if __name__ == '__main__':
     print('\nCoherence Score: ', coherence_lda)     # baseline with sample(100): 0.33683232393956486
 
 
+    #from pprint import pprint
+    #from gensim.models import CoherenceModel
+
     ### mallet model ###
     from gensim.models.wrappers import LdaMallet
 
-    mallet_path = r'C:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Mallet\mallet-2.0.8\bin\mallet' # update this path
+    mallet_path = r'C:/mallet/bin/mallet' # update this path
 
-    ldamallet = models.wrappers.LdaMallet(mallet_path, corpus=corpus, num_topics=20, id2word=id2word)
+    ldamallet = models.wrappers.LdaMallet(mallet_path, corpus=corpus, num_topics=325, id2word=id2word)
 
     # Show Topics
     pprint(ldamallet.show_topics(formatted=False))
