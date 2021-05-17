@@ -164,6 +164,46 @@ ax.plot(x, y_asy_099)
 ax.plot(x, y_asy_sym)
 plt.show()
 
+# --------------------------
+
+fig, ax = plt.subplots()
+ax.plot(x, y_001_001)
+ax.plot(x, y_001_031)
+ax.plot(x, y_001_061)
+ax.plot(x, y_001_099)
+ax.plot(x, y_001_sym)
+
+ax.plot(x, y_031_001)
+ax.plot(x, y_031_031)
+ax.plot(x, y_031_061)
+ax.plot(x, y_031_099)
+ax.plot(x, y_031_sym)
+
+ax.plot(x, y_061_001)
+ax.plot(x, y_061_031)
+ax.plot(x, y_061_061)
+ax.plot(x, y_061_099)
+ax.plot(x, y_061_sym)
+
+ax.plot(x, y_099_001)
+ax.plot(x, y_099_031)
+ax.plot(x, y_099_061)
+ax.plot(x, y_099_099)
+ax.plot(x, y_099_sym)
+
+ax.plot(x, y_sym_001)
+ax.plot(x, y_sym_031)
+ax.plot(x, y_sym_061)
+ax.plot(x, y_sym_099)
+ax.plot(x, y_sym_sym)
+
+ax.plot(x, y_asy_001)
+ax.plot(x, y_asy_031)
+ax.plot(x, y_asy_061)
+ax.plot(x, y_asy_099)
+ax.plot(x, y_asy_sym)
+plt.show()
+
 
 #ax.set(xlabel='time (s)', ylabel='voltage (mV)', title='About as simple as it gets, folks')
 #fig.savefig("test.png")

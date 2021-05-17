@@ -2,19 +2,23 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle as pk
+import os
 
 #--- Initialization --#
 
-directory = 'D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots/'
+os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
 
-patent_lda_ipc = pd.read_csv( directory + 'patent_lda_ipc.csv', quotechar='"', skipinitialspace=True)
+#directory = 'D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots/'
+
+#patent_lda_ipc = pd.read_csv( directory + 'patent_lda_ipc.csv', quotechar='"', skipinitialspace=True)
+patent_lda_ipc = pd.read_csv('patent_lda_ipc.csv', quotechar='"', skipinitialspace=True)
 #topics = pd.read_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents_07_04_topics.csv', quotechar='"', skipinitialspace=True)
 #parent = pd.read_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_backward_citations.csv', quotechar='"', skipinitialspace=True)
 
 patent_lda_ipc = patent_lda_ipc.to_numpy()
 #parent = parent.to_numpy()
 
-window90by1_bool = False
+window90by1_bool = True
 window60by1_bool = False
 window90by7_bool = False
 window60by7_bool = False
@@ -73,11 +77,16 @@ if window90by1_bool == True:
     #print(len(window90by1))                     # 5937 windows
     #print(sum(len_window)/len(len_window))      # on average 56.253326595923866 patents per window
 
-    filename = 'window90by1'
+
+    filename = 'window90by1bbb'
     outfile = open(filename,'wb')
-    pk.dump(window90by1,outfile)
+    pk.dump(window90by1, outfile)
     outfile.close()
 
+    '''
+    with open('window90by1aaa.pickle', 'wb') as handle:
+        pk.dump(window90by1, handle, protocol=pk.HIGHEST_PROTOCOL)
+    '''
 
 ### 60 days sliding by 1 day ###
 

@@ -33,7 +33,7 @@ print('lda done')
 doc_affili = lda_model.get_document_topics(corpus, minimum_probability=0.05, minimum_phi_value=None, per_word_topics=False)
 
 
-
+'''
 #--- Coherence ---#
 
 
@@ -42,7 +42,7 @@ coherence_model_lda = models.CoherenceModel(model=lda_model, texts=data_lemmatiz
 coherence_lda = coherence_model_lda.get_coherence()
 
 print('\nCoherence Score: ', coherence_lda)
-
+'''
 
 '''
 #--- Perplexity & Coherence ---#
