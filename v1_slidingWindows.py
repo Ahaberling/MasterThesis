@@ -78,7 +78,7 @@ if window90by1_bool == True:
     #print(sum(len_window)/len(len_window))      # on average 56.253326595923866 patents per window
 
 
-    filename = 'window90by1bbb'
+    filename = 'window90by1'
     outfile = open(filename,'wb')
     pk.dump(window90by1, outfile)
     outfile.close()
