@@ -171,8 +171,16 @@ for window in window90by1.values():
 
     c = c + 1
 
-print(window90by1_ipcs_threeComb)
+print(window90by1_ipcs_twoComb)
 
+
+# I need all pair combinations that occur in the whole timeframe
+# construct heatmap with  x = combination, y = window, z = increase of occurence
+# for this find list with all windows
+# find list with all unique pairs
+# interate through dictionary and fill he dict
+
+#todo idea: right now window90by1_ipcs_twoComb contains tuples like ('C12M   1', 'C12M   3'). If this is to fine grained (no real inovation/ recombination) then go more course graind (or fine grained)
 
 # recombination:
 # is when a combination (2+) of ipc's/topics is cited together for the first time in X
