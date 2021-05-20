@@ -186,130 +186,305 @@ if 1 == 2:
     pk.dump(window90by1_ipcs_twoComb, outfile)
     outfile.close()
 
-with open('window90by1_ipcs_twoComb', 'rb') as handle:
-    window90by1_ipcs_twoComb = pk.load(handle)
+if 1 == 2:
+    with open('window90by1_ipcs_twoComb', 'rb') as handle:
+        window90by1_ipcs_twoComb = pk.load(handle)
 
-#print(window90by1_ipcs_twoComb.keys())
+    #print(window90by1_ipcs_twoComb.keys())
 
 
-tuple_list = []
-for i in window90by1_ipcs_twoComb.values():
+    tuple_list = []
+    for i in window90by1_ipcs_twoComb.values():
 
-    tuple_list.append(i)
+        tuple_list.append(i)
 
-#print(tuple_list)
-tuple_list = [item for sublist in tuple_list for item in sublist]
-#print(tuple_list)
-print('number of all tuples before taking only the unique ones', len(tuple_list))  # 1047572
-tuple_list, tuple_list_counts = np.unique(tuple_list, return_counts=True, axis=0)
-#print(tuple_list)
-print(len(tuple_list))
-#print(tuple_list_counts)        # where does the 90 and the "weird" values come from? explaination: if a combination occures in the whole timeframe only once (in one patent) then it is captures 90 times. The reason for this is the size of the sliding window of 90 and the sliding by one day. One patent will thereby be capured in 90 sliding windows (excaption: the patents in the first and last 90 days of the overall timeframe, they are capture in less then 90 sliding windows)
-#print(len(tuple_list_counts))
+    #print(tuple_list)
+    tuple_list = [item for sublist in tuple_list for item in sublist]
+    #print(tuple_list)
+    print('number of all tuples before taking only the unique ones', len(tuple_list))  # 1047572
+    tuple_list, tuple_list_counts = np.unique(tuple_list, return_counts=True, axis=0)
+    #print(tuple_list)
+    print(len(tuple_list))
+    #print(tuple_list_counts)        # where does the 90 and the "weird" values come from? explaination: if a combination occures in the whole timeframe only once (in one patent) then it is captures 90 times. The reason for this is the size of the sliding window of 90 and the sliding by one day. One patent will thereby be capured in 90 sliding windows (excaption: the patents in the first and last 90 days of the overall timeframe, they are capture in less then 90 sliding windows)
+    #print(len(tuple_list_counts))
 
-window_list = window90by1_ipcs_twoComb.keys()
-#print(window_list)
-#print(len(window_list))
+    window_list = window90by1_ipcs_twoComb.keys()
+    #print(window_list)
+    #print(len(window_list))
+
+    '''
+    np.random.seed(19680801)
+    #Z = np.random.rand(len(window_list)+1, len(tuple_list)+1)  # y,x
+    Z = np.random.rand(99+1, 9+1)
+    
+    print(Z)
+    print(np.shape(Z))
+    
+    #x = np.arange(-0.5, len(tuple_list)+1, 1)  # len = 5445
+    x = np.arange(-0.5, 9+1, 1)  # len = 10
+    #y = np.arange(-0.5, len(window_list)+1, 1)  # len = 5937
+    y = np.arange(-0.5, 99+1, 1)  # len = 100
+    
+    fig, ax = plt.subplots()
+    ax.pcolormesh(x, y, Z)                  # this takes a lot of time if 5445 x 5937
+    plt.show()
+    
+    # Alternativ: only visualize subsample (but use whole data for analysis)
+    # Ok, I definitely have to visulalize only a subset e.g. 3x100 or 5x100 or 10x100
+    '''
+    #--- create occurenc pattern for ipc tuples ---#
+
+    pattern = np.zeros((len(window_list), len(tuple_list)))
+    print(np.shape(pattern))
+
+    '''
+    pattern = np.zeros((100, 3))
+    print(np.shape(pattern))
+    print(pattern)
+    
+    '''
+
+    print(tuple_list)
+    print(window_list)
+    print(pattern)
+
+    import tqdm
+
+    print('--------------------------')
+    print(sum(sum(pattern)))
+
+    pbar = tqdm.tqdm(total=len(window_list))
+
+    c_i = 0
+    for i in window_list:
+        c_j = 0
+
+        for j in tuple_list:
+
+            if tuple(j) in window90by1_ipcs_twoComb[i]:
+                #pattern[c_i,c_j] = 1                                           # results in sum(sum(array)) = 869062.0
+                pattern[c_i,c_j] = window90by1_ipcs_twoComb[i].count(tuple(j))
+
+            c_j = c_j +1
+
+        c_i = c_i +1
+        pbar.update(1)
+
+    pbar.close()
+
+    print(sum(sum(pattern)))
+
+    filename = 'window90by1_ipcs_twoComb_pattern'
+    outfile = open(filename, 'wb')
+    pk.dump(pattern, outfile)
+    outfile.close()
+
+    '''
+    test_arr = np.zeros((10, len(tuple_list)))
+    
+    print('--------------------------')
+    print(sum(sum(test_arr)))
+    
+    
+    c_i = 0
+    for i in window_list:
+        c_j = 0
+    
+        for j in tuple_list:
+    
+            #print(tuple(j))
+            #print(window90by1_ipcs_twoComb[i])
+            if tuple(j) in window90by1_ipcs_twoComb[i]:
+                #test_arr[c_i, c_j] = 1
+                test_arr[c_i,c_j] = window90by1_ipcs_twoComb[i].count(tuple(j))
+    
+            c_j = c_j + 1
+    
+            #if c_j == 11:
+                #break
+    
+        c_i = c_i + 1
+    
+        if c_i == 10:
+            break
+    
+    print(sum(sum(test_arr)))
+    
+    np.set_printoptions(threshold=sys.maxsize)
+    print(test_arr)
+    '''
+
+with open('window90by1_ipcs_twoComb_pattern', 'rb') as handle:
+    pattern = pk.load(handle)
+
+print(pattern)
+print(np.amax(pattern))                                 # 15
+
+print(pattern.size)
+#print(pattern.T)
+
+#todo transform the pattern array into an array of the same shape with 0 (combination in window does not meet window-specific threshold) and 1 (combination x in window matches the threshold. E.g. 10% of all combinations were combination x)
+#todo when done on daily sliding approach, then grand some leeway so that e.g. 00001110111111110000...0001101111111000000 is treated as 2 cycle and not 4
+
+# let's try with 5%:
+
+window_sum = pattern.sum(axis=1)
+
+#print(np.shape(window_sum))             # (5937,)
+#print(window_sum)                       # [103. 100. 100. ... 392. 392. 392.]
 
 '''
-np.random.seed(19680801)
-#Z = np.random.rand(len(window_list)+1, len(tuple_list)+1)  # y,x
-Z = np.random.rand(99+1, 9+1)
-
-print(Z)
-print(np.shape(Z))
-
-#x = np.arange(-0.5, len(tuple_list)+1, 1)  # len = 5445
-x = np.arange(-0.5, 9+1, 1)  # len = 10
-#y = np.arange(-0.5, len(window_list)+1, 1)  # len = 5937
-y = np.arange(-0.5, 99+1, 1)  # len = 100
-
-fig, ax = plt.subplots()
-ax.pcolormesh(x, y, Z)                  # this takes a lot of time if 5445 x 5937
-plt.show()
-
-# Alternativ: only visualize subsample (but use whole data for analysis)
-# Ok, I definitely have to visulalize only a subset e.g. 3x100 or 5x100 or 10x100
+an_array = np.array([[1,2,3],[4,5,6]])
+print(an_array)
+sum_of_rows = an_array.sum(axis=1)
+print(sum_of_rows)
+normalized_array = an_array / sum_of_rows[:, np.newaxis]
+print(normalized_array)
 '''
-#--- create occurenc pattern for ipc tuples ---#
-
-pattern = np.zeros((len(window_list), len(tuple_list)))
 print(np.shape(pattern))
 
-'''
-pattern = np.zeros((100, 3))
-print(np.shape(pattern))
-print(pattern)
+#pattern_norm = pattern / window_sum[:, np.newaxis]
+pattern_norm = pattern / window_sum[:, np.newaxis]
+
+print(pattern_norm)
+print(np.shape(pattern_norm))
+
+
+window_sum_test = pattern_norm.sum(axis=1)
+
+print(window_sum_test)
+print(max(window_sum_test))
+
+#pattern_wThreshold
+
+pattern_wThreshold = np.where(pattern_norm < 0.01, 0, 1)
+
+print(pattern_wThreshold)
+print(np.shape(pattern_wThreshold))
+print(np.amax(pattern_wThreshold))
+print(sum(sum(pattern_wThreshold)))
+
+print(np.where(pattern_wThreshold==1))                  # the indices of elements of value 1 -> of recombination candidates
+
+#--- introduce leeway ---#
+
+
+def search_sequence_numpy(arr,seq):
+    """ Find sequence in an array using NumPy only.
+
+    Parameters
+    ----------
+    arr    : input 1D array
+    seq    : input 1D array
+
+    Output
+    ------
+    Output : 1D Array of indices in the input array that satisfy the
+    matching of input sequence in the input array.
+    In case of no match, an empty list is returned.
+    """
+
+    # Store sizes of input array and sequence
+    Na, Nseq = arr.size, seq.size
+
+    # Range of sequence
+    r_seq = np.arange(Nseq)
+
+    # Create a 2D array of sliding indices across the entire length of input array.
+    # Match up with the input sequence & get the matching starting indices.
+    M = (arr[np.arange(Na-Nseq+1)[:,None] + r_seq] == seq).all(1)
+    '''
+    print(M)
+    print(len(M))
+    print('Na', Na)
+    print('Nseq', Nseq)
+    print('Na-Nseq+1', Na-Nseq+1)
+    print('np.arange(Na-Nseq+1)', np.arange(Na-Nseq+1))
+    print('shape', np.shape(np.arange(Na-Nseq+1)))
+    print('np.arange(Na-Nseq+1)[:,None]', np.arange(Na-Nseq+1)[:,None])
+    print('shape', np.shape(np.arange(Na-Nseq+1)[:,None]))
+    print('arr[np.arange(Na-Nseq+1)[:,None]]', arr[np.arange(Na-Nseq+1)[:,None]])
+    print('r_seq', r_seq)
+    print('np.arange(Na-Nseq+1)[:,None] + r_seq', np.arange(Na-Nseq+1)[:,None] + r_seq)
+    print('arr[np.arange(Na-Nseq+1)[:,None] + r_seq]', arr[np.arange(Na-Nseq+1)[:,None] + r_seq])
+    print(np.shape(arr[np.arange(Na-Nseq+1)[:,None] + r_seq]))
+    print('arr[np.arange(Na-Nseq+1)[:,None] + r_seq] == seq', arr[np.arange(Na-Nseq+1)[:,None] + r_seq] == seq)
+    print('(arr[np.arange(Na-Nseq+1)[:,None] + r_seq] == seq).all(1)', (arr[np.arange(Na-Nseq+1)[:,None] + r_seq] == seq).all(1))
+    print('shape', np.shape((arr[np.arange(Na-Nseq+1)[:,None] + r_seq] == seq).all(1)))
+    '''
+    # Get the range of those indices as final output
+    if M.any() >0:
+        return np.where(np.convolve(M,np.ones((Nseq),dtype=int))>0)[0]
+    else:
+        return []         # No match found
+
+
+def replace_sequence_numpy(arr,seq, rep_seq):
+
+    Na, Nseq = arr.size, seq.size
+    r_seq = np.arange(Nseq)
+    M = (arr[np.arange(Na-Nseq+1)[:,None] + r_seq] == seq).all(1)
+
+
+    return np.where(np.convolve(M,np.ones((Nseq),dtype=int))>0,1,0)
+
 
 '''
+arr = np.array([2, 0, 0, 0, 0, 1, 0, 1, 0, 0])
 
-print(tuple_list)
-print(window_list)
-print(pattern)
+seq = np.array([0,0])
 
-import tqdm
-
-print('--------------------------')
-print(sum(sum(pattern)))
-
-pbar = tqdm.tqdm(total=len(window_list))
-
-c_i = 0
-for i in window_list:
-    c_j = 0
-    
-    for j in tuple_list:
-        
-        if tuple(j) in window90by1_ipcs_twoComb[i]:
-            pattern[c_i,c_j] = 1
-            
-        c_j = c_j +1
-    
-    c_i = c_i +1
-    pbar.update(1)
-
-pbar.close()
-
-print(sum(sum(pattern)))
-
-filename = 'window90by1_ipcs_twoComb_pattern'
-outfile = open(filename, 'wb')
-pk.dump(pattern, outfile)
-outfile.close()
-
+print(search_sequence_numpy(arr,seq))
 '''
-test_arr = np.zeros((1, len(tuple_list)))
 
-print('--------------------------')
-print(sum(sum(test_arr)))
+print('-----------------')
+
+# lets try to replace sequences of 101 within a tuple to 111
+
+seq = np.array([1,0,1])
+rep_seq = np.array([1,1,1])
+
+c = 0
+for i in pattern_wThreshold.T:
+
+    arr = i
+    #print(c, search_sequence_numpy(arr, seq))                       # 2747, 2847, 2860, 2936, 3060, 3138
+    #print(c, replace_sequence_numpy(arr, seq, rep_seq))
+    #pattern_wThreshold.T[c,:] = replace_sequence_numpy(arr, seq, rep_seq)
 
 
-c_i = 0
-for i in window_list:
-    c_j = 0
+    c = c + 1
+    #break
 
-    for j in tuple_list:
+#print(pattern_wThreshold)
 
-        #print(tuple(j))
-        #print(window90by1_ipcs_twoComb[i])
-        if tuple(j) in window90by1_ipcs_twoComb[i]:
-            test_arr[c_i, c_j] = 1
+np.set_printoptions(threshold=sys.maxsize)
 
-        c_j = c_j + 1
+#print(pattern_wThreshold.T[2746])
+print('before', pattern_wThreshold.T[2747])
+print(sum(pattern_wThreshold.T[2747]))
+#print(pattern_wThreshold.T[2748])
 
-        #if c_j == 11:
-            #break
 
-    c_i = c_i + 1
+c = 0
+for i in pattern_wThreshold.T:
 
-    if c_i == 1:
-        break
+    arr = i
+    #print(c, search_sequence_numpy(arr, seq))                       # 2747, 2847, 2860, 2936, 3060, 3138
+    #print(c, replace_sequence_numpy(arr, seq, rep_seq))
+    pattern_wThreshold.T[c,:] = replace_sequence_numpy(arr, seq, rep_seq)
+    c = c + 1
+    #break
 
-print(sum(sum(test_arr)))
+print('after', pattern_wThreshold.T[2747])
+print(sum(pattern_wThreshold.T[2747]))
 
-#np.set_printoptions(threshold=sys.maxsize)
-#print(test_arr)
-'''
+
+#todo find recombinations in pattern_wThreshold, whenever a 1 first occures (first time in t periodes)
+
+#todo find sequences in pattern_wThreshold to identify diffusion cycles
+
+
 # I need all pair combinations that occur in the whole timeframe
 # construct heatmap with  x = combination, y = window, z = increase of occurence
 # for this find list with all windows
