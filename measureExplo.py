@@ -6,6 +6,11 @@ import os
 import itertools
 import sys
 
+from scipy.signal import convolve2d
+from scipy.signal import convolve
+
+
+
 import matplotlib.pyplot as plt
 from matplotlib.colors import BoundaryNorm
 from matplotlib.ticker import MaxNLocator
@@ -472,13 +477,54 @@ for i in pattern_wThreshold.T:
     arr = i
     #print(c, search_sequence_numpy(arr, seq))                       # 2747, 2847, 2860, 2936, 3060, 3138
     #print(c, replace_sequence_numpy(arr, seq, rep_seq))
-    pattern_wThreshold.T[c,:] = replace_sequence_numpy(arr, seq, rep_seq)
+    #pattern_wThreshold.T[c,:] = replace_sequence_numpy(arr, seq, rep_seq)
+
+    k = seq # kernel for convolution
+    i[(convolve(i, k, 'same') == 2) & (i == 0)] = 1
+
+    pattern_wThreshold.T[c,:] = i
+
     c = c + 1
     #break
 
 print('after', pattern_wThreshold.T[2747])
 print(sum(pattern_wThreshold.T[2747]))
 
+
+#todo problem 1: imputing sequences only works for 101 case, not for 100001, and so on
+#todo problem 2: with only 0 and 1 a diffusion cycle is identified if the threshold is met with one set of patents, that does not change anymore for 90 days. E.g. tuple occures in x patents. x patens were all published on y (no diffusion prossible, because to little time inbetween) nevertheless the patents x might meet the thresshold for t until t+89
+
+
+c = 0
+for i in pattern_wThreshold.T:
+
+    arr = i
+    #print(c, search_sequence_numpy(arr, seq))                       # 2747, 2847, 2860, 2936, 3060, 3138
+    #print(c, replace_sequence_numpy(arr, seq, rep_seq))
+    #pattern_wThreshold.T[c,:] = replace_sequence_numpy(arr, seq, rep_seq)
+
+
+    # og 0 1 1 1 1 1 1 1 1 0 0 0 1 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1
+
+    if c == 2747:
+        k = np.array([1,0,0,0,0,0,0,0,1]) # kernel for convolution
+        i[(convolve(i, k, 'same') == 2) & (i == 0)] = 1
+
+        print('in loop 100000001', pattern_wThreshold.T[2747])
+        print('convolve(i, k, same)', convolve(i, k, 'same'))
+        print('convolve(i, k, same) == 2', convolve(i, k, 'same') == 2)
+        print('(convolve(i, k, same) == 2) & (i == 0)', (convolve(i, k, 'same') == 2) & (i == 0))
+
+        print(i)
+        print(i == 0)
+
+    pattern_wThreshold.T[c,:] = i
+
+    c = c + 1
+    #break
+
+#print('after after', pattern_wThreshold.T[2747])
+#print(sum(pattern_wThreshold.T[2747]))
 
 #todo find recombinations in pattern_wThreshold, whenever a 1 first occures (first time in t periodes)
 
