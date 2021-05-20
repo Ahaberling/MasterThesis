@@ -4,8 +4,15 @@ import matplotlib.pyplot as plt
 import pickle as pk
 import os
 import itertools
+import sys
+
+import matplotlib.pyplot as plt
+from matplotlib.colors import BoundaryNorm
+from matplotlib.ticker import MaxNLocator
 
 #--- Initialization --#
+
+
 
 os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
 
@@ -34,146 +41,275 @@ print(len(np.unique(og_ipc[:,1]))) # 970 unique ipcs (and topics)
 
 print(patent_lda_ipc[0,:])
 '''
-with open('window90by1', 'rb') as handle:
-    window90by1 = pk.load(handle)
+if 1 == 2:
+    with open('window90by1', 'rb') as handle:
+        window90by1 = pk.load(handle)
 
-#print(window90by1)
-print(window90by1['window_0'])
-print(np.shape(window90by1['window_0']))
+    #print(window90by1)
+    print(window90by1['window_0'])
+    print(np.shape(window90by1['window_0']))
 
-print(window90by1['window_0'][0])
-print(window90by1['window_0'][0][0])
+    print(window90by1['window_0'][0])
+    print(window90by1['window_0'][0][0])
 
-# now I want for each window the distribution of the ipc/topics
+    # now I want for each window the distribution of the ipc/topics
 
-window90by1_dist_ipc = {}
+    window90by1_dist_ipc = {}
 
-#ipc_position = range(53,91,3)
+    #ipc_position = range(53,91,3)
 
-ipc_position = np.r_[range(52,91,3)]
-topic_position = np.r_[range(10,52,3)]
+    ipc_position = np.r_[range(52,91,3)]
+    topic_position = np.r_[range(10,52,3)]
 
-window90by1_ipcs = {}
-window90by1_topics = {}
+    window90by1_ipcs = {}
+    window90by1_topics = {}
 
-window90by1_ipcs_allComb = {}
-window90by1_topics_allComb = {}
+    window90by1_ipcs_allComb = {}
+    window90by1_topics_allComb = {}
 
-window90by1_ipcs_twoComb = {}
-window90by1_topics_twoComb = {}
+    window90by1_ipcs_twoComb = {}
+    window90by1_topics_twoComb = {}
 
-window90by1_ipcs_threeComb = {}
-window90by1_topics_threeComb = {}
+    window90by1_ipcs_threeComb = {}
+    window90by1_topics_threeComb = {}
 
-c = 0
+    c = 0
 
-for window in window90by1.values():
-    #print('----')
-    #print(window.key)
-    #print(window)
+    for window in window90by1.values():
+        #print('----')
+        #print(window.key)
+        #print(window)
 
-    ipc_list = []
-    topic_list = []
+        ipc_list = []
+        topic_list = []
 
-    ipc_allComb_list = []
-    topic_allComb_list = []
+        ipc_allComb_list = []
+        topic_allComb_list = []
 
-    ipc_twoComb_list = []
-    topic_twoComb_list = []
+        ipc_twoComb_list = []
+        topic_twoComb_list = []
 
-    ipc_threeComb_list = []
-    topic_threeComb_list = []
+        ipc_threeComb_list = []
+        topic_threeComb_list = []
 
-    for patent in window:
-        #print(patent[ipc_position4])
-        #print(patent[np.r_[52,55,58]])
-        #print(patent[ipc_position5])
-        #print(patent[9:15])
-        ipc_list.append(patent[ipc_position])
-        topic_list.append(patent[topic_position])
+        for patent in window:
+            #print(patent[ipc_position4])
+            #print(patent[np.r_[52,55,58]])
+            #print(patent[ipc_position5])
+            #print(patent[9:15])
+            ipc_list.append(patent[ipc_position])
+            topic_list.append(patent[topic_position])
 
-        # ipc_allComb_list
-        y = [x for x in patent[ipc_position] if x == x]             # nan elimination
-        y = np.unique(y)                                            # todo probably/hopefully not neccessary (because hopefully the data is clean enough so that one paper is not classfied with the same ipc more than once)
-        ipc_allComb_list.append(tuple(y))
+            # ipc_allComb_list
+            y = [x for x in patent[ipc_position] if x == x]             # nan elimination
+            y = np.unique(y)                                            # todo probably/hopefully not neccessary (because hopefully the data is clean enough so that one paper is not classfied with the same ipc more than once)
+            ipc_allComb_list.append(tuple(y))
 
-        # topic_allComb_list
-        z = [x for x in patent[topic_position] if x == x]           # nan elimination
-        z = np.unique(z)                                            # todo probably/hopefully not neccessary (because hopefully the data is clean enough so that one paper is not classfied with the same topic more than once)
-        topic_allComb_list.append(tuple(z))
+            # topic_allComb_list
+            z = [x for x in patent[topic_position] if x == x]           # nan elimination
+            z = np.unique(z)                                            # todo probably/hopefully not neccessary (because hopefully the data is clean enough so that one paper is not classfied with the same topic more than once)
+            topic_allComb_list.append(tuple(z))
 
-        # ipc_twoComb_list
-        ipc_twoComb_list.append(list(itertools.combinations(y, r=2)))
+            # ipc_twoComb_list
+            ipc_twoComb_list.append(list(itertools.combinations(y, r=2)))
 
-        # topic_twoComb_list
-        topic_twoComb_list.append(list(itertools.combinations(z, r=2)))
+            # topic_twoComb_list
+            topic_twoComb_list.append(list(itertools.combinations(z, r=2)))
 
-        # ipc_threeComb_list
-        ipc_threeComb_list.append(list(itertools.combinations(y, r=3)))
+            # ipc_threeComb_list
+            ipc_threeComb_list.append(list(itertools.combinations(y, r=3)))
 
-        # topic_threeComb_list
-        topic_threeComb_list.append(list(itertools.combinations(z, r=3)))
-
-
-    #print(ipc_comb_list)
-
-    # all ipcs that occured in the window in general
-    ipc_list = np.concatenate(ipc_list).ravel().tolist()
-    ipc_list = [x for x in ipc_list if x == x]
-    ipc_list = np.unique(ipc_list)
-    window90by1_ipcs['window_{0}'.format(c)] = ipc_list
-
-    # all topics that occured in the window in general
-    topic_list = np.concatenate(topic_list).ravel().tolist()
-    topic_list = [x for x in topic_list if x == x]
-    topic_list = np.unique(topic_list)
-    window90by1_topics['window_{0}'.format(c)] = topic_list
-
-    # all ipcs combinations as tuple that occured in the window
-    # meaning one patent -> one tuple
-    #ipc_comb_list = np.unique(ipc_comb_list)                       # todo Error message, but I probably also dont want to do that in general
-    window90by1_ipcs_allComb['window_{0}'.format(c)] = ipc_allComb_list
-
-    # all topic combinations as tuple that occured in the window
-    # meaning one patent -> one tuple
-    #topic_comb_list = np.unique(topic_comb_list)                   # todo Error message, but I probably also dont want to do that in general
-    window90by1_topics_allComb['window_{0}'.format(c)] = topic_allComb_list
-
-    # all ipc inside a patent as pairs in the window
-    # meaning one patent -> (possibly) multiple tuples of size two
-    #print(window[1])
-    #print(ipc_twoComb_list)                                             #todo somehow we got empty lists in here? is it for patents with only one ipc? -> no combination possible?
-    ipc_twoComb_list = [item for sublist in ipc_twoComb_list for item in sublist]
-    #print(ipc_twoComb_list)
-    #ipc_twoComb_list = np.array(ipc_twoComb_list).ravel()
-    #print(ipc_twoComb_list)
-    window90by1_ipcs_twoComb['window_{0}'.format(c)] = ipc_twoComb_list
+            # topic_threeComb_list
+            topic_threeComb_list.append(list(itertools.combinations(z, r=3)))
 
 
-    # all topic inside a patent as pairs in the window
-    # meaning one patent -> (possibly) multiple tuples of size two
-    #print(topic_twoComb_list)
-    topic_twoComb_list = [item for sublist in topic_twoComb_list for item in sublist]
-    #print(topic_twoComb_list)
-    window90by1_topics_twoComb['window_{0}'.format(c)] = topic_twoComb_list
+        #print(ipc_comb_list)
 
-    # all ipc inside a patent as triples in the window
-    # meaning one patent -> (possibly) multiple tuples of size three
-    #print(ipc_threeComb_list)
-    ipc_threeComb_list = [item for sublist in ipc_threeComb_list for item in sublist]
-    #print(ipc_threeComb_list)
-    window90by1_ipcs_threeComb['window_{0}'.format(c)] = ipc_threeComb_list
+        # all ipcs that occured in the window in general
+        ipc_list = np.concatenate(ipc_list).ravel().tolist()
+        ipc_list = [x for x in ipc_list if x == x]
+        ipc_list = np.unique(ipc_list)
+        window90by1_ipcs['window_{0}'.format(c)] = ipc_list
 
-    # all topic inside a patent as triples in the window
-    # meaning one patent -> (possibly) multiple tuples of size three
-    topic_threeComb_list = [item for sublist in topic_threeComb_list for item in sublist]
-    window90by1_topics_threeComb['window_{0}'.format(c)] = topic_threeComb_list
+        # all topics that occured in the window in general
+        topic_list = np.concatenate(topic_list).ravel().tolist()
+        topic_list = [x for x in topic_list if x == x]
+        topic_list = np.unique(topic_list)
+        window90by1_topics['window_{0}'.format(c)] = topic_list
 
-    c = c + 1
+        # all ipcs combinations as tuple that occured in the window
+        # meaning one patent -> one tuple
+        #ipc_comb_list = np.unique(ipc_comb_list)                       # todo Error message, but I probably also dont want to do that in general
+        window90by1_ipcs_allComb['window_{0}'.format(c)] = ipc_allComb_list
 
-print(window90by1_ipcs_twoComb)
+        # all topic combinations as tuple that occured in the window
+        # meaning one patent -> one tuple
+        #topic_comb_list = np.unique(topic_comb_list)                   # todo Error message, but I probably also dont want to do that in general
+        window90by1_topics_allComb['window_{0}'.format(c)] = topic_allComb_list
+
+        # all ipc inside a patent as pairs in the window
+        # meaning one patent -> (possibly) multiple tuples of size two
+        #print(window[1])
+        #print(ipc_twoComb_list)                                             #todo somehow we got empty lists in here? is it for patents with only one ipc? -> no combination possible?
+        ipc_twoComb_list = [item for sublist in ipc_twoComb_list for item in sublist]
+        #print(ipc_twoComb_list)
+        #ipc_twoComb_list = np.array(ipc_twoComb_list).ravel()
+        #print(ipc_twoComb_list)
+        window90by1_ipcs_twoComb['window_{0}'.format(c)] = ipc_twoComb_list
 
 
+        # all topic inside a patent as pairs in the window
+        # meaning one patent -> (possibly) multiple tuples of size two
+        #print(topic_twoComb_list)
+        topic_twoComb_list = [item for sublist in topic_twoComb_list for item in sublist]
+        #print(topic_twoComb_list)
+        window90by1_topics_twoComb['window_{0}'.format(c)] = topic_twoComb_list
+
+        # all ipc inside a patent as triples in the window
+        # meaning one patent -> (possibly) multiple tuples of size three
+        #print(ipc_threeComb_list)
+        ipc_threeComb_list = [item for sublist in ipc_threeComb_list for item in sublist]
+        #print(ipc_threeComb_list)
+        window90by1_ipcs_threeComb['window_{0}'.format(c)] = ipc_threeComb_list
+
+        # all topic inside a patent as triples in the window
+        # meaning one patent -> (possibly) multiple tuples of size three
+        topic_threeComb_list = [item for sublist in topic_threeComb_list for item in sublist]
+        window90by1_topics_threeComb['window_{0}'.format(c)] = topic_threeComb_list
+
+        c = c + 1
+
+    print(window90by1_ipcs_twoComb)
+
+    filename = 'window90by1_ipcs_twoComb'
+    outfile = open(filename, 'wb')
+    pk.dump(window90by1_ipcs_twoComb, outfile)
+    outfile.close()
+
+with open('window90by1_ipcs_twoComb', 'rb') as handle:
+    window90by1_ipcs_twoComb = pk.load(handle)
+
+#print(window90by1_ipcs_twoComb.keys())
+
+
+tuple_list = []
+for i in window90by1_ipcs_twoComb.values():
+
+    tuple_list.append(i)
+
+#print(tuple_list)
+tuple_list = [item for sublist in tuple_list for item in sublist]
+#print(tuple_list)
+print('number of all tuples before taking only the unique ones', len(tuple_list))  # 1047572
+tuple_list, tuple_list_counts = np.unique(tuple_list, return_counts=True, axis=0)
+#print(tuple_list)
+print(len(tuple_list))
+#print(tuple_list_counts)        # where does the 90 and the "weird" values come from? explaination: if a combination occures in the whole timeframe only once (in one patent) then it is captures 90 times. The reason for this is the size of the sliding window of 90 and the sliding by one day. One patent will thereby be capured in 90 sliding windows (excaption: the patents in the first and last 90 days of the overall timeframe, they are capture in less then 90 sliding windows)
+#print(len(tuple_list_counts))
+
+window_list = window90by1_ipcs_twoComb.keys()
+#print(window_list)
+#print(len(window_list))
+
+'''
+np.random.seed(19680801)
+#Z = np.random.rand(len(window_list)+1, len(tuple_list)+1)  # y,x
+Z = np.random.rand(99+1, 9+1)
+
+print(Z)
+print(np.shape(Z))
+
+#x = np.arange(-0.5, len(tuple_list)+1, 1)  # len = 5445
+x = np.arange(-0.5, 9+1, 1)  # len = 10
+#y = np.arange(-0.5, len(window_list)+1, 1)  # len = 5937
+y = np.arange(-0.5, 99+1, 1)  # len = 100
+
+fig, ax = plt.subplots()
+ax.pcolormesh(x, y, Z)                  # this takes a lot of time if 5445 x 5937
+plt.show()
+
+# Alternativ: only visualize subsample (but use whole data for analysis)
+# Ok, I definitely have to visulalize only a subset e.g. 3x100 or 5x100 or 10x100
+'''
+#--- create occurenc pattern for ipc tuples ---#
+
+pattern = np.zeros((len(window_list), len(tuple_list)))
+print(np.shape(pattern))
+
+'''
+pattern = np.zeros((100, 3))
+print(np.shape(pattern))
+print(pattern)
+
+'''
+
+print(tuple_list)
+print(window_list)
+print(pattern)
+
+import tqdm
+
+print('--------------------------')
+print(sum(sum(pattern)))
+
+pbar = tqdm.tqdm(total=len(window_list))
+
+c_i = 0
+for i in window_list:
+    c_j = 0
+    
+    for j in tuple_list:
+        
+        if tuple(j) in window90by1_ipcs_twoComb[i]:
+            pattern[c_i,c_j] = 1
+            
+        c_j = c_j +1
+    
+    c_i = c_i +1
+    pbar.update(1)
+
+pbar.close()
+
+print(sum(sum(pattern)))
+
+filename = 'window90by1_ipcs_twoComb_pattern'
+outfile = open(filename, 'wb')
+pk.dump(pattern, outfile)
+outfile.close()
+
+'''
+test_arr = np.zeros((1, len(tuple_list)))
+
+print('--------------------------')
+print(sum(sum(test_arr)))
+
+
+c_i = 0
+for i in window_list:
+    c_j = 0
+
+    for j in tuple_list:
+
+        #print(tuple(j))
+        #print(window90by1_ipcs_twoComb[i])
+        if tuple(j) in window90by1_ipcs_twoComb[i]:
+            test_arr[c_i, c_j] = 1
+
+        c_j = c_j + 1
+
+        #if c_j == 11:
+            #break
+
+    c_i = c_i + 1
+
+    if c_i == 1:
+        break
+
+print(sum(sum(test_arr)))
+
+#np.set_printoptions(threshold=sys.maxsize)
+#print(test_arr)
+'''
 # I need all pair combinations that occur in the whole timeframe
 # construct heatmap with  x = combination, y = window, z = increase of occurence
 # for this find list with all windows
