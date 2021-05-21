@@ -446,14 +446,15 @@ print('-----------------')
 
 # lets try to replace sequences of 101 within a tuple to 111
 
-seq = np.array([1,0,1])
+#seq = np.array([1,0,1])
+seq = np.array([1,0,0,0,0,0,0,0,1])
 rep_seq = np.array([1,1,1])
 
 c = 0
 for i in pattern_wThreshold.T:
 
     arr = i
-    #print(c, search_sequence_numpy(arr, seq))                       # 2747, 2847, 2860, 2936, 3060, 3138
+    print(c, search_sequence_numpy(arr, seq))                       # 2747, 2847, 2860, 2936, 3060, 3138
     #print(c, replace_sequence_numpy(arr, seq, rep_seq))
     #pattern_wThreshold.T[c,:] = replace_sequence_numpy(arr, seq, rep_seq)
 
@@ -463,14 +464,20 @@ for i in pattern_wThreshold.T:
 
 #print(pattern_wThreshold)
 
+
+
+
 np.set_printoptions(threshold=sys.maxsize)
 
 #print(pattern_wThreshold.T[2746])
-print('before', pattern_wThreshold.T[2747])
-print(sum(pattern_wThreshold.T[2747]))
+#print('before', pattern_wThreshold.T[2747])
+#print(sum(pattern_wThreshold.T[2747]))
+#print('before', pattern_wThreshold.T[2709])
+#print(sum(pattern_wThreshold.T[2709]))
 #print(pattern_wThreshold.T[2748])
 
 
+'''
 c = 0
 for i in pattern_wThreshold.T:
 
@@ -481,14 +488,19 @@ for i in pattern_wThreshold.T:
 
     k = seq # kernel for convolution
     i[(convolve(i, k, 'same') == 2) & (i == 0)] = 1
-
+    print(i)
+    print('convolve(i, k, \'same\')', convolve(i, k, 'same'))
+    print('convolve(i, k, \'same\') == 2', convolve(i, k, 'same') == 2)
+    print('i == 0', i == 0)
+    print('convolve(i, k, \'same\') == 2 & (i == 0)', convolve(i, k, 'same') == 2 & (i == 0))
+    
     pattern_wThreshold.T[c,:] = i
 
     c = c + 1
     #break
-
+'''
 print('after', pattern_wThreshold.T[2747])
-print(sum(pattern_wThreshold.T[2747]))
+#print(sum(pattern_wThreshold.T[2747]))
 
 
 #todo problem 1: imputing sequences only works for 101 case, not for 100001, and so on
@@ -507,24 +519,29 @@ for i in pattern_wThreshold.T:
     # og 0 1 1 1 1 1 1 1 1 0 0 0 1 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1
 
     if c == 2747:
+        #k = np.array([1,0,1]) # kernel for convolution
         k = np.array([1,0,0,0,0,0,0,0,1]) # kernel for convolution
         i[(convolve(i, k, 'same') == 2) & (i == 0)] = 1
 
-        print('in loop 100000001', pattern_wThreshold.T[2747])
+        #print('in loop 100000001', pattern_wThreshold.T[2747])
         print('convolve(i, k, same)', convolve(i, k, 'same'))
         print('convolve(i, k, same) == 2', convolve(i, k, 'same') == 2)
+        print('i == 0', i == 0)
         print('(convolve(i, k, same) == 2) & (i == 0)', (convolve(i, k, 'same') == 2) & (i == 0))
 
-        print(i)
-        print(i == 0)
+        #print(i)
+        #print(i == 0)
 
     pattern_wThreshold.T[c,:] = i
 
     c = c + 1
     #break
 
-#print('after after', pattern_wThreshold.T[2747])
+print('after after', pattern_wThreshold.T[2747])
 #print(sum(pattern_wThreshold.T[2747]))
+
+
+#I do find sequences like 100001 as well
 
 #todo find recombinations in pattern_wThreshold, whenever a 1 first occures (first time in t periodes)
 
