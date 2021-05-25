@@ -24,7 +24,7 @@ if __name__ == '__main__':
     import tqdm
 
     # Specify whether you want to simply preform LDA or a grid_search for optimal LDA hyperparameters
-    final_model = False
+    final_model = True
     grid_search = False
 
 
@@ -266,6 +266,21 @@ if __name__ == '__main__':
         coherence_ldamallet = coherence_model_ldamallet.get_coherence()
         print('\nCoherence Score: ', coherence_ldamallet)
 
+
+    ### Append document topic distribution and save ###
+
+        doc_affili = lda_model.get_document_topics(corpus, minimum_probability=0.05, minimum_phi_value=None,
+                                                   per_word_topics=False)
+
+        patent_cleanAbs.T[8, :] = doc_affili
+        pd.DataFrame(patent_cleanAbs).to_csv('patent_topicDist.csv', index=None)
+
+        #todo only document topic affiliations of the gensim lda are saved.
+        # In future, work with the mallet results if they are better
+
+        #doc_affili = ldamallet.get_document_topics(corpus, minimum_probability=0.05, minimum_phi_value=None,
+        #                                   per_word_topics=False)
+        # https://radimrehurek.com/gensim_3.8.3/models/wrappers/ldamallet.html
 
 #--- Grid search ---#
 
