@@ -19,9 +19,9 @@ patent_lda_ipc = patent_lda_ipc.to_numpy()
 #parent = parent.to_numpy()
 
 window90by1_bool = True
-window60by1_bool = False
-window90by7_bool = False
-window60by7_bool = False
+window60by1_bool = True
+window90by7_bool = True
+window60by7_bool = True
 
 
 #--- Overview ---#

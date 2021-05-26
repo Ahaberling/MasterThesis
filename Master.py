@@ -23,7 +23,7 @@ v2_abstractCleaning.py
         check vectorization
         maybe vectorize tokenization if too much time (so probably no)
         check bigram position and preprocessing sequence in general
-        change pipeline so mallet lda results are used (as well) for further analyses
+        (Why) Is the result of gensim lda and mallet lda identical?
         grid search - ask/think for validation sets
         grid search - find better hyperparameters
         grid search - fancy up grid search with dm2 knowledge

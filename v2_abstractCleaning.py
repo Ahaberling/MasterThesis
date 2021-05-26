@@ -22,6 +22,7 @@ if __name__ == '__main__':
     import os
     from pprint import pprint
     import tqdm
+    import sys
 
     # Specify whether you want to simply preform LDA or a grid_search for optimal LDA hyperparameters
     final_model = True
@@ -238,44 +239,99 @@ if __name__ == '__main__':
 
 
         # Print the Keyword in the 10 topics
-        pprint(lda_model.print_topics())
+        #pprint(lda_model.print_topics())
 
 
     # Compute Perplexity
-        print('\nPerplexity: ', lda_model.log_perplexity(corpus))  # The lower the better, but heavily limited and not really useful.
+        #print('\nPerplexity: ', lda_model.log_perplexity(corpus))  # The lower the better, but heavily limited and not really useful.
 
 
     # Compute Coherence Score
-        coherence_model_lda = CoherenceModel(model=lda_model, texts=data_lemmatized, dictionary=id2word, coherence='c_v')
-        coherence_lda = coherence_model_lda.get_coherence()
-        print('\nCoherence Score: ', coherence_lda)             # the higher the better from 0.3 to 0.7 or 0.8.
+        #coherence_model_lda = CoherenceModel(model=lda_model, texts=data_lemmatized, dictionary=id2word, coherence='c_v')
+        #coherence_lda = coherence_model_lda.get_coherence()
+        #print('\nCoherence Score: ', coherence_lda)             # the higher the better from 0.3 to 0.7 or 0.8.
         # https://stackoverflow.com/questions/54762690/what-is-the-meaning-of-coherence-score-0-4-is-it-good-or-bad
-
-
-    # Build Gensim LDA model
-
-        mallet_path = r'C:/mallet/bin/mallet' # update this path
-
-        ldamallet = models.wrappers.LdaMallet(mallet_path, corpus=corpus, num_topics=325, id2word=id2word)
-
-        # Show Topics
-        pprint(ldamallet.show_topics(formatted=False))
-
-        # Compute Coherence Score
-        coherence_model_ldamallet = CoherenceModel(model=ldamallet, texts=data_lemmatized, dictionary=id2word, coherence='c_v')
-        coherence_ldamallet = coherence_model_ldamallet.get_coherence()
-        print('\nCoherence Score: ', coherence_ldamallet)
-
 
     ### Append document topic distribution and save ###
 
         doc_affili = lda_model.get_document_topics(corpus, minimum_probability=0.05, minimum_phi_value=None,
                                                    per_word_topics=False)
 
-        patent_cleanAbs.T[8, :] = doc_affili
-        pd.DataFrame(patent_cleanAbs).to_csv('patent_topicDist.csv', index=None)
+        #for i in doc_affili:
+            #print(i)
+            # [(82, 0.078733206), (115, 0.09037129), (212, 0.061887488), (227, 0.10818202), (263, 0.07558539), (323, 0.06967209)]
 
-        #todo only document topic affiliations of the gensim lda are saved.
+        patent_topicDist = patent_cleanAbs
+        patent_topicDist.T[8, :] = doc_affili
+        #print(patent_topicDist)
+
+        #[12878 'EP' 1947581.0 ...
+        #'The method involves inputting a foil geometry in a data processing program and transmitting the data to a foil manufacturer through a data carrier and/or email and/or website. The data in the data processing program is read and a packing plane is detected. Foil portions are cut from blanks manually or by a robot and the produced packages are transported. Add-on programs are utilized, where the add-on programs are integrated in the data processing program of a customer. The cut foil portions are connected. An independent claim is also included for an article manufactured according to a method for packing foils.'
+        #2 list([(27, 0.11116354), (300, 0.73837715)])]
+        pd.DataFrame(patent_topicDist).to_csv('patent_topicDist.csv', index=None)
+
+    # Build Mallet LDA model
+
+        mallet_path = r'C:/mallet/bin/mallet' # update this path
+
+        ldamallet = models.wrappers.LdaMallet(mallet_path, corpus=corpus, num_topics=325, id2word=id2word)
+
+        # Show Topics
+        #pprint(ldamallet.show_topics(formatted=False))
+        '''
+        # Compute Coherence Score
+        coherence_model_ldamallet = CoherenceModel(model=ldamallet, texts=data_lemmatized, dictionary=id2word, coherence='c_v')
+        coherence_ldamallet = coherence_model_ldamallet.get_coherence()
+        print('\nCoherence Score: ', coherence_ldamallet)
+        '''
+
+    ### Append Mallet document topic distribution and save ###
+
+        #doc_affili_mallet = ldamallet.load_document_topics()
+
+        #print(doc_affili_mallet)
+        #for i in doc_affili_mallet:
+            #print(i)
+            # [(0, 0.0016542597187758413), (1, 0.0016542597187758413), (2, 0.0016542597187758413), (3, 0.0016542597187758413), (4, 0.0016542597187758413), ...
+
+        doc_affili_mallet = ldamallet.read_doctopics(fname='C:/Users/University/AppData/Local/Temp/c6a2d9_doctopics.txt', eps= 0.05)
+        #for i in doc_affili_mallet:
+            #print(i)
+
+
+        #print(ldamallet.read_doctopics(fname = 'C:/Users/University/AppData/Local/Temp/c6a2d9_doctopics.txt')) # same as ldamallet.load_document_topics()
+        #for i in ldamallet.read_doctopics(fname = 'C:/Users/University/AppData/Local/Temp/c6a2d9_doctopics.txt'):
+            #print(i)
+        #print(ldamallet.fdoctopics())
+
+        patent_topicDist_mallet = patent_cleanAbs
+
+        c = 0
+        for i in doc_affili_mallet:
+            patent_topicDist_mallet.T[8, c] = list(i)
+            c = c + 1
+
+        #patent_topicDist_mallet.T[8, :] = doc_affili_mallet
+
+        np.set_printoptions(threshold=sys.maxsize)
+
+        print(np.shape(patent_topicDist))
+        print(patent_topicDist[0])
+        print(patent_topicDist[10])
+        print(patent_topicDist[20])
+        print(patent_topicDist[33])
+        print(patent_topicDist[847])
+        print(np.shape(patent_topicDist_mallet))
+        print(patent_topicDist_mallet[0])
+        print(patent_topicDist_mallet[10])
+        print(patent_topicDist_mallet[20])
+        print(patent_topicDist_mallet[33])
+        print(patent_topicDist_mallet[847])
+
+        #print(patent_topicDist_mallet)
+        pd.DataFrame(patent_topicDist_mallet).to_csv('patent_topicDist_mallet.csv', index=None)
+
+        #todo: currently, only document topic affiliations of the gensim lda are saved.
         # In future, work with the mallet results if they are better
 
         #doc_affili = ldamallet.get_document_topics(corpus, minimum_probability=0.05, minimum_phi_value=None,

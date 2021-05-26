@@ -46,6 +46,14 @@ print(len(np.unique(og_ipc[:,1]))) # 970 unique ipcs (and topics)
 
 print(patent_lda_ipc[0,:])
 '''
+'''
+with open('window90by1', 'rb') as handle:
+    window90by1 = pk.load(handle)
+
+print(len(window90by1))
+'''
+
+
 if 1 == 2:
     with open('window90by1', 'rb') as handle:
         window90by1 = pk.load(handle)
@@ -346,7 +354,9 @@ print(sum_of_rows)
 normalized_array = an_array / sum_of_rows[:, np.newaxis]
 print(normalized_array)
 '''
-print(np.shape(pattern))
+print(np.shape(pattern))                # (5937, 5445) 5937 windows, 5445 combs
+
+
 
 #pattern_norm = pattern / window_sum[:, np.newaxis]
 pattern_norm = pattern / window_sum[:, np.newaxis]
@@ -362,7 +372,7 @@ print(max(window_sum_test))
 
 #pattern_wThreshold
 
-pattern_wThreshold = np.where(pattern_norm < 0.01, 0, 1)
+pattern_wThreshold = np.where(pattern_norm < 0.01, 0, 1)                    # arbitrary threshold of 0.01
 
 print(pattern_wThreshold)
 print(np.shape(pattern_wThreshold))
@@ -371,8 +381,80 @@ print(sum(sum(pattern_wThreshold)))
 
 print(np.where(pattern_wThreshold==1))                  # the indices of elements of value 1 -> of recombination candidates
 
-#--- introduce leeway ---#
 
+#pattern == windows x combs x sum of occurences
+#pattern_norm == pattern normalized along window
+#pattern_wThreshold == pattern_norm dichotomized
+
+#Todo: Identify recombination along combinations when they occur first, or when they first reach a threshold
+# -> make pattern for only 1 if recombination appears -> get coordinates of recombination -> count how long recombination diffuses
+# -> result in a data structure of [[window, comb, duration],[w,c,d],...]
+#Todo: Identify how long this threshold is meet for a combination
+#Todo: Make window x ipc pattern and Identify diffusion here as well
+# -> make new pattern -> create equivalent data structure
+print('--------------')
+#print(pattern_norm)
+
+
+#print(pattern_norm[0])
+#print(pattern_norm[1])
+
+#patern_recomb = np.zeros((np.shape(pattern)[0],np.shape(pattern)[1]))
+
+
+### finding recombinations ###
+
+recomb_pos = []
+
+c = 0
+for combinations in pattern_wThreshold.T:
+    for window_pos in range(len(combinations)):
+        if window_pos != 0:
+            if combinations[window_pos] == 1:
+                if combinations[window_pos-1] == 0:
+                    recomb_pos.append([window_pos, c])
+
+    c = c + 1
+
+print(recomb_pos)
+print(len(recomb_pos))
+
+#print(len(pattern_wThreshold))
+
+### counting diffusion ###
+
+diffusion_duration_list = []
+
+for recomb in recomb_pos:
+    diffusion = -1
+    i = 0
+
+    while pattern_wThreshold[recomb[0]+i,recomb[1]] == 1:
+        diffusion = diffusion + 1
+        i = i + 1
+        if recomb[0]+i == len(pattern_wThreshold):
+            break
+
+    diffusion_duration_list.append(diffusion)
+
+print(diffusion_duration_list)
+print(len(diffusion_duration_list))
+
+
+for i in range(len(recomb_pos)):
+    recomb_pos[i].append(diffusion_duration_list[i])
+
+print(recomb_pos[0])
+print(recomb_pos)
+
+
+### Diffusion for natural ipc/topic (no combination) ###
+
+##equivalent code
+
+
+#--- introduce leeway ---#
+'''
 
 def search_sequence_numpy(arr,seq):
     """ Find sequence in an array using NumPy only.
@@ -398,7 +480,7 @@ def search_sequence_numpy(arr,seq):
     # Create a 2D array of sliding indices across the entire length of input array.
     # Match up with the input sequence & get the matching starting indices.
     M = (arr[np.arange(Na-Nseq+1)[:,None] + r_seq] == seq).all(1)
-    '''
+    ''''''
     print(M)
     print(len(M))
     print('Na', Na)
@@ -416,7 +498,7 @@ def search_sequence_numpy(arr,seq):
     print('arr[np.arange(Na-Nseq+1)[:,None] + r_seq] == seq', arr[np.arange(Na-Nseq+1)[:,None] + r_seq] == seq)
     print('(arr[np.arange(Na-Nseq+1)[:,None] + r_seq] == seq).all(1)', (arr[np.arange(Na-Nseq+1)[:,None] + r_seq] == seq).all(1))
     print('shape', np.shape((arr[np.arange(Na-Nseq+1)[:,None] + r_seq] == seq).all(1)))
-    '''
+    ''''''
     # Get the range of those indices as final output
     if M.any() >0:
         return np.where(np.convolve(M,np.ones((Nseq),dtype=int))>0)[0]
@@ -434,13 +516,13 @@ def replace_sequence_numpy(arr,seq, rep_seq):
     return np.where(np.convolve(M,np.ones((Nseq),dtype=int))>0,1,0)
 
 
-'''
+''''''
 arr = np.array([2, 0, 0, 0, 0, 1, 0, 1, 0, 0])
 
 seq = np.array([0,0])
 
 print(search_sequence_numpy(arr,seq))
-'''
+''''''
 
 print('-----------------')
 
@@ -477,7 +559,7 @@ np.set_printoptions(threshold=sys.maxsize)
 #print(pattern_wThreshold.T[2748])
 
 
-'''
+''''''
 c = 0
 for i in pattern_wThreshold.T:
 
@@ -498,7 +580,7 @@ for i in pattern_wThreshold.T:
 
     c = c + 1
     #break
-'''
+''''''
 print('after', pattern_wThreshold.T[2747])
 #print(sum(pattern_wThreshold.T[2747]))
 
@@ -539,8 +621,8 @@ for i in pattern_wThreshold.T:
 
 print('after after', pattern_wThreshold.T[2747])
 #print(sum(pattern_wThreshold.T[2747]))
-
-
+'''
+'''
 #I do find sequences like 100001 as well
 
 #todo find recombinations in pattern_wThreshold, whenever a 1 first occures (first time in t periodes)
@@ -563,3 +645,4 @@ print('after after', pattern_wThreshold.T[2747])
 # diffusion:
 # is active as long as the number of a topic/ipc or the number of a combination of them is above a certain threshold
 
+'''

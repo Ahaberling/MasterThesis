@@ -22,6 +22,7 @@ parent              = parent.to_numpy()
 parent_IPC          = parent_IPC.to_numpy()
 #topics              = topics.to_numpy()
 
+print(patent_topicDist)
 
 #--- Transformation of topic representation ---#
 
@@ -179,7 +180,7 @@ for i in patent_IPC:
 #print(patent_join[patent_join[:,0] == 478449443])
 #print(patent_join[patent_join[:,0] == val[np.argmax(count)]])
 
-
+print(patent_join)
 
 #--- Save transformation and IPC appendix---#
 
