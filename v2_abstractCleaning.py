@@ -8,51 +8,61 @@
 if __name__ == '__main__':
 
 #--- Import Libraries ---#
+    print('\n#--- Import Libraries ---#\n')
 
-    import re
-    import nltk
-    from nltk.corpus import stopwords
-    import pandas as pd
     import numpy as np
-    from gensim import models, utils
-    from gensim.models import CoherenceModel
-    from gensim.models.wrappers import LdaMallet
-    import gensim.corpora as corpora
-    import spacy
-    import os
-    from pprint import pprint
-    import tqdm
-    import sys
+    import pandas as pd
 
-    # Specify whether you want to simply preform LDA or a grid_search for optimal LDA hyperparameters
-    final_model = True
-    grid_search = False
+    import os
+    import sys
+    import tqdm
+
+    import nltk
+    import spacy
+    import re
+    import gensim.corpora as corpora
+    import gensim.models as models
+    import gensim.utils as utils
+
+    #from nltk.corpus import stopwords
+    #from gensim import models, utils
+    #from gensim.models import CoherenceModel
+    #from gensim.models.wrappers import LdaMallet
+    #from pprint import pprint
+
 
 
 #--- Initialization ---#
+    print('\n#--- Initialization ---#\n')
+
+    # Specify whether you want to simply preform LDA, or a grid_search for optimal LDA hyperparameters
+    final_model_gensim = False
+    final_model_mallet = True
+    grid_search = False
+
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
+
+    patent_raw = pd.read_csv('cleaning_robot_EP_patents.csv', quotechar='"', skipinitialspace=True)
+    patent_raw = patent_raw.to_numpy()
+    # patent_raw = patent_raw.sample(100)
 
     nltk.download('punkt')              # nltk tokenizer
     nltk.download('stopwords')          # nltk stopwords filter
 
-    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
-
-    patent = pd.read_csv('cleaning_robot_EP_patents.csv', quotechar='"', skipinitialspace=True)
-    patent = patent.to_numpy()
-    #patent = patent.sample(100)
-
 
 
 #--- Patent investigation ---#
+    print('\n#--- Patent investigation ---#\n')
 
-    # The provided data set contains patents formulated in german or france. These patents are filtered out to
+    # The provided data set contains patents formulated in english, german and france. These patents are filtered out to
     # facilitate a more accurate LDA modelling based on only english patents.
 
     # Additionally: Data is said to be sampled around cleaning robots. If terms 'robot' and 'clean' occur in every
     # patent, then they might as well be excluded from Topic Modelling.
 
-
     # print(patent.columns)              # pat_publn_id, publn_auth, publn_nr, publn_date, publn_claims, publn_title, publn_abstract, nb_IPC
     # print(np.shape(patent))            # (3844, 8)
+
 
     ### Check for patents in german or france and for patents containing the terms 'robot' and 'clean' ###
 
@@ -61,40 +71,42 @@ if __name__ == '__main__':
     check_list_robot = []
     check_list_clean = []
 
-    for i in range(len(patent[:,6])):
+    for i in range(len(patent_raw[:,6])):
 
        # German abstract check
-        regexp = re.compile(r'\sein')
-        if regexp.search(patent[i,6]):
+        regexp = re.compile(r'\sein')       # Assumption: there are no english words beginning with 'ein' worth considering
+        if regexp.search(patent_raw[i,6]):
             check_list_ger.append(i)
 
        # France abstract check
         regexp = re.compile(r'\sune\s')
-        if regexp.search(patent[i,6]):
+        if regexp.search(patent_raw[i,6]):
             check_list_fr.append(i)
 
         # 'robot' abstract check
         regexp = re.compile('robot')
-        if regexp.search(patent[i, 6]):
+        if regexp.search(patent_raw[i, 6]):
             check_list_robot.append(i)
 
        # 'clean' abstract check
         regexp = re.compile('clean')
-        if regexp.search(patent[i,6]):
+        if regexp.search(patent_raw[i,6]):
             check_list_clean.append(i)
 
-    #print('Number of patents in german: ', len(removal_list_ger))              #   48/3844 german patents
-    #print('Number of patents in frensh: ', len(removal_list_fr))               #   15/3844 frensh patents
+    print('Number of patents in german: ', len(check_list_ger))                 #   48/3844 german patents
+    print('Number of patents in frensh: ', len(check_list_fr))                  #   15/3844 frensh patents
 
-    #print('Number of patents with term \'robot\': ', len(check_list_robot))    # 3844/3844 patents including 'robot'
-    #print('Number of patents with term \'clean\': ', len(check_list_clean))    #  398/3844 patents including 'clean'
+    print('Number of patents with term \'robot\': ', len(check_list_robot))    # 3844/3844 patents including 'robot'
+    print('Number of patents with term \'clean\': ', len(check_list_clean))    #  398/3844 patents including 'clean'
 
-    #todo the data seems not solely sampled around cleaning robots, but robots in general. If only 398/3844 patents
+    #todo: the data seems not solely sampled around cleaning robots, but robots in general. If only 398/3844 patents
     # refer the cleaning robots, then the term 'clean' might not be excluded from LDA, since it might enable a valid
     # topic.
 
 
+
 #--- Patent Preprocessing ---#
+    print('\n#--- Patent Preprocessing ---#\n')
 
     ### Removing non-english patents ###
 
@@ -103,13 +115,13 @@ if __name__ == '__main__':
     removal_list_all.append(check_list_fr)
     removal_list_all = [item for sublist in removal_list_all for item in sublist]
 
-    patent = np.delete(patent, removal_list_all, 0)
+    patent = np.delete(patent_raw, removal_list_all, 0)
 
-    #print('Number of (non-english) patents removed: ', len(removal_list_all))      # 48 + 15 = 63 out of 3844
-    #print('Number of (english) patents left: 'len(patent))                         # 3781         out of 3844
+    print('Number of (non-english) patents removed: ', len(removal_list_all))       #   63/3844 patents removed
+    print('Number of (english) patents remaining: ', len(patent))                        # 3781/3844 patents remaining
 
 
-    ### New Array including space for preprocessed abstracts ###
+    ### New Array, including space for preprocessed abstracts ###
 
     patent_cleanAbs = np.empty((np.shape(patent)[0],np.shape(patent)[1]+1), dtype = object)
     patent_cleanAbs[:,:-1] = patent
@@ -128,7 +140,7 @@ if __name__ == '__main__':
     def vectorize(x):
         return np.vectorize(preprocessing)(x)
 
-    # todo is this proper vectorization of a function?
+    # todo: is this proper vectorization of a function?
 
 
     ### Apply functions for abstract cleaning ###
@@ -142,7 +154,7 @@ if __name__ == '__main__':
     for i in range(len(semi_preprocessed)):
         tokenized_abst.append(nltk.word_tokenize(semi_preprocessed[i]))
 
-    #todo maybe find a way to properly vectorize this as well
+    #todo: maybe find a way to properly vectorize this as well
 
 
     ###  Build bigram and trigram models ###
@@ -153,13 +165,14 @@ if __name__ == '__main__':
     bigram_mod = models.phrases.Phraser(bigram)
     trigram_mod = models.phrases.Phraser(trigram)
 
-    #print(trigram_mod[bigram_mod[tokenized_abst[0]]])
+    #print(trigram_mod[bigram_mod[tokenized_abst[0]]])                          # Accessing grams
+
+    #todo: fine tune models.Phrases
 
 
     ### Define Stopwords ###
 
-
-    stop_words = stopwords.words('english')
+    stop_words = nltk.corpus.stopwords.words('english')
     stop_words.extend(['from', 'subject', 're', 'edu', 'use'])
 
     stop_words.extend(['from', 'subject', 're', 'edu', 'use', 'not', 'would', 'say', 'could', '_', 'be', 'know', 'good',
@@ -173,7 +186,7 @@ if __name__ == '__main__':
                  'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii',
                  'robot'])
 
-    #todo adapt when the data sample to be used for all analyses is decided
+    #todo: adapt when the data sample to be used for all analyses is decided
 
 
     ### Define functions for stopwords, bigrams, trigrams and lemmatization ###
@@ -189,7 +202,6 @@ if __name__ == '__main__':
         return [trigram_mod[bigram_mod[doc]] for doc in texts]
 
     def lemmatization(texts, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV']):
-        """https://spacy.io/api/annotation"""
         texts_out = []
         for sent in texts:
             doc = nlp(" ".join(sent))
@@ -214,22 +226,24 @@ if __name__ == '__main__':
     #todo check if bigrams at right place. Do we want 'an_independent_claim' and 'also_included' to be tokens? (Assuming they are not cleaned by lemmatization)
 
 
-#--- Building LDA ---#
 
+#--- Building LDA  ---#
+    print('\n#--- Building LDA ---#\n')
 
-    # Create Dictionary
+    ### Create Dictionary ###
+
     id2word = corpora.Dictionary(data_lemmatized)
 
 
-    # Create Corpus
-    # Term Document Frequency
+    ### Create Corpus ###
+
     corpus = [id2word.doc2bow(text) for text in data_lemmatized]
 
 
-    # Build Gensim LDA model
-    if final_model == True:
+    ### Build LDA model - Gensim ###
+    if final_model_gensim == True:
 
-        lda_model = models.LdaMulticore(corpus=corpus,
+        lda_gensim = models.LdaMulticore(corpus=corpus,
                                         id2word=id2word,
                                         num_topics=325,         # adjust num_topics, alpha and eta with regard to grid search results
                                         random_state=100,
@@ -238,71 +252,75 @@ if __name__ == '__main__':
                                         per_word_topics=True)
 
 
-        # Print the Keyword in the 10 topics
-        #pprint(lda_model.print_topics())
+    ### Compute Perplexity - Gensim ###
+
+        print('Perplexity of final LDA (Gensim): ', lda_gensim.log_perplexity(corpus))      # -11.672663740370565
+        # The lower the better, but heavily limited and not really useful.
 
 
-    # Compute Perplexity
-        #print('\nPerplexity: ', lda_model.log_perplexity(corpus))  # The lower the better, but heavily limited and not really useful.
+    ### Compute Coherence Score - Gensim ###
+
+        coherence_model_lda = models.CoherenceModel(model=lda_gensim, texts=data_lemmatized, dictionary=id2word, coherence='c_v')
+        coherence_lda = coherence_model_lda.get_coherence()
+        print('Coherence Score (c_v) of final LDA (Gensim): ', coherence_lda)               # 0.3352192192227267
+        # the higher the better from 0.3 to 0.7 or 0.8.
+        # source: https://stackoverflow.com/questions/54762690/what-is-the-meaning-of-coherence-score-0-4-is-it-good-or-bad
 
 
-    # Compute Coherence Score
-        #coherence_model_lda = CoherenceModel(model=lda_model, texts=data_lemmatized, dictionary=id2word, coherence='c_v')
-        #coherence_lda = coherence_model_lda.get_coherence()
-        #print('\nCoherence Score: ', coherence_lda)             # the higher the better from 0.3 to 0.7 or 0.8.
-        # https://stackoverflow.com/questions/54762690/what-is-the-meaning-of-coherence-score-0-4-is-it-good-or-bad
+    ### Save Document-Topic affiliation - Gensim ###
 
-    ### Append document topic distribution and save ###
+        doc_affili_gensim = lda_gensim.get_document_topics(corpus, minimum_probability=0.05, minimum_phi_value=None,
+                                                          per_word_topics=False)
 
-        doc_affili = lda_model.get_document_topics(corpus, minimum_probability=0.05, minimum_phi_value=None,
-                                                   per_word_topics=False)
+        patent_topicDist_gensim = patent_cleanAbs
+        patent_topicDist_gensim.T[8, :] = doc_affili_gensim
 
-        #for i in doc_affili:
-            #print(i)
-            # [(82, 0.078733206), (115, 0.09037129), (212, 0.061887488), (227, 0.10818202), (263, 0.07558539), (323, 0.06967209)]
+        pd.DataFrame(patent_topicDist_gensim).to_csv('patent_topicDist_gensim.csv', index=None)
 
-        patent_topicDist = patent_cleanAbs
-        patent_topicDist.T[8, :] = doc_affili
-        #print(patent_topicDist)
+        print('Preview of the resulting Array (Gensim):\n\n', patent_topicDist_gensim[0])           #[12568 'EP' 1946896.0 '2008-07-23' 15 'Method for adjusting at least one axle'
+                                                                                                    # 'An adjustment method for at least one axis (10) in which a robot has a control unit (12) for controlling an axis (10) via which at least two component parts (16,18) are mutually movable. The component parts (16,18) each has at least one marker (24,26) and the positions of the markers are detected by a sensor, with the actual value of a characteristic value ascertained as a relative position of the two mutually movable components (16,18). The adjustment position is repeated by comparing an actual value with a stored, desired value for the adjustment position. An independent claim is included for a device with signal processing unit.'
+                                                                                                    # 1 list([(26, 0.12142762), (53, 0.106452435), (93, 0.08961137), (106, 0.06541982), (226, 0.12752746)])]
+        print('\nShape of the resulting Array (Gensim):', np.shape(patent_topicDist_gensim))        #(3781, 9)
 
-        #[12878 'EP' 1947581.0 ...
-        #'The method involves inputting a foil geometry in a data processing program and transmitting the data to a foil manufacturer through a data carrier and/or email and/or website. The data in the data processing program is read and a packing plane is detected. Foil portions are cut from blanks manually or by a robot and the produced packages are transported. Add-on programs are utilized, where the add-on programs are integrated in the data processing program of a customer. The cut foil portions are connected. An independent claim is also included for an article manufactured according to a method for packing foils.'
-        #2 list([(27, 0.11116354), (300, 0.73837715)])]
-        pd.DataFrame(patent_topicDist).to_csv('patent_topicDist.csv', index=None)
 
-    # Build Mallet LDA model
+    ### Save Topics - Gensim ###
+
+        topics_gensim = lda_gensim.print_topics(num_topics=-1, num_words=8)
+        topics_gensim = np.array(topics_gensim)
+
+        pd.DataFrame(topics_gensim).to_csv('patent_topics_gensim.csv', index=None)
+
+
+    if final_model_mallet == True:
+
+    ### Build Mallet LDA model ###
 
         mallet_path = r'C:/mallet/bin/mallet' # update this path
 
-        ldamallet = models.wrappers.LdaMallet(mallet_path, corpus=corpus, num_topics=325, id2word=id2word)
+        lda_mallet = models.wrappers.LdaMallet(mallet_path, corpus=corpus, num_topics=325, id2word=id2word)
 
-        # Show Topics
-        #pprint(ldamallet.show_topics(formatted=False))
-        '''
-        # Compute Coherence Score
-        coherence_model_ldamallet = CoherenceModel(model=ldamallet, texts=data_lemmatized, dictionary=id2word, coherence='c_v')
-        coherence_ldamallet = coherence_model_ldamallet.get_coherence()
-        print('\nCoherence Score: ', coherence_ldamallet)
-        '''
+    ### Compute Perplexity - Gensim ###
 
-    ### Append Mallet document topic distribution and save ###
-
-        #doc_affili_mallet = ldamallet.load_document_topics()
-
-        #print(doc_affili_mallet)
-        #for i in doc_affili_mallet:
-            #print(i)
-            # [(0, 0.0016542597187758413), (1, 0.0016542597187758413), (2, 0.0016542597187758413), (3, 0.0016542597187758413), (4, 0.0016542597187758413), ...
-
-        doc_affili_mallet = ldamallet.read_doctopics(fname='C:/Users/University/AppData/Local/Temp/c6a2d9_doctopics.txt', eps= 0.05)
-        #for i in doc_affili_mallet:
-            #print(i)
+        # The Mallet wrapper does not seem to support log_perplexity. It is omitted here, since it is argued to be a misleading/irrelevant score anyways
+        #print('Perplexity of final LDA (Mallet): ', lda_mallet.log_perplexity(corpus))
+        # The lower the better, but heavily limited and not really useful.
 
 
-        #print(ldamallet.read_doctopics(fname = 'C:/Users/University/AppData/Local/Temp/c6a2d9_doctopics.txt')) # same as ldamallet.load_document_topics()
-        #for i in ldamallet.read_doctopics(fname = 'C:/Users/University/AppData/Local/Temp/c6a2d9_doctopics.txt'):
-            #print(i)
-        #print(ldamallet.fdoctopics())
+    ### Compute Coherence Score - Mallet ###
+
+        coherence_model_lda_mallet = models.CoherenceModel(model=lda_mallet, texts=data_lemmatized, dictionary=id2word, coherence='c_v')
+        coherence_ldamallet = coherence_model_lda_mallet.get_coherence()
+        print('Coherence Score (c_v) of final LDA (Mallet): ', coherence_ldamallet)             # 0.45689701111307507
+        # the higher the better from 0.3 to 0.7 or 0.8.
+        # source: https://stackoverflow.com/questions/54762690/what-is-the-meaning-of-coherence-score-0-4-is-it-good-or-bad
+
+
+    ### Save Document-Topic affiliation - Mallet ###
+
+        #This gives all topics, no parameer to restrict by probability/coverage threshold
+
+        doc_affili_mallet = lda_mallet.read_doctopics(fname = lda_mallet.fdoctopics(), eps = 0.05, renorm = False)
+        # ldamallet.load_document_topics() reports all topic affiliations. No threshold selectable
 
         patent_topicDist_mallet = patent_cleanAbs
 
@@ -311,34 +329,29 @@ if __name__ == '__main__':
             patent_topicDist_mallet.T[8, c] = list(i)
             c = c + 1
 
-        #patent_topicDist_mallet.T[8, :] = doc_affili_mallet
 
-        np.set_printoptions(threshold=sys.maxsize)
 
-        print(np.shape(patent_topicDist))
-        print(patent_topicDist[0])
-        print(patent_topicDist[10])
-        print(patent_topicDist[20])
-        print(patent_topicDist[33])
-        print(patent_topicDist[847])
-        print(np.shape(patent_topicDist_mallet))
-        print(patent_topicDist_mallet[0])
-        print(patent_topicDist_mallet[10])
-        print(patent_topicDist_mallet[20])
-        print(patent_topicDist_mallet[33])
-        print(patent_topicDist_mallet[847])
-
-        #print(patent_topicDist_mallet)
         pd.DataFrame(patent_topicDist_mallet).to_csv('patent_topicDist_mallet.csv', index=None)
 
-        #todo: currently, only document topic affiliations of the gensim lda are saved.
-        # In future, work with the mallet results if they are better
+        print('Preview of the resulting Array (Mallet):\n\n', patent_topicDist_mallet[0])               # [12568 'EP' 1946896.0 '2008-07-23' 15 'Method for adjusting at least one axle'
+                                                                                                        # 'An adjustment method for at least one axis (10) in which a robot has a control unit (12) for controlling an axis (10) via which at least two component parts (16,18) are mutually movable. The component parts (16,18) each has at least one marker (24,26) and the positions of the markers are detected by a sensor, with the actual value of a characteristic value ascertained as a relative position of the two mutually movable components (16,18). The adjustment position is repeated by comparing an actual value with a stored, desired value for the adjustment position. An independent claim is included for a device with signal processing unit.'
+                                                                                                        # 1 list([(177, 0.05602006688963211), (306, 0.07775919732441472)])]
+        print('\nShape of the resulting Array (Mallet):', np.shape(patent_topicDist_mallet))            # (3781, 9)
 
-        #doc_affili = ldamallet.get_document_topics(corpus, minimum_probability=0.05, minimum_phi_value=None,
-        #                                   per_word_topics=False)
-        # https://radimrehurek.com/gensim_3.8.3/models/wrappers/ldamallet.html
+
+        ### Save Topics - Mallet ###
+
+        topics_mallet = lda_mallet.print_topics(num_topics=-1, num_words=8)
+        topics_mallet = np.array(topics_mallet)
+
+        pd.DataFrame(topics_mallet).to_csv('patent_topics_mallet.csv', index=None)
+
 
 #--- Grid search ---#
+    print('\n#--- Grid search ---#\n')
+
+    #todo: implement version with mallet lda instead of gensim lda
+    #todo: implement fancier grid search (see data mining 2)
 
     if grid_search == True:
 
@@ -353,7 +366,7 @@ if __name__ == '__main__':
                                             alpha=a,
                                             eta=b)
 
-            coherence_model_lda = CoherenceModel(model=lda_model, texts=data_lemmatized, dictionary=id2word,
+            coherence_model_lda = models.CoherenceModel(model=lda_model, texts=data_lemmatized, dictionary=id2word,
                                                  coherence='c_v')
 
             return coherence_model_lda.get_coherence()

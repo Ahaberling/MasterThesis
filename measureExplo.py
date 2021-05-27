@@ -25,9 +25,9 @@ os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/C
 
 #patent_lda_ipc = pd.read_csv( directory + 'patent_lda_ipc.csv', quotechar='"', skipinitialspace=True)
 patent_lda_ipc = pd.read_csv('patent_lda_ipc.csv', quotechar='"', skipinitialspace=True)
-topics = pd.read_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\patent_topics.csv', quotechar='"', skipinitialspace=True)
-og_ipc = pd.read_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_patents_IPC.csv', quotechar='"', skipinitialspace=True)
-#parent = pd.read_csv(r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\cleaning_robot_EP_backward_citations.csv', quotechar='"', skipinitialspace=True)
+topics = pd.read_csv('patent_topics.csv', quotechar='"', skipinitialspace=True)
+og_ipc = pd.read_csv('cleaning_robot_EP_patents_IPC.csv', quotechar='"', skipinitialspace=True)
+#parent = pd.read_csv('cleaning_robot_EP_backward_citations.csv', quotechar='"', skipinitialspace=True)
 
 patent_lda_ipc = patent_lda_ipc.to_numpy()
 topics = topics.to_numpy()
@@ -54,25 +54,25 @@ print(len(window90by1))
 '''
 
 
-if 1 == 2:
+if 1 == 1:
     with open('window90by1', 'rb') as handle:
         window90by1 = pk.load(handle)
-
+    '''
     #print(window90by1)
     print(window90by1['window_0'])
     print(np.shape(window90by1['window_0']))
 
     print(window90by1['window_0'][0])
     print(window90by1['window_0'][0][0])
-
+    '''
     # now I want for each window the distribution of the ipc/topics
 
     window90by1_dist_ipc = {}
 
     #ipc_position = range(53,91,3)
 
-    ipc_position = np.r_[range(52,91,3)]
-    topic_position = np.r_[range(10,52,3)]
+    ipc_position = np.r_[range(45,84,3)]
+    topic_position = np.r_[range(9,45,3)]
 
     window90by1_ipcs = {}
     window90by1_topics = {}
@@ -110,6 +110,11 @@ if 1 == 2:
             #print(patent[np.r_[52,55,58]])
             #print(patent[ipc_position5])
             #print(patent[9:15])
+            #print(patent)
+            #print(patent[82:84])
+            #print(patent[82:89])
+            #print(patent[9:45])
+            #print(np.shape(patent))
             ipc_list.append(patent[ipc_position])
             topic_list.append(patent[topic_position])
 
@@ -192,14 +197,19 @@ if 1 == 2:
 
         c = c + 1
 
-    print(window90by1_ipcs_twoComb)
+    #print(window90by1_ipcs_twoComb)
 
     filename = 'window90by1_ipcs_twoComb'
     outfile = open(filename, 'wb')
     pk.dump(window90by1_ipcs_twoComb, outfile)
     outfile.close()
 
-if 1 == 2:
+    filename = 'window90by1_ipcs'
+    outfile = open(filename, 'wb')
+    pk.dump(window90by1_ipcs, outfile)
+    outfile.close()
+
+if 1 == 1:
     with open('window90by1_ipcs_twoComb', 'rb') as handle:
         window90by1_ipcs_twoComb = pk.load(handle)
 
@@ -326,6 +336,66 @@ if 1 == 2:
     np.set_printoptions(threshold=sys.maxsize)
     print(test_arr)
     '''
+
+if 1 == 1:
+
+    with open('window90by1_ipcs', 'rb') as handle:
+        window90by1_ipcs_twoComb = pk.load(handle)
+
+    ipc_list = []
+    for i in window90by1_ipcs_twoComb.values():
+
+        ipc_list.append(i)
+
+    ipc_list = [item for sublist in ipc_list for item in sublist]
+
+    print('number of all tuples before taking only the unique ones', len(ipc_list))  # 1047572
+    ipc_list, ipc_list_counts = np.unique(ipc_list, return_counts=True, axis=0)
+
+    print(len(ipc_list))
+
+    window_list = window90by1_ipcs_twoComb.keys()
+
+    pattern = np.zeros((len(window_list), len(ipc_list)))
+    print(np.shape(pattern))
+
+
+    print(ipc_list)
+    print(window_list)
+    print(pattern)
+
+    import tqdm
+
+    print('--------------------------')
+    print(sum(sum(pattern)))
+
+    pbar = tqdm.tqdm(total=len(window_list))
+
+    c_i = 0
+    for i in window_list:
+        c_j = 0
+
+        for j in ipc_list:
+
+            if j in window90by1_ipcs[i]:
+                # pattern[c_i,c_j] = 1                                           # results in sum(sum(array)) = 869062.0
+                pattern[c_i, c_j] = window90by1_ipcs[i].count(j)
+
+            c_j = c_j + 1
+
+        c_i = c_i + 1
+        pbar.update(1)
+
+    pbar.close()
+
+    print(sum(sum(pattern)))
+
+    filename = 'window90by1_ipcs_pattern'
+    outfile = open(filename, 'wb')
+    pk.dump(pattern, outfile)
+    outfile.close()
+
+
 
 with open('window90by1_ipcs_twoComb_pattern', 'rb') as handle:
     pattern = pk.load(handle)
