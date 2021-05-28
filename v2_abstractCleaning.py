@@ -36,7 +36,7 @@ if __name__ == '__main__':
     print('\n#--- Initialization ---#\n')
 
     # Specify whether you want to simply preform LDA, or a grid_search for optimal LDA hyperparameters
-    final_model_gensim = False
+    final_model_gensim = True
     final_model_mallet = True
     grid_search = False
 

@@ -45,6 +45,8 @@ if __name__ == '__main__':
     import itertools
     import sys
 
+    import tqdm
+
     from scipy.signal import convolve2d
     from scipy.signal import convolve
 
@@ -52,21 +54,12 @@ if __name__ == '__main__':
     from matplotlib.colors import BoundaryNorm
     from matplotlib.ticker import MaxNLocator
 
+    preproc_bool = True
     plain_pattern_bool = True
+    norm_pattern_bool = True
+    binary_pattern_bool = True
+    measures_bool = True
 
-
-    norm_pattern_ipc_pair_bool = True
-    binary_pattern_ipc_pair_bool = True
-
-    norm_pattern_ipc_tripple_bool = True
-    binary_pattern_ipc_triplle_bool = True
-
-
-    norm_pattern_topic_pair_bool = True
-    binary_pattern_topic_pair_bool = True
-
-    norm_pattern_topic_tripple_bool = True
-    binary_pattern_topic_triplle_bool = True
 
 #--- Initialization --#
     print('\n#--- Initialization ---#\n')
@@ -91,231 +84,178 @@ if __name__ == '__main__':
     #print(len(np.unique(og_ipc[:,1])))      # 970 unique ipcs
     #print(len(window90by1))                 # 5937 windows
 
+    #print(patent_lda_ipc[0])                # Locate ipc and topic positions for ipc_position and topic_position
+                                             # 9-29 topics, 30-end ipc's
 
-#--- Plain pattern array (IPC's, topics) (pair, tripple, singular)  --#
-    print('\n#--- Plain pattern array (IPC\'s, topics) (pair, tripple, singular) ---#\n')
+    #print(patent_lda_ipc[0,9:30])
+    #print(patent_lda_ipc[0,30])
+    #print(np.shape(patent_lda_ipc))
 
-    if plain_pattern_bool == True:
+#--- Preprocessing for plain pattern arrays (IPC's, topics) x (pair, tripple, singular)  --#
+    print('\n#--- Preprocessing for plain pattern arrays (IPC\'s, topics) x (pair, tripple, singular) ---#\n')
 
+    if preproc_bool == True:
 
-        window90by1_dist_ipc = {}
+        ipc_position = np.r_[range(30,np.shape(patent_lda_ipc)[1]-1,3)]             # right now, this has to be adjusted manually depending on the LDA results
+        topic_position = np.r_[range(9,30,3)]                                       # right now, this has to be adjusted manually depending on the LDA results
 
-        ipc_position = np.r_[range(45,84,3)]            # this has to be adjusted manually depending on the LDA results
-        topic_position = np.r_[range(9,45,3)]           # this has to be adjusted manually depending on the LDA results
+        window90by1_ipcs_single = {}
+        window90by1_topics_single = {}
 
-        window90by1_ipcs = {}
-        window90by1_topics = {}
+        window90by1_ipcs_pairs = {}
+        window90by1_topics_pairs = {}
 
-        window90by1_ipcs_allComb = {}
-        window90by1_topics_allComb = {}
-
-        window90by1_ipcs_twoComb = {}
-        window90by1_topics_twoComb = {}
-
-        window90by1_ipcs_threeComb = {}
-        window90by1_topics_threeComb = {}
+        window90by1_ipcs_tripples = {}
+        window90by1_topics_tripples = {}
 
         c = 0
 
         for window in window90by1.values():
-            #print('----')
-            #print(window.key)
-            #print(window)
 
             ipc_list = []
             topic_list = []
 
-            ipc_allComb_list = []
-            topic_allComb_list = []
+            ipc_pair_list = []
+            topic_pair_list = []
 
-            ipc_twoComb_list = []
-            topic_twoComb_list = []
-
-            ipc_threeComb_list = []
-            topic_threeComb_list = []
+            ipc_tripple_list = []
+            topic_tripple_list = []
 
             for patent in window:
-                #print(patent[ipc_position4])
-                #print(patent[np.r_[52,55,58]])
-                #print(patent[ipc_position5])
-                #print(patent[9:15])
-                #print(patent)
-                #print(patent[82:84])
-                #print(patent[82:89])
-                #print(patent[9:45])
-                #print(np.shape(patent))
-                ipc_list.append(patent[ipc_position])
-                topic_list.append(patent[topic_position])
 
-                # ipc_allComb_list
+                # collect all ipc's within patents within a window
                 y = [x for x in patent[ipc_position] if x == x]             # nan elimination
                 y = np.unique(y)                                            # todo probably/hopefully not neccessary (because hopefully the data is clean enough so that one paper is not classfied with the same ipc more than once)
-                ipc_allComb_list.append(tuple(y))
+                ipc_list.append(tuple(y))                                   # for each window I get a list of tuples. one tuple represents the ipc's within a patent of the window
 
-                # topic_allComb_list
+                # collect all topics within patents within a window
                 z = [x for x in patent[topic_position] if x == x]           # nan elimination
                 z = np.unique(z)                                            # todo probably/hopefully not neccessary (because hopefully the data is clean enough so that one paper is not classfied with the same topic more than once)
-                topic_allComb_list.append(tuple(z))
+                topic_list.append(tuple(z))
 
-                # ipc_twoComb_list
-                ipc_twoComb_list.append(list(itertools.combinations(y, r=2)))
+                # collect all possible ipc pairs and triples within a patent within a window
+                ipc_pair_list.append(list(itertools.combinations(y, r=2)))
+                ipc_tripple_list.append(list(itertools.combinations(y, r=3)))
 
-                # topic_twoComb_list
-                topic_twoComb_list.append(list(itertools.combinations(z, r=2)))
-
-                # ipc_threeComb_list
-                ipc_threeComb_list.append(list(itertools.combinations(y, r=3)))
-
-                # topic_threeComb_list
-                topic_threeComb_list.append(list(itertools.combinations(z, r=3)))
+                # collect all possible topic pairs and triples within a patent within a window
+                topic_pair_list.append(list(itertools.combinations(z, r=2)))
+                topic_tripple_list.append(list(itertools.combinations(z, r=3)))
 
 
-            #print(ipc_comb_list)
-
-            # all ipcs that occured in the window in general
-            ipc_list = np.concatenate(ipc_list).ravel().tolist()
-            ipc_list = [x for x in ipc_list if x == x]
+            # dictionary with all singularly occuring ipc's within a window
+            ipc_list = [item for sublist in ipc_list for item in sublist]
             ipc_list = np.unique(ipc_list)
-            window90by1_ipcs['window_{0}'.format(c)] = ipc_list
+            window90by1_ipcs_single['window_{0}'.format(c)] = ipc_list
 
-            # all topics that occured in the window in general
-            topic_list = np.concatenate(topic_list).ravel().tolist()
-            topic_list = [x for x in topic_list if x == x]
+            # dictionary with all singularly occuring topics within a window
+            topic_list = [item for sublist in topic_list for item in sublist]
             topic_list = np.unique(topic_list)
-            window90by1_topics['window_{0}'.format(c)] = topic_list
+            window90by1_topics_single['window_{0}'.format(c)] = topic_list
 
-            # all ipcs combinations as tuple that occured in the window
-            # meaning one patent -> one tuple
-            #ipc_comb_list = np.unique(ipc_comb_list)                       # todo Error message, but I probably also dont want to do that in general
-            window90by1_ipcs_allComb['window_{0}'.format(c)] = ipc_allComb_list
-
-            # all topic combinations as tuple that occured in the window
-            # meaning one patent -> one tuple
-            #topic_comb_list = np.unique(topic_comb_list)                   # todo Error message, but I probably also dont want to do that in general
-            window90by1_topics_allComb['window_{0}'.format(c)] = topic_allComb_list
-
-            # all ipc inside a patent as pairs in the window
+            # dictionary with all possible pairs of ipc's within patents within a window
             # meaning one patent -> (possibly) multiple tuples of size two
-            #print(window[1])
-            #print(ipc_twoComb_list)                                             #todo somehow we got empty lists in here? is it for patents with only one ipc? -> no combination possible?
-            ipc_twoComb_list = [item for sublist in ipc_twoComb_list for item in sublist]
-            #print(ipc_twoComb_list)
-            #ipc_twoComb_list = np.array(ipc_twoComb_list).ravel()
-            #print(ipc_twoComb_list)
-            window90by1_ipcs_twoComb['window_{0}'.format(c)] = ipc_twoComb_list
+            ipc_pair_list = [item for sublist in ipc_pair_list for item in sublist]
+            window90by1_ipcs_pairs['window_{0}'.format(c)] = ipc_pair_list
 
-
-            # all topic inside a patent as pairs in the window
+            # dictionary with all possible pairs of topics within patents within a window
             # meaning one patent -> (possibly) multiple tuples of size two
-            #print(topic_twoComb_list)
-            topic_twoComb_list = [item for sublist in topic_twoComb_list for item in sublist]
-            #print(topic_twoComb_list)
-            window90by1_topics_twoComb['window_{0}'.format(c)] = topic_twoComb_list
+            topic_pair_list = [item for sublist in topic_pair_list for item in sublist]
+            window90by1_topics_pairs['window_{0}'.format(c)] = topic_pair_list
 
-            # all ipc inside a patent as triples in the window
+            # dictionary with all possible tripples of ipc's within patents within a window
             # meaning one patent -> (possibly) multiple tuples of size three
-            #print(ipc_threeComb_list)
-            ipc_threeComb_list = [item for sublist in ipc_threeComb_list for item in sublist]
-            #print(ipc_threeComb_list)
-            window90by1_ipcs_threeComb['window_{0}'.format(c)] = ipc_threeComb_list
+            ipc_tripple_list = [item for sublist in ipc_tripple_list for item in sublist]
+            window90by1_ipcs_tripples['window_{0}'.format(c)] = ipc_tripple_list
 
-            # all topic inside a patent as triples in the window
+            # dictionary with all possible tripples of topics within patents within a window
             # meaning one patent -> (possibly) multiple tuples of size three
-            topic_threeComb_list = [item for sublist in topic_threeComb_list for item in sublist]
-            window90by1_topics_threeComb['window_{0}'.format(c)] = topic_threeComb_list
+            topic_tripple_list = [item for sublist in topic_tripple_list for item in sublist]
+            window90by1_topics_tripples['window_{0}'.format(c)] = topic_tripple_list
 
             c = c + 1
 
-        #print(window90by1_ipcs_twoComb)
 
-        filename = 'window90by1_ipcs_twoComb'
+        filename = 'window90by1_ipcs_single'
         outfile = open(filename, 'wb')
-        pk.dump(window90by1_ipcs_twoComb, outfile)
+        pk.dump(window90by1_ipcs_single, outfile)
         outfile.close()
 
-        filename = 'window90by1_ipcs'
+        filename = 'window90by1_topics_single'
         outfile = open(filename, 'wb')
-        pk.dump(window90by1_ipcs, outfile)
+        pk.dump(window90by1_topics_single, outfile)
         outfile.close()
 
-    if 1 == 1:
-        with open('window90by1_ipcs_twoComb', 'rb') as handle:
-            window90by1_ipcs_twoComb = pk.load(handle)
+        filename = 'window90by1_ipcs_pairs'
+        outfile = open(filename, 'wb')
+        pk.dump(window90by1_ipcs_pairs, outfile)
+        outfile.close()
 
-        #print(window90by1_ipcs_twoComb.keys())
+        filename = 'window90by1_topics_pairs'
+        outfile = open(filename, 'wb')
+        pk.dump(window90by1_topics_pairs, outfile)
+        outfile.close()
 
+        filename = 'window90by1_ipcs_tripples'
+        outfile = open(filename, 'wb')
+        pk.dump(window90by1_ipcs_tripples, outfile)
+        outfile.close()
+
+        filename = 'window90by1_topics_tripples'
+        outfile = open(filename, 'wb')
+        pk.dump(window90by1_topics_tripples, outfile)
+        outfile.close()
+
+
+
+#--- Constructing plain pattern arrays (IPC\'s, topics) x (pair, tripple, singular)  ---#
+    print('\n#--- Constructing plain pattern arrays (IPC\'s, topics) x (pair, tripple, singular)  ---#\n')
+
+    if plain_pattern_bool == True:
+
+
+    ### IPC Sigles ###
+        #...
+    ### IPC Pairs ###
+
+
+        with open('window90by1_ipcs_pairs', 'rb') as handle:
+            window90by1_ipcs_pairs = pk.load(handle)
+
+        # Identify unique ipc pairs in the whole dictionary for the column dimention of the pattern array #
 
         tuple_list = []
-        for i in window90by1_ipcs_twoComb.values():
+        for i in window90by1_ipcs_pairs.values():
 
             tuple_list.append(i)
 
-        #print(tuple_list)
         tuple_list = [item for sublist in tuple_list for item in sublist]
-        #print(tuple_list)
-        print('number of all tuples before taking only the unique ones', len(tuple_list))  # 1047572
+        print('number of all tuples before taking only the unique ones: ', len(tuple_list))   # 1047572
         tuple_list, tuple_list_counts = np.unique(tuple_list, return_counts=True, axis=0)
-        #print(tuple_list)
-        print(len(tuple_list))
+        print('number of all tuples after taking only the unique ones (number of columns in the pattern array): ', len(tuple_list))    # 5445
         #print(tuple_list_counts)        # where does the 90 and the "weird" values come from? explaination: if a combination occures in the whole timeframe only once (in one patent) then it is captures 90 times. The reason for this is the size of the sliding window of 90 and the sliding by one day. One patent will thereby be capured in 90 sliding windows (excaption: the patents in the first and last 90 days of the overall timeframe, they are capture in less then 90 sliding windows)
-        #print(len(tuple_list_counts))
 
-        window_list = window90by1_ipcs_twoComb.keys()
-        #print(window_list)
-        #print(len(window_list))
+        window_list = window90by1_ipcs_pairs.keys()
+        print('number of all windows (number of rows in the pattent array): ', len(window_list))
 
-        '''
-        np.random.seed(19680801)
-        #Z = np.random.rand(len(window_list)+1, len(tuple_list)+1)  # y,x
-        Z = np.random.rand(99+1, 9+1)
-        
-        print(Z)
-        print(np.shape(Z))
-        
-        #x = np.arange(-0.5, len(tuple_list)+1, 1)  # len = 5445
-        x = np.arange(-0.5, 9+1, 1)  # len = 10
-        #y = np.arange(-0.5, len(window_list)+1, 1)  # len = 5937
-        y = np.arange(-0.5, 99+1, 1)  # len = 100
-        
-        fig, ax = plt.subplots()
-        ax.pcolormesh(x, y, Z)                  # this takes a lot of time if 5445 x 5937
-        plt.show()
-        
-        # Alternativ: only visualize subsample (but use whole data for analysis)
-        # Ok, I definitely have to visulalize only a subset e.g. 3x100 or 5x100 or 10x100
-        '''
-        #--- create occurenc pattern for ipc tuples ---#
+
+        # New array, including space for occurence pattern - ipc pairs #
 
         pattern = np.zeros((len(window_list), len(tuple_list)))
-        print(np.shape(pattern))
+        print(np.shape(pattern))                        # (5937, 5445)
 
-        '''
-        pattern = np.zeros((100, 3))
-        print(np.shape(pattern))
-        print(pattern)
-        
-        '''
 
-        print(tuple_list)
-        print(window_list)
-        print(pattern)
-
-        import tqdm
-
-        print('--------------------------')
-        print(sum(sum(pattern)))
+        # Populate occurence pattern - ipc pairs #
 
         pbar = tqdm.tqdm(total=len(window_list))
-
         c_i = 0
+
         for i in window_list:
             c_j = 0
 
             for j in tuple_list:
-
-                if tuple(j) in window90by1_ipcs_twoComb[i]:
-                    #pattern[c_i,c_j] = 1                                           # results in sum(sum(array)) = 869062.0
-                    pattern[c_i,c_j] = window90by1_ipcs_twoComb[i].count(tuple(j))
+                if tuple(j) in window90by1_ipcs_pairs[i]:
+                    #pattern[c_i,c_j] = 1                                        # results in sum(sum(array)) =  869062.0
+                    pattern[c_i,c_j] = window90by1_ipcs_pairs[i].count(tuple(j)) # results in sum(sum(array)) = 1047572.0
 
                 c_j = c_j +1
 
@@ -324,235 +264,134 @@ if __name__ == '__main__':
 
         pbar.close()
 
-        print(sum(sum(pattern)))
 
-        filename = 'window90by1_ipcs_twoComb_pattern'
+        filename = 'window90by1_ipcs_pairs_pattern'
         outfile = open(filename, 'wb')
         pk.dump(pattern, outfile)
         outfile.close()
 
+    ### IPC Tripples ###
+        # ...
+
+    ### Topic Sigles ###
+        # ...
+    ### Topic Pairs ###
+        # ...
+    ### Topic Tripples ###
+        # ...
+
+#--- Normalized plain pattern arrays (IPC\'s, topics) x (pair, tripple, singular)  ---#
+    print('\n#--- Normalized plain pattern arrays (IPC\'s, topics) x (pair, tripple, singular)  ---#\n')
+
+    if norm_pattern_bool == True:
+
+    ### IPC Sigles ###
+        # ...
+    ### IPC Pairs ###
+
+        with open('window90by1_ipcs_pairs_pattern', 'rb') as handle:
+            pattern = pk.load(handle)
+
+        #print(np.amax(pattern))                                 # 15
+
+        window_sum = pattern.sum(axis=1)
+
+        pattern_norm = pattern / window_sum[:, np.newaxis]
+
+        #window_sum_test = pattern_norm.sum(axis=1)
+        #print(max(window_sum_test))
+
         '''
-        test_arr = np.zeros((10, len(tuple_list)))
-        
-        print('--------------------------')
-        print(sum(sum(test_arr)))
-        
-        
-        c_i = 0
-        for i in window_list:
-            c_j = 0
-        
-            for j in tuple_list:
-        
-                #print(tuple(j))
-                #print(window90by1_ipcs_twoComb[i])
-                if tuple(j) in window90by1_ipcs_twoComb[i]:
-                    #test_arr[c_i, c_j] = 1
-                    test_arr[c_i,c_j] = window90by1_ipcs_twoComb[i].count(tuple(j))
-        
-                c_j = c_j + 1
-        
-                #if c_j == 11:
-                    #break
-        
-            c_i = c_i + 1
-        
-            if c_i == 10:
-                break
-        
-        print(sum(sum(test_arr)))
-        
-        np.set_printoptions(threshold=sys.maxsize)
-        print(test_arr)
-        '''
-
-    if 1 == 1:
-
-        with open('window90by1_ipcs', 'rb') as handle:
-            window90by1_ipcs_twoComb = pk.load(handle)
-
-        ipc_list = []
-        for i in window90by1_ipcs_twoComb.values():
-
-            ipc_list.append(i)
-
-        ipc_list = [item for sublist in ipc_list for item in sublist]
-
-        print('number of all tuples before taking only the unique ones', len(ipc_list))  # 1047572
-        ipc_list, ipc_list_counts = np.unique(ipc_list, return_counts=True, axis=0)
-
-        print(len(ipc_list))
-
-        window_list = window90by1_ipcs_twoComb.keys()
-
-        pattern = np.zeros((len(window_list), len(ipc_list)))
-        print(np.shape(pattern))
-
-
-        print(ipc_list)
-        print(window_list)
-        print(pattern)
-
-        import tqdm
-
-        print('--------------------------')
-        print(sum(sum(pattern)))
-
-        pbar = tqdm.tqdm(total=len(window_list))
-
-        c_i = 0
-        for i in window_list:
-            c_j = 0
-
-            for j in ipc_list:
-
-                if j in window90by1_ipcs[i]:
-                    # pattern[c_i,c_j] = 1                                           # results in sum(sum(array)) = 869062.0
-                    pattern[c_i, c_j] = window90by1_ipcs[i].count(j)
-
-                c_j = c_j + 1
-
-            c_i = c_i + 1
-            pbar.update(1)
-
-        pbar.close()
-
-        print(sum(sum(pattern)))
-
-        filename = 'window90by1_ipcs_pattern'
+        filename = 'window90by1_ipcs_pairs_pattern_norm'
         outfile = open(filename, 'wb')
-        pk.dump(pattern, outfile)
+        pk.dump(pattern_norm, outfile)
         outfile.close()
+        '''
+
+    ### IPC Tripples ###
+        # ...
+
+    ### Topic Sigles ###
+        # ...
+    ### Topic Pairs ###
+        # ...
+    ### Topic Tripples ###
+        # ...
+
+#--- Binarized plain pattern arrays (IPC\'s, topics) x (pair, tripple, singular)  ---#
+    print('\n#--- Binarized plain pattern arrays (IPC\'s, topics) x (pair, tripple, singular)  ---#\n')
+
+    if binary_pattern_bool == True:
+
+        '''
+        with open('window90by1_ipcs_pairs_pattern_norm', 'rb') as handle:
+            pattern_norm = pk.load(handle)
+        '''
+        pattern_thres = np.where(pattern_norm < 0.01, 0, 1)                    # arbitrary threshold of 0.01
+
+        '''
+        filename = 'window90by1_ipcs_pairs_pattern_thres'
+        outfile = open(filename, 'wb')
+        pk.dump(pattern_thres, outfile)
+        outfile.close()
+        '''
 
 
 
-    with open('window90by1_ipcs_twoComb_pattern', 'rb') as handle:
-        pattern = pk.load(handle)
+#--- Measuring recombination, diffusion of recombination and diffusion of singular ipc's/topics  ---#
+    print('\n#--- Measuring recombination, diffusion of recombination and diffusion of singular ipc\'s/topics  ---#\n')
 
-    print(pattern)
-    print(np.amax(pattern))                                 # 15
+    # Recombination are located along the window-pair axes. Subsequently it is measured how long this recombination
+    # diffuses. The resulting data structure looks like [[window, comb, duration],[w,c,d],...]
+    # For further insights the w and c coordinates can be used to review the unnormalized and unbinarized pattern array.
 
-    print(pattern.size)
-    #print(pattern.T)
+    if measures_bool == True:
 
-    #todo transform the pattern array into an array of the same shape with 0 (combination in window does not meet window-specific threshold) and 1 (combination x in window matches the threshold. E.g. 10% of all combinations were combination x)
-    #todo when done on daily sliding approach, then grand some leeway so that e.g. 00001110111111110000...0001101111111000000 is treated as 2 cycle and not 4
+        '''
+        with open('window90by1_ipcs_pairs_pattern_thres', 'rb') as handle:
+            pattern_thres = pk.load(handle)
+        '''
 
-    # let's try with 5%:
+        ### finding recombinations ###
 
-    window_sum = pattern.sum(axis=1)
+        recomb_pos = []
 
-    #print(np.shape(window_sum))             # (5937,)
-    #print(window_sum)                       # [103. 100. 100. ... 392. 392. 392.]
+        c = 0
+        for combinations in pattern_thres.T:
+            for window_pos in range(len(combinations)):
+                if window_pos != 0:
+                    if combinations[window_pos] == 1:
+                        if combinations[window_pos-1] == 0:
+                            recomb_pos.append([window_pos, c])
 
-    '''
-    an_array = np.array([[1,2,3],[4,5,6]])
-    print(an_array)
-    sum_of_rows = an_array.sum(axis=1)
-    print(sum_of_rows)
-    normalized_array = an_array / sum_of_rows[:, np.newaxis]
-    print(normalized_array)
-    '''
-    print(np.shape(pattern))                # (5937, 5445) 5937 windows, 5445 combs
-
+            c = c + 1
 
 
-    #pattern_norm = pattern / window_sum[:, np.newaxis]
-    pattern_norm = pattern / window_sum[:, np.newaxis]
+        ### counting diffusion ###
 
-    print(pattern_norm)
-    print(np.shape(pattern_norm))
+        diffusion_duration_list = []
 
+        for recomb in recomb_pos:
+            diffusion = -1
+            i = 0
 
-    window_sum_test = pattern_norm.sum(axis=1)
+            while pattern_thres[recomb[0]+i,recomb[1]] == 1:
+                diffusion = diffusion + 1
+                i = i + 1
+                if recomb[0]+i == len(pattern_thres):
+                    break
 
-    print(window_sum_test)
-    print(max(window_sum_test))
+            diffusion_duration_list.append(diffusion)
 
-    #pattern_wThreshold
+        ### Merge both lists to get final data structure ###
 
-    pattern_wThreshold = np.where(pattern_norm < 0.01, 0, 1)                    # arbitrary threshold of 0.01
+        for i in range(len(recomb_pos)):
+            recomb_pos[i].append(diffusion_duration_list[i])
 
-    print(pattern_wThreshold)
-    print(np.shape(pattern_wThreshold))
-    print(np.amax(pattern_wThreshold))
-    print(sum(sum(pattern_wThreshold)))
+        print(recomb_pos)
+        print(recomb_pos[0])
 
-    print(np.where(pattern_wThreshold==1))                  # the indices of elements of value 1 -> of recombination candidates
-
-
-    #pattern == windows x combs x sum of occurences
-    #pattern_norm == pattern normalized along window
-    #pattern_wThreshold == pattern_norm dichotomized
-
-    #Todo: Identify recombination along combinations when they occur first, or when they first reach a threshold
-    # -> make pattern for only 1 if recombination appears -> get coordinates of recombination -> count how long recombination diffuses
-    # -> result in a data structure of [[window, comb, duration],[w,c,d],...]
-    #Todo: Identify how long this threshold is meet for a combination
-    #Todo: Make window x ipc pattern and Identify diffusion here as well
-    # -> make new pattern -> create equivalent data structure
-    print('--------------')
-    #print(pattern_norm)
-
-
-    #print(pattern_norm[0])
-    #print(pattern_norm[1])
-
-    #patern_recomb = np.zeros((np.shape(pattern)[0],np.shape(pattern)[1]))
-
-
-    ### finding recombinations ###
-
-    recomb_pos = []
-
-    c = 0
-    for combinations in pattern_wThreshold.T:
-        for window_pos in range(len(combinations)):
-            if window_pos != 0:
-                if combinations[window_pos] == 1:
-                    if combinations[window_pos-1] == 0:
-                        recomb_pos.append([window_pos, c])
-
-        c = c + 1
-
-    print(recomb_pos)
-    print(len(recomb_pos))
-
-    #print(len(pattern_wThreshold))
-
-    ### counting diffusion ###
-
-    diffusion_duration_list = []
-
-    for recomb in recomb_pos:
-        diffusion = -1
-        i = 0
-
-        while pattern_wThreshold[recomb[0]+i,recomb[1]] == 1:
-            diffusion = diffusion + 1
-            i = i + 1
-            if recomb[0]+i == len(pattern_wThreshold):
-                break
-
-        diffusion_duration_list.append(diffusion)
-
-    print(diffusion_duration_list)
-    print(len(diffusion_duration_list))
-
-
-    for i in range(len(recomb_pos)):
-        recomb_pos[i].append(diffusion_duration_list[i])
-
-    print(recomb_pos[0])
-    print(recomb_pos)
-
-
-    ### Diffusion for natural ipc/topic (no combination) ###
-
-    ##equivalent code
-
-
-    #--- introduce leeway ---#
+#--- introduce leeway ---#
     '''
     
     def search_sequence_numpy(arr,seq):
@@ -745,3 +584,64 @@ if __name__ == '__main__':
     # is active as long as the number of a topic/ipc or the number of a combination of them is above a certain threshold
     
     '''
+
+
+'''
+        with open('window90by1_ipcs_pairs', 'rb') as handle:
+            window90by1_ipcs_pairs = pk.load(handle)
+
+
+
+        ipc_list = []
+        for i in window90by1_ipcs_pairs.values():
+
+            ipc_list.append(i)
+
+        ipc_list = [item for sublist in ipc_list for item in sublist]
+
+        print('number of all tuples before taking only the unique ones', len(ipc_list))  # 1047572
+        ipc_list, ipc_list_counts = np.unique(ipc_list, return_counts=True, axis=0)
+
+        print(len(ipc_list))
+
+        window_list = window90by1_ipcs_pairs.keys()
+
+        pattern = np.zeros((len(window_list), len(ipc_list)))
+        print(np.shape(pattern))
+
+
+        print(ipc_list)
+        print(window_list)
+        print(pattern)
+
+        import tqdm
+
+        print('--------------------------')
+        print(sum(sum(pattern)))
+
+        pbar = tqdm.tqdm(total=len(window_list))
+
+        c_i = 0
+        for i in window_list:
+            c_j = 0
+
+            for j in ipc_list:
+
+                if j in window90by1_ipcs[i]:
+                    # pattern[c_i,c_j] = 1                                           # results in sum(sum(array)) = 869062.0
+                    pattern[c_i, c_j] = window90by1_ipcs[i].count(j)
+
+                c_j = c_j + 1
+
+            c_i = c_i + 1
+            pbar.update(1)
+
+        pbar.close()
+
+        print(sum(sum(pattern)))
+
+        filename = 'window90by1_ipcs_pattern'
+        outfile = open(filename, 'wb')
+        pk.dump(pattern, outfile)
+        outfile.close()
+'''
