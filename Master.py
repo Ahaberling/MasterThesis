@@ -2,7 +2,7 @@
 
 '''
 
-v2_abstractCleaning.py
+v3_textPreproc_LDA_gridSeach.py
 
     input:
         cleaning_robot_EP_patents.csv
@@ -47,7 +47,7 @@ v1_dataTransformation.py
 
 
 
-v1_slidingWindows.py
+v3_slidingWindows.py
 
     input:
         patent_lda_ipc.csv
@@ -63,7 +63,7 @@ v1_slidingWindows.py
 
 
 
-measureExplo.py
+v3_plainMeasureExploration.py
 
     input:
         pickles like window90by1

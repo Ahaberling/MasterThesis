@@ -1,35 +1,40 @@
-### This file relies on the result of v1_slidingWindows.py. It takes one of the proposed sliding window approaches and
+### This file relies on the result of v3_slidingWindows.py. It takes one of the proposed sliding window approaches and
 ### transforms the dictionary into arrays displaying diffusion and recombination patterns. In the resulting arrays one
-### row represents a windows, while one column represents a IPC- or topic unit. In this pattern arrays diffusion and
+### row represents a windows, while one column represents a IPC- or topic unit. In this pattern arrays, diffusion and
 ### recombination are measured.
 ###
-### First focusing on IPC's, the columns of the first array represent all IPC-pairs contained in the patents of the
-### data set (Not all possible IPC-pairs cross patent). The cells A ij
-### represent how often a pair j occured in window i.
+### First focusing on IPC's, the columns of the first array represent all IPC's contained in the patents of the
+### data set. The cells A ij represent how often a IPC j occurred in window i.
 ###
-###               pair_0  pair_1  pair_2  ...
+### E.g.:
+###                ipc_0   ipc_1   ipc_2  ...
 ###       window_0     0       1       0  ...
 ###       window_1     0       1       2  ...
 ###       window_2     1       2       5  ...
 ###       ...        ...     ...     ...  ...
 ###
+###
 ### This array is then transformed in order to ease the finding of
-### recombination and diffusion patterns. In the first transformation the cells are normalized by the row sum. This way
+### recombination and diffusion patterns. In a first transformation the cells are normalized by the row sum. This way
 ### a cell represents the fraction of how much discourse it covered in the respective window. In a second transformation
-### the array is binarized by a threshold X. If a pair is responsible for X% of the discourse, it is represented as 1,
-### 0 other wise. In this binary pattern array recombinations are identified and the length of their diffusion measured.
-### (Side note: code for recombinations of tripples is provided as well. More then tripples is not considered relevant
-### right now)
+### the array is binarized by a threshold X. If a IPC is responsible for X% of the discourse, it is represented as 1,
+### 0 other wise. In this binary pattern array diffusions are identified and their lengths are measured.
 ###
-### Additionally a second pattern is build. While the rows are still representing the windows, the columns now represent
-### singular IPC's. This way a diffusion measure independet of recombination is provided.
+### Now focusing on the recombination patterns of IPC's, a equivalent pattern is build. While the rows are still
+### representing the windows, the columns now represent combinations of IPC's that occur in a window. A combination of
+### IPC's is considered a unique pair or triple of IPC's that occur in the same patent (no cross patent combinations!).
+### This pattern is then normalized and binarized in the same manner, facilitating the identification of recombinations
+### and their diffusion length.
 ###
-### All of the provided patterns and measures relying on them are replicated for topics and topic-pairs, instead of
-### IPC's
+### Code for the construction of patterns with IPC pairs is provided. Triples might be added later.
+### Code for the construction of patterns with topics is partly provided and will be extended later.
 ###
-### Code locating arbitrary pattern sequences like 11101101001101 is provided as well
-### Code for imputing sequences like 1110111 to 1111111 is provided as well
-### Code for imputing sequences like 11100111 to 11111111 is not provided yet
+### An example is provided.
+###
+### Code locating arbitrary pattern sequences like 11101101001101 is provided.
+### Code for imputing sequences like 1110111 to 1111111 is provided.
+### Code for imputing sequences like 11100111 to 11111111 is not provided yet.
+
 
 if __name__ == '__main__':
 
@@ -54,7 +59,7 @@ if __name__ == '__main__':
     from matplotlib.colors import BoundaryNorm
     from matplotlib.ticker import MaxNLocator
 
-    preproc_bool = True
+    preproc_bool = False
     plain_pattern_bool = True
     norm_pattern_bool = True
     binary_pattern_bool = True
@@ -216,7 +221,60 @@ if __name__ == '__main__':
 
 
     ### IPC Sigles ###
-        #...
+
+        with open('window90by1_ipcs_single', 'rb') as handle:
+            window90by1_ipcs_single = pk.load(handle)
+
+        single_list = []
+        for i in window90by1_ipcs_single.values():
+
+            single_list.append(i)
+
+        single_list = [item for sublist in single_list for item in sublist]
+        single_list, single_list_counts = np.unique(single_list, return_counts=True, axis=0)
+
+        window_list = window90by1_ipcs_single.keys()
+
+
+        # New array, including space for occurence pattern - ipc singles #
+
+        pattern_ipc_singles = np.zeros((len(window_list), len(single_list)))
+        print(np.shape(pattern_ipc_singles))  # (, )
+
+        # Populate occurence pattern - ipc singles #
+
+        pbar = tqdm.tqdm(total=len(window_list))
+        c_i = 0
+
+        for i in window_list:
+            c_j = 0
+
+        #['B05B  13' 'B23K   9' 'B23K  10' 'B23K  20' 'B23K  37' 'B23P  19' 'B23P  21' 'B23Q  17' 'B23Q  39' 'B25J   5' 'B25J   9' 'B25J  11' ... 'H02G   3']
+        # [('B25J  19', 'H01R  13'), ('B25J  19', 'H01R  43'), ('H01R  13', 'H01R  43'), ('B23K  10', 'B23Q  17'), ...
+
+
+            for j in single_list:
+                #print(window90by1_ipcs_single[i])
+                #print(list(window90by1_ipcs_single[i]))
+                #print(list(window90by1_ipcs_single[i]).count('B05B  13'))
+                #print(j)
+                if j in window90by1_ipcs_single[i]:
+
+
+                    pattern_ipc_singles[c_i, c_j] = list(window90by1_ipcs_single[i]).count(j)
+        
+                c_j = c_j + 1
+            c_i = c_i + 1
+            pbar.update(1)
+        
+        pbar.close()
+        
+        filename = 'window90by1_ipcs_singles_pattern'
+        outfile = open(filename, 'wb')
+        pk.dump(pattern_ipc_singles, outfile)
+        outfile.close()
+
+
     ### IPC Pairs ###
 
 
@@ -231,19 +289,19 @@ if __name__ == '__main__':
             tuple_list.append(i)
 
         tuple_list = [item for sublist in tuple_list for item in sublist]
-        print('number of all tuples before taking only the unique ones: ', len(tuple_list))   # 1047572
+        #print('number of all tuples before taking only the unique ones: ', len(tuple_list))   # 1047572
         tuple_list, tuple_list_counts = np.unique(tuple_list, return_counts=True, axis=0)
-        print('number of all tuples after taking only the unique ones (number of columns in the pattern array): ', len(tuple_list))    # 5445
+        #print('number of all tuples after taking only the unique ones (number of columns in the pattern array): ', len(tuple_list))    # 5445
         #print(tuple_list_counts)        # where does the 90 and the "weird" values come from? explaination: if a combination occures in the whole timeframe only once (in one patent) then it is captures 90 times. The reason for this is the size of the sliding window of 90 and the sliding by one day. One patent will thereby be capured in 90 sliding windows (excaption: the patents in the first and last 90 days of the overall timeframe, they are capture in less then 90 sliding windows)
 
         window_list = window90by1_ipcs_pairs.keys()
-        print('number of all windows (number of rows in the pattent array): ', len(window_list))
+        #print('number of all windows (number of rows in the pattent array): ', len(window_list))
 
 
         # New array, including space for occurence pattern - ipc pairs #
 
-        pattern = np.zeros((len(window_list), len(tuple_list)))
-        print(np.shape(pattern))                        # (5937, 5445)
+        pattern_ipc_pairs = np.zeros((len(window_list), len(tuple_list)))
+        print(np.shape(pattern_ipc_pairs))                        # (5937, 5445)
 
 
         # Populate occurence pattern - ipc pairs #
@@ -255,9 +313,14 @@ if __name__ == '__main__':
             c_j = 0
 
             for j in tuple_list:
+                #print(window90by1_ipcs_pairs[i])
+                #print(window90by1_ipcs_pairs[i].count('B05B  13'))
+                #print(j)
+
+
                 if tuple(j) in window90by1_ipcs_pairs[i]:
-                    #pattern[c_i,c_j] = 1                                        # results in sum(sum(array)) =  869062.0
-                    pattern[c_i,c_j] = window90by1_ipcs_pairs[i].count(tuple(j)) # results in sum(sum(array)) = 1047572.0
+                    #pattern_ipc_pairs[c_i,c_j] = 1                                        # results in sum(sum(array)) =  869062.0
+                    pattern_ipc_pairs[c_i,c_j] = window90by1_ipcs_pairs[i].count(tuple(j)) # results in sum(sum(array)) = 1047572.0
 
                 c_j = c_j +1
 
@@ -269,12 +332,11 @@ if __name__ == '__main__':
 
         filename = 'window90by1_ipcs_pairs_pattern'
         outfile = open(filename, 'wb')
-        pk.dump(pattern, outfile)
+        pk.dump(pattern_ipc_pairs, outfile)
         outfile.close()
 
     ### IPC Tripples ###
         # ...
-
     ### Topic Sigles ###
         # ...
     ### Topic Pairs ###
@@ -288,17 +350,33 @@ if __name__ == '__main__':
     if norm_pattern_bool == True:
 
     ### IPC Sigles ###
-        # ...
+
+
+        with open('window90by1_ipcs_singles_pattern', 'rb') as handle:
+            pattern_ipc_singles = pk.load(handle)
+
+        window_sum = pattern_ipc_singles.sum(axis=1)
+
+        pattern_ipc_singles_norm = pattern_ipc_singles / window_sum[:, np.newaxis]
+
+        '''
+        filename = 'window90by1_ipcs_singles_pattern_norm'
+        outfile = open(filename, 'wb')
+        pk.dump(pattern_ipc_singles_norm, outfile)
+        outfile.close()
+        '''
+
+
     ### IPC Pairs ###
 
         with open('window90by1_ipcs_pairs_pattern', 'rb') as handle:
-            pattern = pk.load(handle)
+            pattern_ipc_pairs = pk.load(handle)
 
         #print(np.amax(pattern))                                 # 15
 
-        window_sum = pattern.sum(axis=1)
+        window_sum = pattern_ipc_pairs.sum(axis=1)
 
-        pattern_norm = pattern / window_sum[:, np.newaxis]
+        pattern_ipc_pairs_norm = pattern_ipc_pairs / window_sum[:, np.newaxis]
 
         #window_sum_test = pattern_norm.sum(axis=1)
         #print(max(window_sum_test))
@@ -306,13 +384,12 @@ if __name__ == '__main__':
         '''
         filename = 'window90by1_ipcs_pairs_pattern_norm'
         outfile = open(filename, 'wb')
-        pk.dump(pattern_norm, outfile)
+        pk.dump(pattern_ipc_pairs_norm, outfile)
         outfile.close()
         '''
 
     ### IPC Tripples ###
         # ...
-
     ### Topic Sigles ###
         # ...
     ### Topic Pairs ###
@@ -325,16 +402,36 @@ if __name__ == '__main__':
 
     if binary_pattern_bool == True:
 
+        ### IPC singles ###
+
+
+        '''
+        with open('window90by1_ipcs_singles_pattern_norm', 'rb') as handle:
+            pattern_ipc_singles_norm = pk.load(handle)
+        '''
+
+        pattern_ipc_singles_thres = np.where(pattern_ipc_singles_norm < 0.01, 0, 1)                    # arbitrary threshold of 0.01
+
+        '''
+        filename = 'window90by1_ipcs_singles_pattern_thres'
+        outfile = open(filename, 'wb')
+        pk.dump(pattern_ipc_singles_thres, outfile)
+        outfile.close()
+        '''
+
+        ### IPC pairs ###
+
         '''
         with open('window90by1_ipcs_pairs_pattern_norm', 'rb') as handle:
             pattern_norm = pk.load(handle)
         '''
-        pattern_thres = np.where(pattern_norm < 0.01, 0, 1)                    # arbitrary threshold of 0.01
+
+        pattern_ipc_pairs_thres = np.where(pattern_ipc_pairs_norm < 0.01, 0, 1)                    # arbitrary threshold of 0.01
 
         '''
         filename = 'window90by1_ipcs_pairs_pattern_thres'
         outfile = open(filename, 'wb')
-        pk.dump(pattern_thres, outfile)
+        pk.dump(pattern_ipc_pairs_thres, outfile)
         outfile.close()
         '''
 
@@ -349,27 +446,70 @@ if __name__ == '__main__':
 
     if measures_bool == True:
 
+
+        ### IPC singles ###
+
         '''
         with open('window90by1_ipcs_pairs_pattern_thres', 'rb') as handle:
-            pattern_thres = pk.load(handle)
+            pattern_ipc_singles_thres = pk.load(handle)
         '''
 
-        ### finding recombinations ###
+        # finding recombinations #
 
-        recomb_pos = []
+        occu_pos = []
 
         c = 0
-        for combinations in pattern_thres.T:
+        for combinations in pattern_ipc_singles_thres.T:
             for window_pos in range(len(combinations)):
                 if window_pos != 0:
                     if combinations[window_pos] == 1:
                         if combinations[window_pos-1] == 0:
-                            recomb_pos.append([window_pos, c])
+                            occu_pos.append([window_pos, c])
 
             c = c + 1
 
 
-        ### counting diffusion ###
+        # counting diffusion #
+
+        diffusion_duration_list = []
+
+        for occurrence in occu_pos:
+            diffusion = -1
+            i = 0
+
+            while pattern_ipc_singles_thres[occurrence[0]+i,occurrence[1]] == 1:
+                diffusion = diffusion + 1
+                i = i + 1
+                if occurrence[0]+i == len(pattern_ipc_singles_thres):
+                    break
+
+            diffusion_duration_list.append(diffusion)
+
+        # Merge both lists to get final data structure #
+
+        for i in range(len(occu_pos)):
+            occu_pos[i].append(diffusion_duration_list[i])
+
+        print(occu_pos)
+        print(occu_pos[0])
+
+
+
+        ### ipc pairs ###
+
+        recomb_pos = []
+
+        c = 0
+        for combinations in pattern_ipc_pairs_thres.T:
+            for window_pos in range(len(combinations)):
+                if window_pos != 0:
+                    if combinations[window_pos] == 1:
+                        if combinations[window_pos - 1] == 0:
+                            recomb_pos.append([window_pos, c])
+
+            c = c + 1
+
+        # counting diffusion #
 
         diffusion_duration_list = []
 
@@ -377,15 +517,15 @@ if __name__ == '__main__':
             diffusion = -1
             i = 0
 
-            while pattern_thres[recomb[0]+i,recomb[1]] == 1:
+            while pattern_ipc_pairs_thres[recomb[0] + i, recomb[1]] == 1:
                 diffusion = diffusion + 1
                 i = i + 1
-                if recomb[0]+i == len(pattern_thres):
+                if recomb[0] + i == len(pattern_ipc_pairs_thres):
                     break
 
             diffusion_duration_list.append(diffusion)
 
-        ### Merge both lists to get final data structure ###
+        # Merge both lists to get final data structure #
 
         for i in range(len(recomb_pos)):
             recomb_pos[i].append(diffusion_duration_list[i])
@@ -454,7 +594,7 @@ if __name__ == '__main__':
     seq = np.array([1,0,1])
 
     c = 0
-    for i in pattern_thres.T:
+    for i in pattern_ipc_pairs_thres.T:
 
         arr = i
         print(c, search_sequence_numpy(arr, seq))                       # 2747, 2847, 2860, 2936, 3060, 3138
@@ -474,7 +614,7 @@ if __name__ == '__main__':
     ### Replacing sequences 101 with 111 ###
 
     c = 0
-    for i in pattern_thres.T:
+    for i in pattern_ipc_pairs_thres.T:
 
         arr = i
         #print(c, search_sequence_numpy(arr, seq))                       # 2747, 2847, 2860, 2936, 3060, 3138
@@ -488,7 +628,7 @@ if __name__ == '__main__':
         print('i == 0', i == 0)
         print('convolve(i, k, \'same\') == 2 & (i == 0)', convolve(i, k, 'same') == 2 & (i == 0))
         """
-        pattern_thres.T[c,:] = i
+        pattern_ipc_pairs_thres.T[c,:] = i
 
         c = c + 1
         #break

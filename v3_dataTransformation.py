@@ -1,4 +1,4 @@
-### This file relies on the results of v2_abstractCleaning.py. It takes the patent data set enriched with the LDA results
+### This file relies on the results of v3_textPreproc_LDA_gridSeach.py. It takes the patent data set enriched with the LDA results
 ### and transforms the later into a more accessable structure. Without transformation the topic affiliation of each
 ### document is stored as list of tuples, ordered by topic_id (asc):     [(topic_id, coverage),(topic_id, coverage),...]
 ###
@@ -6,6 +6,7 @@
 ### pat_publn_id, ... publn_abstract, nb_IPC, LDA_results
 ### Output:
 ### pat_publn_id, ... publn_abstract, nb_IPC, topic_id, topic_name, coverage, topic_id, ...   (ordered desc by coverage)
+###
 ### Note: topic_name not inserted yet. 'None' value in place
 ###
 ### Futher more the IPC's of each patent (stored in cleaning_robot_EP_patents_IPC.csv) are added to the dataset in a
@@ -37,18 +38,11 @@ if __name__ == '__main__':
 
     #patent_topicDist = pd.read_csv('patent_topicDist_gensim.csv', quotechar='"', skipinitialspace=True)
     patent_topicDist = pd.read_csv('patent_topicDist_mallet.csv', quotechar='"', skipinitialspace=True)
-
     patent_IPC = pd.read_csv('cleaning_robot_EP_patents_IPC.csv', quotechar='"', skipinitialspace=True)
-    parent = pd.read_csv('cleaning_robot_EP_backward_citations.csv', quotechar='"', skipinitialspace=True)
-    parent_IPC = pd.read_csv('cleaning_robot_EP_backward_citations_IPC.csv', quotechar='"', skipinitialspace=True)
 
 
     patent_topicDist = patent_topicDist.to_numpy()
-
     patent_IPC = patent_IPC.to_numpy()
-    parent = parent.to_numpy()
-    parent_IPC = parent_IPC.to_numpy()
-
 
 
 # --- Transformation of topic representation ---#
@@ -59,22 +53,8 @@ if __name__ == '__main__':
 
     topic_transf_list = []
     for i in range(len(patent_topicDist)):
-        #print(patent_topicDist[i, 8])
         topic_transf = re.findall("(\d*\.*?\d+)", patent_topicDist[i, 8])
         topic_transf_list.append(topic_transf)
-        #print('---------------')
-        #print(topic_transf_list)
-        #print('---------------')
-        #print('---------------')
-
-        # [(177, 0.05602006688963211), (306, 0.07775919732441472)]
-        # ---------------
-        # [['177', '0.05602006688963211', '306', '0.07775919732441472']]
-        # ---------------
-        # ---------------
-        # [(229, 0.05860805860805861), (273, 0.05860805860805861), (304, 0.05860805860805861)]
-        # ---------------
-        # [['177', '0.05602006688963211', '306', '0.07775919732441472'], ['229', '0.05860805860805861', '273', '0.05860805860805861', '304', '0.05860805860805861']]
 
 
     ### Identify the number of topics the abstract/s with the most topics has/have in order to identify the size of the new array ###
@@ -105,7 +85,7 @@ if __name__ == '__main__':
             tuple = (i[j], i[j + 1])
             tuple_list.append(tuple)
 
-        # todo: this is the same except for the '-signs. upper code seems kinda redundant
+        #todo: check upper code for redundancy.('-signs)
 
         # Sort by coverage #
         tuple_list = sorted(tuple_list, key=lambda tup: tup[1], reverse=True)
@@ -132,9 +112,9 @@ if __name__ == '__main__':
 # --- Check transformation ---#
     print('\n# --- Check transformation ---#\n')
 
-    print('Shape of new array: ', np.shape(patent_transf))              # (3781, 52)
+    print('Shape of new array: ', np.shape(patent_transf))                                  # (3781, 30)
     print('Are all new columns used? Number of patents with maximum number of topics: ',
-          sum(x is not None for x in patent_transf[:,np.shape(patent_transf)[1]-1]))
+          sum(x is not None for x in patent_transf[:,np.shape(patent_transf)[1]-1]))        # 1
 
 
 

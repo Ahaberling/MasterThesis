@@ -1,7 +1,9 @@
 ### This file relies on patent data provided by the Mannheimer chair of organization and innovation.
 ### The data origins from the PATSTAT Database and is supposed to feature patents concerned with cleaning robots.
-### In the following the data is first preprocessed. Afterwards LDA topic modelling is applied.
+### In the following the data is first preprocessed. Afterwards LDA topic modelling is applied (Gensim & Mallet).
 ### The modelled topics and the topic affiliation of the patents are used to enrich the data set for further analyses.
+### In the last part of the code a grid search for finding suitbale LDA hyperparameters is implemented. The desired
+### code sections to be run can be selected in '#--- Initialization ---#'
 
 ### This file is mostly concerned with the abstracts of the patent (publn_abstract)
 
@@ -117,7 +119,7 @@ if __name__ == '__main__':
 
     patent = np.delete(patent_raw, removal_list_all, 0)
 
-    print('Number of (non-english) patents removed: ', len(removal_list_all))       #   63/3844 patents removed
+    print('Number of (non-english) patents removed: ', len(removal_list_all))            #   63/3844 patents removed
     print('Number of (english) patents remaining: ', len(patent))                        # 3781/3844 patents remaining
 
 
@@ -140,7 +142,7 @@ if __name__ == '__main__':
     def vectorize(x):
         return np.vectorize(preprocessing)(x)
 
-    # todo: is this proper vectorization of a function?
+    # todo: check if properly vectorized
 
 
     ### Apply functions for abstract cleaning ###
@@ -154,7 +156,7 @@ if __name__ == '__main__':
     for i in range(len(semi_preprocessed)):
         tokenized_abst.append(nltk.word_tokenize(semi_preprocessed[i]))
 
-    #todo: maybe find a way to properly vectorize this as well
+    #todo: find a way to properly vectorize this as well (low priority)
 
 
     ###  Build bigram and trigram models ###
@@ -223,7 +225,8 @@ if __name__ == '__main__':
     # Do lemmatization keeping only noun, adj, vb, adv
     data_lemmatized = lemmatization(data_words_bigrams, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV'])
 
-    #todo check if bigrams at right place. Do we want 'an_independent_claim' and 'also_included' to be tokens? (Assuming they are not cleaned by lemmatization)
+    #todo check if bigrams (and everything else) at right place. Do we want 'an_independent_claim' and '
+    # also_included' to be tokens? (Assuming they are not cleaned by lemmatization)
 
 
 
@@ -295,13 +298,14 @@ if __name__ == '__main__':
 
     ### Build Mallet LDA model ###
 
-        mallet_path = r'C:/mallet/bin/mallet' # update this path
+        mallet_path = r'C:/mallet/bin/mallet' # update if necessary
 
         lda_mallet = models.wrappers.LdaMallet(mallet_path, corpus=corpus, num_topics=325, id2word=id2word)
 
     ### Compute Perplexity - Gensim ###
 
         # The Mallet wrapper does not seem to support log_perplexity. It is omitted here, since it is argued to be a misleading/irrelevant score anyways
+
         #print('Perplexity of final LDA (Mallet): ', lda_mallet.log_perplexity(corpus))
         # The lower the better, but heavily limited and not really useful.
 
@@ -406,7 +410,7 @@ if __name__ == '__main__':
                          'Coherence': []
                          }
 
-        #todo check why validation set differentiation between 75% adn 100% is important/usefull
+        #todo check validation set differentiation between 75% and 100%
 
         pbar = tqdm.tqdm(total=960)                 # adjust if hyperparameters change
 

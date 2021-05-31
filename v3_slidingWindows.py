@@ -1,4 +1,4 @@
-### This file relies on the results of v2_dataTransformation.py. It takes the transformed and enriched data set and
+### This file relies on the results of v3_dataTransformation.py. It takes the transformed and enriched data set and
 ### creates longitudinal data sets that are used for later analyses. With this longitudinal data sets insights into
 ### the recombination and diffusion patterns of the provided patent data is facilitated.
 ### The longitudinal data sets are created with the implementation of a sliding window approach. Until now, the
@@ -18,6 +18,8 @@ if __name__ == '__main__':
 
     import os
 
+    import tqdm
+
 
 
 #--- Initialization --#
@@ -27,11 +29,8 @@ if __name__ == '__main__':
 
 
     patent_lda_ipc = pd.read_csv('patent_lda_ipc.csv', quotechar='"', skipinitialspace=True)
-    #topics = pd.read_csv('patent_topics_mallet.csv', quotechar='"', skipinitialspace=True)
-    #parent = pd.read_csv('cleaning_robot_EP_backward_citations.csv', quotechar='"', skipinitialspace=True)
 
     patent_lda_ipc = patent_lda_ipc.to_numpy()
-    #parent = parent.to_numpy()
 
 
     ### Declare sliding window approach ###
@@ -48,15 +47,15 @@ if __name__ == '__main__':
 
     patent_time = patent_lda_ipc[:,3].astype('datetime64')
 
-    #print(min(patent_time))        # ealiest day with publication 2001-08-01
-    #print(max(patent_time))        # latest  day with publication 2018-01-31
+    print('Earliest day with publication: ', min(patent_time))          # earliest day with publication 2001-08-01
+    print('Latest day with publication: ', max(patent_time))            # latest  day with publication 2018-01-31
 
     max_timeSpan = int((max(patent_time) - min(patent_time)) / np.timedelta64(1, 'D'))
-    #print(max_timeSpan)            # 6027 day between earliest and latest publication
+    print('Days inbetween: ', max_timeSpan)                             # 6027 day between earliest and latest publication
 
     val, count = np.unique(patent_time, return_counts=True)
-    #print(len(val))                # On 817 days publications were made -> on average every 7.37698898409 days a patent was published
-
+    print('Number of days with publications: ', len(val))               # On 817 days publications were made
+                                                                        # -> on average every 7.37698898409 days a patent was published
 
 
 #--- slinding window approache 90 days by 1 day ---#
@@ -75,6 +74,8 @@ if __name__ == '__main__':
         len_window = []
 
         c = 0
+        pbar = tqdm.tqdm(total=len(patent_time_unique_filled_90))
+
         for i in patent_time_unique_filled_90:
             lower_limit = i
             upper_limit = i + 90
@@ -84,12 +85,13 @@ if __name__ == '__main__':
 
             window90by1['window_{0}'.format(c)] = patent_window
 
-            if c % 100 == 0:
-                print(c, " / ", len(patent_time_unique_filled_90))
+            pbar.update(1)
             #if i >= 100:
                 #break
 
             c = c + 1
+
+        pbar.close()
 
         #print(len(window90by1))                     # 5937 windows
         #print(sum(len_window)/len(len_window))      # on average 56.253326595923866 patents per window
@@ -114,6 +116,8 @@ if __name__ == '__main__':
         len_window = []
 
         c = 0
+        pbar = tqdm.tqdm(total=len(patent_time_unique_filled_60))
+
         for i in patent_time_unique_filled_60:
             lower_limit = i
             upper_limit = i + 60
@@ -123,11 +127,12 @@ if __name__ == '__main__':
 
             window60by1['window_{0}'.format(c)] = patent_window
 
-            if c % 100 == 0:
-                print(c, " / ", len(patent_time_unique_filled_60))
+            pbar.update(1)
             #if i >= 100:
                 #break
             c = c+1
+
+        pbar.close()
 
         #print(len(window60by1))                        # 5967 windows
         #print(sum(len_window)/len(len_window))         # on average 37.50477626948215 patents per window
@@ -149,6 +154,8 @@ if __name__ == '__main__':
         len_window = []
 
         c = 0
+        pbar = tqdm.tqdm(total=len(patent_time_unique_filled_90))
+
         for i in patent_time_unique_filled_90:
 
             if c % 7 == 0:
@@ -160,12 +167,12 @@ if __name__ == '__main__':
 
                 window90by7['window_{0}'.format(c)] = patent_window
 
-            if c % 100 == 0:
-                print(c, " / ", len(patent_time_unique_filled_90))
+            pbar.update(1)
             #if i >= 100:
                 #break
             c = c+1
 
+        pbar.close()
 
         #print(len(window90by7))                         # 849 windows
         #print(sum(len_window)/len(len_window))          # on average 56.849234393404004 patents per window
@@ -187,6 +194,8 @@ if __name__ == '__main__':
         len_window = []
 
         c = 0
+        pbar = tqdm.tqdm(total=len(patent_time_unique_filled_60))
+
         for i in patent_time_unique_filled_60:
 
             if c % 7 == 0:
@@ -198,11 +207,13 @@ if __name__ == '__main__':
 
                 window60by7['window_{0}'.format(c)] = patent_window
 
-            if c % 100 == 0:
-                print(c, " / ", len(patent_time_unique_filled_60))
+            pbar.update(1)
             #if i >= 100:
                 #break
+
             c = c+1
+
+        pbar.close()
 
         #print(len(window60by7))                         # 853 windows
         #print(sum(len_window)/len(len_window))          # on average 39.35873388042204 patents per window
