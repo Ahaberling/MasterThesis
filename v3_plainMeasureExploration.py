@@ -57,8 +57,8 @@ if __name__ == '__main__':
     from scipy.signal import convolve
 
 
-    preproc_bool = False
-    pattern_bool = False
+    preproc_bool = True
+    pattern_bool = True
     measures_bool = True
     imputation_bool = False
 
