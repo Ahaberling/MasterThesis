@@ -85,7 +85,7 @@ if __name__ == '__main__':
     #print(len(window90by1))                 # 5937 windows
 
     #print(patent_lda_ipc[0])                # Locate ipc and topic positions for ipc_position and topic_position
-                                             # 9-29 topics, 30-end ipc's
+                                             # 9-29 topics, 30-end ipc's #todo adjust
 
     #print(patent_lda_ipc[0,9:30])
     #print(patent_lda_ipc[0,30])
@@ -96,8 +96,8 @@ if __name__ == '__main__':
 
     if preproc_bool == True:
 
-        ipc_position = np.r_[range(30,np.shape(patent_lda_ipc)[1]-1,3)]             # right now, this has to be adjusted manually depending on the LDA results
-        topic_position = np.r_[range(9,30,3)]                                       # right now, this has to be adjusted manually depending on the LDA results
+        ipc_position = np.r_[range(30,np.shape(patent_lda_ipc)[1]-1,3)]             # right now, this has to be adjusted manually depending on the LDA results #todo adjust
+        topic_position = np.r_[range(9,30,3)]                                       # right now, this has to be adjusted manually depending on the LDA results #todo adjust
 
         window90by1_ipcs_single = {}
         window90by1_topics_single = {}
@@ -175,6 +175,8 @@ if __name__ == '__main__':
             c = c + 1
 
 
+        ### Save preprocessing ###
+
         filename = 'window90by1_ipcs_single'
         outfile = open(filename, 'wb')
         pk.dump(window90by1_ipcs_single, outfile)
@@ -221,7 +223,7 @@ if __name__ == '__main__':
         with open('window90by1_ipcs_pairs', 'rb') as handle:
             window90by1_ipcs_pairs = pk.load(handle)
 
-        # Identify unique ipc pairs in the whole dictionary for the column dimention of the pattern array #
+        # Identify unique ipc pairs in the whole dictionary for the column dimension of the pattern array #
 
         tuple_list = []
         for i in window90by1_ipcs_pairs.values():
@@ -391,8 +393,10 @@ if __name__ == '__main__':
         print(recomb_pos)
         print(recomb_pos[0])
 
+
+
 #--- introduce leeway ---#
-    '''
+
     
     def search_sequence_numpy(arr,seq):
         """ Find sequence in an array using NumPy only.
@@ -418,7 +422,7 @@ if __name__ == '__main__':
         # Create a 2D array of sliding indices across the entire length of input array.
         # Match up with the input sequence & get the matching starting indices.
         M = (arr[np.arange(Na-Nseq+1)[:,None] + r_seq] == seq).all(1)
-        ''''''
+        """
         print(M)
         print(len(M))
         print('Na', Na)
@@ -436,212 +440,66 @@ if __name__ == '__main__':
         print('arr[np.arange(Na-Nseq+1)[:,None] + r_seq] == seq', arr[np.arange(Na-Nseq+1)[:,None] + r_seq] == seq)
         print('(arr[np.arange(Na-Nseq+1)[:,None] + r_seq] == seq).all(1)', (arr[np.arange(Na-Nseq+1)[:,None] + r_seq] == seq).all(1))
         print('shape', np.shape((arr[np.arange(Na-Nseq+1)[:,None] + r_seq] == seq).all(1)))
-        ''''''
+        """
+
         # Get the range of those indices as final output
         if M.any() >0:
             return np.where(np.convolve(M,np.ones((Nseq),dtype=int))>0)[0]
         else:
             return []         # No match found
-    
-    
-    def replace_sequence_numpy(arr,seq, rep_seq):
-    
-        Na, Nseq = arr.size, seq.size
-        r_seq = np.arange(Nseq)
-        M = (arr[np.arange(Na-Nseq+1)[:,None] + r_seq] == seq).all(1)
-    
-    
-        return np.where(np.convolve(M,np.ones((Nseq),dtype=int))>0,1,0)
-    
-    
-    ''''''
-    arr = np.array([2, 0, 0, 0, 0, 1, 0, 1, 0, 0])
-    
-    seq = np.array([0,0])
-    
-    print(search_sequence_numpy(arr,seq))
-    ''''''
-    
-    print('-----------------')
-    
-    # lets try to replace sequences of 101 within a tuple to 111
-    
-    #seq = np.array([1,0,1])
-    seq = np.array([1,0,0,0,0,0,0,0,1])
-    rep_seq = np.array([1,1,1])
-    
+
+
+    ### Identifying where sequences occur ###
+
+    seq = np.array([1,0,1])
+
     c = 0
-    for i in pattern_wThreshold.T:
-    
+    for i in pattern_thres.T:
+
         arr = i
         print(c, search_sequence_numpy(arr, seq))                       # 2747, 2847, 2860, 2936, 3060, 3138
-        #print(c, replace_sequence_numpy(arr, seq, rep_seq))
-        #pattern_wThreshold.T[c,:] = replace_sequence_numpy(arr, seq, rep_seq)
-    
-    
+
         c = c + 1
         #break
-    
-    #print(pattern_wThreshold)
-    
-    
-    
-    
-    np.set_printoptions(threshold=sys.maxsize)
-    
+
+    #np.set_printoptions(threshold=sys.maxsize)
     #print(pattern_wThreshold.T[2746])
     #print('before', pattern_wThreshold.T[2747])
     #print(sum(pattern_wThreshold.T[2747]))
     #print('before', pattern_wThreshold.T[2709])
     #print(sum(pattern_wThreshold.T[2709]))
     #print(pattern_wThreshold.T[2748])
-    
-    
-    ''''''
+
+
+    ### Replacing sequences 101 with 111 ###
+
     c = 0
-    for i in pattern_wThreshold.T:
-    
+    for i in pattern_thres.T:
+
         arr = i
         #print(c, search_sequence_numpy(arr, seq))                       # 2747, 2847, 2860, 2936, 3060, 3138
-        #print(c, replace_sequence_numpy(arr, seq, rep_seq))
-        #pattern_wThreshold.T[c,:] = replace_sequence_numpy(arr, seq, rep_seq)
-    
+
         k = seq # kernel for convolution
         i[(convolve(i, k, 'same') == 2) & (i == 0)] = 1
+        """
         print(i)
         print('convolve(i, k, \'same\')', convolve(i, k, 'same'))
         print('convolve(i, k, \'same\') == 2', convolve(i, k, 'same') == 2)
         print('i == 0', i == 0)
         print('convolve(i, k, \'same\') == 2 & (i == 0)', convolve(i, k, 'same') == 2 & (i == 0))
-        
-        pattern_wThreshold.T[c,:] = i
-    
+        """
+        pattern_thres.T[c,:] = i
+
         c = c + 1
         #break
-    ''''''
-    print('after', pattern_wThreshold.T[2747])
-    #print(sum(pattern_wThreshold.T[2747]))
-    
-    
+
+
     #todo problem 1: imputing sequences only works for 101 case, not for 100001, and so on
-    #todo problem 2: with only 0 and 1 a diffusion cycle is identified if the threshold is met with one set of patents, that does not change anymore for 90 days. E.g. tuple occures in x patents. x patens were all published on y (no diffusion prossible, because to little time inbetween) nevertheless the patents x might meet the thresshold for t until t+89
-    
-    
-    c = 0
-    for i in pattern_wThreshold.T:
-    
-        arr = i
-        #print(c, search_sequence_numpy(arr, seq))                       # 2747, 2847, 2860, 2936, 3060, 3138
-        #print(c, replace_sequence_numpy(arr, seq, rep_seq))
-        #pattern_wThreshold.T[c,:] = replace_sequence_numpy(arr, seq, rep_seq)
-    
-    
-        # og 0 1 1 1 1 1 1 1 1 0 0 0 1 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1
-    
-        if c == 2747:
-            #k = np.array([1,0,1]) # kernel for convolution
-            k = np.array([1,0,0,0,0,0,0,0,1]) # kernel for convolution
-            i[(convolve(i, k, 'same') == 2) & (i == 0)] = 1
-    
-            #print('in loop 100000001', pattern_wThreshold.T[2747])
-            print('convolve(i, k, same)', convolve(i, k, 'same'))
-            print('convolve(i, k, same) == 2', convolve(i, k, 'same') == 2)
-            print('i == 0', i == 0)
-            print('(convolve(i, k, same) == 2) & (i == 0)', (convolve(i, k, 'same') == 2) & (i == 0))
-    
-            #print(i)
-            #print(i == 0)
-    
-        pattern_wThreshold.T[c,:] = i
-    
-        c = c + 1
-        #break
-    
-    print('after after', pattern_wThreshold.T[2747])
-    #print(sum(pattern_wThreshold.T[2747]))
-    '''
-    '''
-    #I do find sequences like 100001 as well
-    
-    #todo find recombinations in pattern_wThreshold, whenever a 1 first occures (first time in t periodes)
-    
-    #todo find sequences in pattern_wThreshold to identify diffusion cycles
-    
-    
-    # I need all pair combinations that occur in the whole timeframe
-    # construct heatmap with  x = combination, y = window, z = increase of occurence
-    # for this find list with all windows
-    # find list with all unique pairs
-    # interate through dictionary and fill he dict
-    
-    #todo idea: right now window90by1_ipcs_twoComb contains tuples like ('C12M   1', 'C12M   3'). If this is to fine grained (no real inovation/ recombination) then go more course graind (or fine grained)
-    
-    # recombination:
-    # is when a combination (2+) of ipc's/topics is cited together for the first time in X
-    # or if the number of patents combining them cross a threshold for the first time in X
-    
-    # diffusion:
-    # is active as long as the number of a topic/ipc or the number of a combination of them is above a certain threshold
-    
-    '''
+    #todo problem 2: with only 0 and 1 a diffusion cycle is identified if the threshold is met with one set of patents,
+    # that does not change anymore for 90 days. E.g. tuple occurs in x patents. x patents were all published on y
+    # (no diffusion prossible, because to little time inbetween) nevertheless the patents x might meet the thresshold
+    # for t until t+89. So diffusion might be only considered if it exceeds 90 days
+
+    #todo idea: right now window90by1_ipcs_pairs contains tuples like ('C12M   1', 'C12M   3'). If this is to fine grained (no real inovation/ recombination) then go more course graind (or fine grained)
 
 
-'''
-        with open('window90by1_ipcs_pairs', 'rb') as handle:
-            window90by1_ipcs_pairs = pk.load(handle)
-
-
-
-        ipc_list = []
-        for i in window90by1_ipcs_pairs.values():
-
-            ipc_list.append(i)
-
-        ipc_list = [item for sublist in ipc_list for item in sublist]
-
-        print('number of all tuples before taking only the unique ones', len(ipc_list))  # 1047572
-        ipc_list, ipc_list_counts = np.unique(ipc_list, return_counts=True, axis=0)
-
-        print(len(ipc_list))
-
-        window_list = window90by1_ipcs_pairs.keys()
-
-        pattern = np.zeros((len(window_list), len(ipc_list)))
-        print(np.shape(pattern))
-
-
-        print(ipc_list)
-        print(window_list)
-        print(pattern)
-
-        import tqdm
-
-        print('--------------------------')
-        print(sum(sum(pattern)))
-
-        pbar = tqdm.tqdm(total=len(window_list))
-
-        c_i = 0
-        for i in window_list:
-            c_j = 0
-
-            for j in ipc_list:
-
-                if j in window90by1_ipcs[i]:
-                    # pattern[c_i,c_j] = 1                                           # results in sum(sum(array)) = 869062.0
-                    pattern[c_i, c_j] = window90by1_ipcs[i].count(j)
-
-                c_j = c_j + 1
-
-            c_i = c_i + 1
-            pbar.update(1)
-
-        pbar.close()
-
-        print(sum(sum(pattern)))
-
-        filename = 'window90by1_ipcs_pattern'
-        outfile = open(filename, 'wb')
-        pk.dump(pattern, outfile)
-        outfile.close()
-'''
