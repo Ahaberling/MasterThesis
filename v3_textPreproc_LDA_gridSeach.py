@@ -16,7 +16,6 @@ if __name__ == '__main__':
     import pandas as pd
 
     import os
-    import sys
     import tqdm
 
     import nltk
@@ -62,8 +61,9 @@ if __name__ == '__main__':
     # Additionally: Data is said to be sampled around cleaning robots. If terms 'robot' and 'clean' occur in every
     # patent, then they might as well be excluded from Topic Modelling.
 
-    # print(patent.columns)              # pat_publn_id, publn_auth, publn_nr, publn_date, publn_claims, publn_title, publn_abstract, nb_IPC
-    # print(np.shape(patent))            # (3844, 8)
+    #print(pd.read_csv('cleaning_robot_EP_patents.csv', quotechar='"', skipinitialspace=True).columns)
+    # Index(['pat_publn_id', 'publn_auth', 'publn_nr', 'publn_date', 'publn_claims', 'publn_title', 'publn_abstract', 'nb_IPC'], dtype='object')
+    #print(np.shape(patent_raw))            # (3844, 8)
 
 
     ### Check for patents in german or france and for patents containing the terms 'robot' and 'clean' ###
@@ -280,10 +280,10 @@ if __name__ == '__main__':
 
         pd.DataFrame(patent_topicDist_gensim).to_csv('patent_topicDist_gensim.csv', index=None)
 
-        print('Preview of the resulting Array (Gensim):\n\n', patent_topicDist_gensim[0])           #[12568 'EP' 1946896.0 '2008-07-23' 15 'Method for adjusting at least one axle'
+        #print('Preview of the resulting Array (Gensim):\n\n', patent_topicDist_gensim[0])           #[12568 'EP' 1946896.0 '2008-07-23' 15 'Method for adjusting at least one axle'
                                                                                                     # 'An adjustment method for at least one axis (10) in which a robot has a control unit (12) for controlling an axis (10) via which at least two component parts (16,18) are mutually movable. The component parts (16,18) each has at least one marker (24,26) and the positions of the markers are detected by a sensor, with the actual value of a characteristic value ascertained as a relative position of the two mutually movable components (16,18). The adjustment position is repeated by comparing an actual value with a stored, desired value for the adjustment position. An independent claim is included for a device with signal processing unit.'
                                                                                                     # 1 list([(26, 0.12142762), (53, 0.106452435), (93, 0.08961137), (106, 0.06541982), (226, 0.12752746)])]
-        print('\nShape of the resulting Array (Gensim):', np.shape(patent_topicDist_gensim))        #(3781, 9)
+        #print('\nShape of the resulting Array (Gensim):', np.shape(patent_topicDist_gensim))        #(3781, 9)
 
 
     ### Save Topics - Gensim ###
@@ -337,10 +337,10 @@ if __name__ == '__main__':
 
         pd.DataFrame(patent_topicDist_mallet).to_csv('patent_topicDist_mallet.csv', index=None)
 
-        print('Preview of the resulting Array (Mallet):\n\n', patent_topicDist_mallet[0])               # [12568 'EP' 1946896.0 '2008-07-23' 15 'Method for adjusting at least one axle'
+        #print('Preview of the resulting Array (Mallet):\n\n', patent_topicDist_mallet[0])               # [12568 'EP' 1946896.0 '2008-07-23' 15 'Method for adjusting at least one axle'
                                                                                                         # 'An adjustment method for at least one axis (10) in which a robot has a control unit (12) for controlling an axis (10) via which at least two component parts (16,18) are mutually movable. The component parts (16,18) each has at least one marker (24,26) and the positions of the markers are detected by a sensor, with the actual value of a characteristic value ascertained as a relative position of the two mutually movable components (16,18). The adjustment position is repeated by comparing an actual value with a stored, desired value for the adjustment position. An independent claim is included for a device with signal processing unit.'
                                                                                                         # 1 list([(177, 0.05602006688963211), (306, 0.07775919732441472)])]
-        print('\nShape of the resulting Array (Mallet):', np.shape(patent_topicDist_mallet))            # (3781, 9)
+        #print('\nShape of the resulting Array (Mallet):', np.shape(patent_topicDist_mallet))            # (3781, 9)
 
 
         ### Save Topics - Mallet ###
@@ -349,6 +349,9 @@ if __name__ == '__main__':
         topics_mallet = np.array(topics_mallet)
 
         pd.DataFrame(topics_mallet).to_csv('patent_topics_mallet.csv', index=None)
+
+        #print('Preview of the topics (Mallet):\n\n', topics_mallet[0])                                  #   ['0'
+                                                                                                         #  '0.178*"behavior" + 0.126*"response" + 0.096*"system" + 0.086*"create" + 0.049*"enable" + 0.045*"management" + 0.032*"resource" + 0.029*"execute"']
 
 
 #--- Grid search ---#

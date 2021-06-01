@@ -24,11 +24,10 @@ if __name__ == '__main__':
     import numpy as np
     import pandas as pd
 
-    import re
-
     import os
     import sys
 
+    import re
 
 
 # --- Initialization ---#
@@ -85,7 +84,7 @@ if __name__ == '__main__':
             tuple = (i[j], i[j + 1])
             tuple_list.append(tuple)
 
-        #todo: check upper code for redundancy.('-signs)
+        #todo: check code above for redundancy.('-signs)
 
         # Sort by coverage #
         tuple_list = sorted(tuple_list, key=lambda tup: tup[1], reverse=True)
@@ -198,6 +197,16 @@ if __name__ == '__main__':
 
 # --- Save transformation and IPC appendix---#
     print('\n# --- Save transformation and IPC appendix---#\n')
+
+    #print('Preview of the resulting Array:\n\n', patent_join[0])                        #  [12568 'EP' 1946896.0 '2008-07-23' 15
+                                                                                        # 'Method for adjusting at least one axle'
+                                                                                        # 'An adjustment method for at least one axis (10) in which a robot has a control unit (12) for controlling an axis (10) via which at least two component parts (16,18) are mutually movable. The component parts (16,18) each has at least one marker (24,26) and the positions of the markers are detected by a sensor, with the actual value of a characteristic value ascertained as a relative position of the two mutually movable components (16,18). The adjustment position is repeated by comparing an actual value with a stored, desired value for the adjustment position. An independent claim is included for a device with signal processing unit.'
+                                                                                        #  1 '[(139, 0.05602006688963211)]' '139' None '0.05602006688963211' None
+                                                                                        #  None None None None None None None None None None None None None None
+                                                                                        #  None None None 'B25J   9' 'Handling' 'Mechanical engineering' None None
+                                                                                        #  None None None None None None None None None None None None None None
+                                                                                        #  None None None None None None None None None None None None None None
+                                                                                        #  None None None None None None]
 
     pd.DataFrame(patent_join).to_csv('patent_lda_ipc.csv', index=None)
 

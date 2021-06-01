@@ -13,11 +13,9 @@ if __name__ == '__main__':
 
     import numpy as np
     import pandas as pd
-
     import pickle as pk
 
     import os
-
     import tqdm
 
 
@@ -102,7 +100,15 @@ if __name__ == '__main__':
         pk.dump(window90by1, outfile)
         outfile.close()
 
-
+        #print('Preview of the resulting Array (90by1):\n\n', window90by1)                   # 'window_3216': array([
+                                                                                            # [315561860, 'EP', 2189254.0, ..., nan, nan, nan],
+                                                                                            # [315562353, 'EP', 2189094.0, ..., nan, nan, nan],
+                                                                                            # [315562468, 'EP', 2189252.0, ..., nan, nan, nan],
+                                                                                            # ...,
+                                                                                            # [323514081, 'EP', 2212064.0, ..., nan, nan, nan],
+                                                                                            # [323609355, 'EP', 2214872.0, ..., nan, nan, nan],
+                                                                                            # [323656643, 'EP', 2217411.0, ..., nan, nan, nan]
+                                                                                            # ], dtype=object)
 
 # --- slinding window approache 60 days by 1 day ---#
     print('\n#--- slinding window approache 60 days by 1 day ---#\n')

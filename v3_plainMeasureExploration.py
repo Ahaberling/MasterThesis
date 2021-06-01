@@ -45,20 +45,18 @@ if __name__ == '__main__':
 
     import pandas as pd
     import numpy as np
-
     import pickle as pk
+
     import os
     import sys
-    import itertools
-
     import tqdm
 
-    from scipy.signal import convolve2d
-    from scipy.signal import convolve
+    import itertools
+    import scipy.signal as signal
 
 
-    preproc_bool = True
-    pattern_bool = True
+    preproc_bool = False
+    pattern_bool = False
     measures_bool = True
     imputation_bool = False
 
@@ -89,22 +87,6 @@ if __name__ == '__main__':
     #print(patent_lda_ipc[0])                # Locate ipc and topic positions for ipc_position and topic_position
                                              # 9-29 topics, 30-end ipc's #todo adjust
 
-    #print(patent_lda_ipc[0,9:30])
-    #print(patent_lda_ipc[0,30])
-    #print(np.shape(patent_lda_ipc))
-    '''
-    with open('window90by1_ipcs_singles_pattern', 'rb') as handle:
-        window90by1_ipcs_singles_pattern = pk.load(handle)
-
-    print(window90by1_ipcs_singles_pattern)
-    print(np.amax(window90by1_ipcs_singles_pattern))
-
-    with open('window90by1_ipcs_pairs_pattern', 'rb') as handle:
-        window90by1_ipcs_pairs_pattern = pk.load(handle)
-
-    print(window90by1_ipcs_pairs_pattern)
-    print(np.amax(window90by1_ipcs_pairs_pattern))
-    '''
 
 
 #--- Preprocessing for pattern arrays (IPC's, topics) x (singular, pair, tripple)  --#
@@ -193,7 +175,6 @@ if __name__ == '__main__':
         pbar.close()
 
 
-
         ### Save preprocessing ###
 
         filename = 'window90by1_ipcs_single'
@@ -241,15 +222,14 @@ if __name__ == '__main__':
             window90by1_ipcs_single = pk.load(handle)
 
         single_list = []
-        for i in window90by1_ipcs_single.values():
 
+        for i in window90by1_ipcs_single.values():
             single_list.append(i)
 
         single_list = [item for sublist in single_list for item in sublist]
         single_list, single_list_counts = np.unique(single_list, return_counts=True, axis=0)
 
         window_list = window90by1_ipcs_single.keys()
-
 
 
         # New array, including space for occurence pattern - ipc singles #
@@ -259,7 +239,6 @@ if __name__ == '__main__':
 
 
         # Populate occurence pattern - ipc singles #
-
 
         c_i = 0
         pbar = tqdm.tqdm(total=len(window_list))
@@ -291,6 +270,7 @@ if __name__ == '__main__':
         with open('window90by1_ipcs_pairs', 'rb') as handle:
             window90by1_ipcs_pairs = pk.load(handle)
 
+
         # Identify unique ipc pairs in the whole dictionary for the column dimension of the pattern array #
 
         tuple_list = []
@@ -299,13 +279,13 @@ if __name__ == '__main__':
             tuple_list.append(i)
 
         tuple_list = [item for sublist in tuple_list for item in sublist]
-        #print('number of all tuples before taking only the unique ones: ', len(tuple_list))   # 1047572
+        #print('number of all tuples before taking only the unique ones: ', len(tuple_list))         # 1047572
         tuple_list, tuple_list_counts = np.unique(tuple_list, return_counts=True, axis=0)
         #print('number of all tuples after taking only the unique ones (number of columns in the pattern array): ', len(tuple_list))    # 5445
         #print(tuple_list_counts)        # where does the 90 and the "weird" values come from? explaination: if a combination occures in the whole timeframe only once (in one patent) then it is captures 90 times. The reason for this is the size of the sliding window of 90 and the sliding by one day. One patent will thereby be capured in 90 sliding windows (excaption: the patents in the first and last 90 days of the overall timeframe, they are capture in less then 90 sliding windows)
 
         window_list = window90by1_ipcs_pairs.keys()
-        #print('number of all windows (number of rows in the pattent array): ', len(window_list))
+        #print('number of all windows (number of rows in the pattent array): ', len(window_list))    # 5937
 
 
         # New array, including space for occurence pattern - ipc pairs #
@@ -356,19 +336,16 @@ if __name__ == '__main__':
 
     if measures_bool == True:
 
-    ### IPC Sigles ###
 
+    ### IPC Sigles ###
 
         with open('window90by1_ipcs_singles_pattern', 'rb') as handle:
             pattern_ipc_singles = pk.load(handle)
 
-        #print(pattern_ipc_singles[5840:5870,2])
-        #print(np.amax(pattern_ipc_singles))
+        #print(np.amax(pattern_ipc_singles))                                 # 59
 
         window_sum = pattern_ipc_singles.sum(axis=1)
         pattern_ipc_singles_norm = pattern_ipc_singles / window_sum[:, np.newaxis]
-        #print(pattern_ipc_singles_norm[5840:5870,2])
-        #print(np.amax(pattern_ipc_singles_norm))
 
 
     ### IPC Pairs ###
@@ -377,13 +354,13 @@ if __name__ == '__main__':
         with open('window90by1_ipcs_pairs_pattern', 'rb') as handle:
             pattern_ipc_pairs = pk.load(handle)
 
-        #print(np.amax(pattern))                                 # 15
+        #print(np.amax(pattern_ipc_pairs))                                   # 15
 
         window_sum = pattern_ipc_pairs.sum(axis=1)
         pattern_ipc_pairs_norm = pattern_ipc_pairs / window_sum[:, np.newaxis]
 
-        #window_sum_test = pattern_norm.sum(axis=1)
-        #print(max(window_sum_test))
+        window_sum_test = pattern_ipc_singles_norm.sum(axis=1)
+        #print(max(window_sum_test))                                         # 1.0000000000000002
 
 
     ### IPC Triples ###
@@ -400,12 +377,10 @@ if __name__ == '__main__':
 #--- Binarized plain pattern arrays (IPC\'s, topics) x (singular, pair, triple)  ---#
         print('\n#--- Binarized plain pattern arrays (IPC\'s, topics) x (singular, pair, triple)  ---#\n')
 
+
         ### IPC singles ###
 
         pattern_ipc_singles_thres = np.where(pattern_ipc_singles_norm < 0.01, 0, 1)                    # arbitrary threshold of 0.01
-
-        #print(pattern_ipc_singles_thres[5840:5870, 2])
-        #print(np.amax(pattern_ipc_singles_thres))
 
 
         ### IPC pairs ###
@@ -417,7 +392,7 @@ if __name__ == '__main__':
 #--- Measuring recombination, diffusion of recombination and diffusion of singular ipc's/topics  ---#
         print('\n#--- Measuring recombination, diffusion of recombination and diffusion of singular ipc\'s/topics  ---#\n')
 
-    # The resulting data structure looks like [[window_position, window_position, duration],[w,i,d],...]
+    # The resulting data structure looks like [[window_position, ipc_position, duration],[w,i,d],...]
     # For further insights the w and i coordinates can be used to review the unnormalized and unbinarized pattern array.
 
 
@@ -436,8 +411,6 @@ if __name__ == '__main__':
         for ipc in pattern_ipc_singles_thres.T:
             for window_pos in range(len(pattern_ipc_singles_thres)):
                 if window_pos != 0:
-                    #print(window_pos)
-                    #print(ipc[window_pos])
                     if ipc[window_pos] == 1:
                         if ipc[window_pos-1] == 0:
                             diff_pos.append([window_pos, c])
@@ -447,10 +420,10 @@ if __name__ == '__main__':
 
         pbar.close()
 
-        print(diff_pos)
-        print(len(diff_pos))
-        # [[2171, 2], [2206, 2], [2213, 2], [2220, 2], [3074, 2], [3081, 2], [3088, 2], [2171, 5], [2206, 5], [2213, 5]
-        #  [2220, 5], [3074, 5], [3081, 5], [3088, 5], [3383, 5], [3431, 5], [3445, 5], [3635, 5], [3747, 5],
+        #print(diff_pos)             # [[2171, 2], [2206, 2], [2213, 2], [2220, 2], [3074, 2], [3081, 2], [3088, 2], [2171, 5], [2206, 5], [2213, 5]
+                                    #  [2220, 5], [3074, 5], [3081, 5], [3088, 5], [3383, 5], [3431, 5], [3445, 5], [3635, 5], [3747, 5], ...
+        #print(len(diff_pos))        # 3095
+
 
         '''
         print(pattern_ipc_singles_thres[2170:2175, 2])
@@ -471,20 +444,8 @@ if __name__ == '__main__':
             diffusion = -1
             i = 0
 
-            #print(occurrence)              #[3739, 905] [3746, 905] [3788, 905] [4531, 906] [4818, 907]
-
-            #print(occurrence)
-
             while pattern_ipc_singles_thres[occurrence[0]+i,occurrence[1]] == 1:
-
-
-                #print(occurrence[0]+i, occurrence[1])
-                #print(pattern_ipc_singles_thres[occurrence[0]+i,occurrence[1]])
-
-
                 diffusion = diffusion + 1
-
-                #print(diffusion)
 
                 i = i + 1
                 if occurrence[0]+i == len(pattern_ipc_singles_thres):
@@ -496,8 +457,8 @@ if __name__ == '__main__':
 
         pbar.close()
 
-        print(diffusion_duration_list)
-        print(len(diffusion_duration_list))
+        #print(diffusion_duration_list)          # [0, 0, 0, 13, 0, 0, 20, 0, 0, 0, 13, 0, 0, 20, 41, 7, 0, 89, 89, 152, 5, 229, 90, 0, 6,
+        #print(len(diffusion_duration_list))     # 3095
 
         # Merge both lists to get final data structure #
 
@@ -507,13 +468,13 @@ if __name__ == '__main__':
         #print(diff_pos)
         #print(len(diff_pos))
 
-        print('\tPositions and duration of diffusion: \n', diff_pos)
-        print('\n\tExample with first entry: \n', diff_pos[0])               # [2171, 2, 0]
+        #print('\tPositions and duration of diffusion: \n', diff_pos)        # [[2171, 2, 0], [2206, 2, 0], [2213, 2, 0], [2220, 2, 13], [3074, 2, 0], [3081, 2, 0],
+        #print('\n\tExample with first entry: \n', diff_pos[0])               # [2171, 2, 0]
 
         np.set_printoptions(threshold=sys.maxsize)
-        print('\n',pattern_ipc_singles_thres[2170:2175,2])
-        print(pattern_ipc_singles[2170:2175,2])
-        print(pattern_ipc_singles_norm[2170:2175,2])
+        #print('\n',pattern_ipc_singles_thres[2170:2175,2])                   # [0          1          0          0          0]
+        #print(pattern_ipc_singles[2170:2175,2])                              # [1.         1.         1.         1.         1.]
+        #print(pattern_ipc_singles_norm[2170:2175,2])                         # [0.00869565 0.01041667 0.00877193 0.00877193 0.00877193]
 
         '''
         print('\n',pattern_ipc_singles_thres[2205:2210,2])
@@ -591,12 +552,15 @@ if __name__ == '__main__':
             recomb_pos[i].append(diffusion_duration_list[i])
 
 
-        print('\tPositions and diffusion duration of recombinations: \n', recomb_pos)
-        print('\tExample with fourth entry: \n', recomb_pos[3])         # [3088, 7, 20]
+        #print('\tPositions and diffusion duration of recombinations: \n', recomb_pos)       # [[2171, 7, 0], [2178, 7, 14], [2206, 7, 27], [3088, 7, 20], [2171, 8, 0],
+        #print('\tExample with fourth entry: \n', recomb_pos[3])                             #                                              [3088, 7, 20]
 
-        print('\n', pattern_ipc_pairs_thres[3087:3110,7])
-        print(pattern_ipc_pairs[3087:3110,7])
-        print(pattern_ipc_pairs_norm[3087:3110,7])
+        #print('\n', pattern_ipc_pairs_thres[3087:3110,7])               #  [0  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  0 ]
+        #print(pattern_ipc_pairs[3087:3110,7])                           #  [1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 0.]
+        #print(pattern_ipc_pairs_norm[3087:3110,7])                      # [0.00869565 0.0125     0.0125     0.0125     0.0125     0.0125
+                                                                        #  0.0125     0.0125     0.01298701 0.01162791 0.01162791 0.01162791
+                                                                        #  0.01162791 0.01162791 0.01162791 0.01351351 0.0125     0.0125
+                                                                        #  0.0125     0.0125     0.0125     0.0125     0.        ]
 
         '''
         print('\n', pattern_ipc_pairs_thres[2177:2194,8])               # [2178, 8, 14]
@@ -700,13 +664,13 @@ if __name__ == '__main__':
             #print(c, search_sequence_numpy(arr, seq))                       # 2747, 2847, 2860, 2936, 3060, 3138
 
             k = seq # kernel for convolution
-            i[(convolve(i, k, 'same') == 2) & (i == 0)] = 1
+            i[(signal.convolve(i, k, 'same') == 2) & (i == 0)] = 1
             """
             print(i)
-            print('convolve(i, k, \'same\')', convolve(i, k, 'same'))
-            print('convolve(i, k, \'same\') == 2', convolve(i, k, 'same') == 2)
+            print('signal.convolve(i, k, \'same\')', signal.convolve(i, k, 'same'))
+            print('signal.convolve(i, k, \'same\') == 2', signal.convolve(i, k, 'same') == 2)
             print('i == 0', i == 0)
-            print('convolve(i, k, \'same\') == 2 & (i == 0)', convolve(i, k, 'same') == 2 & (i == 0))
+            print('signal.convolve(i, k, \'same\') == 2 & (i == 0)', signal.convolve(i, k, 'same') == 2 & (i == 0))
             """
             pattern_ipc_pairs_thres.T[c,:] = i
 
