@@ -141,6 +141,8 @@ if __name__ == '__main__':
 
     patent_IPC_clean = [i[0] for i in patent_IPC if i[0] in patent_transf[:, 0]]
 
+    #print(len(np.unique(patent_IPC[:,1])))        #970
+
     val, count = np.unique(patent_IPC_clean, return_counts=True)
     # print(len(val))                             # 3781
     # print(len(patent_IPC_clean))                # 9449

@@ -480,7 +480,7 @@ if __name__ == '__main__':
         print('\n',pattern_ipc_singles_thres[2205:2210,2])
         print(pattern_ipc_singles[2205:2210,2])
         print(pattern_ipc_singles_norm[2205:2210,2])
-
+        '''
         print('\n',pattern_ipc_singles_thres[2212:2217,2])
         print(pattern_ipc_singles[2212:2217,2])
         print(pattern_ipc_singles_norm[2212:2217,2])
@@ -488,7 +488,7 @@ if __name__ == '__main__':
         print('\n',pattern_ipc_singles_thres[2219:2241,2])
         print(pattern_ipc_singles[2219:2241,2])
         print(pattern_ipc_singles_norm[2219:2241,2])
-
+        '''
         print('\n',pattern_ipc_singles_thres[1093:1110,216])                # [1094, 216, 13]
         print(pattern_ipc_singles[1093:1110,216])                           # [1094, 216, 13]
         print(pattern_ipc_singles_norm[1093:1110,216])                      # [1094, 216, 13]

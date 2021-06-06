@@ -40,6 +40,8 @@ print(len(pat_publn_id_no0.unique()))     #3844
 
 ### Checking for 0 in parent.cited_pat_publn_id (ivalid rows)
 
+print(parent)
+
 print(len(parent.cited_pat_publn_id))           #18548
 print(len(parent.cited_pat_publn_id.unique()))  #13315
 
@@ -77,10 +79,14 @@ print(len(patent.pat_publn_id))           #3844
 print(len(parent.cited_pat_publn_id))           #18548
 print(len(parent.cited_pat_publn_id.unique()))  #13315
 
-helper = parent.pat_publn_id[parent.pat_publn_id == patent.pat_publn_id]
-do it with numpy
+c=0
+for i in patent.pat_publn_id:
+    if i in parent.cited_pat_publn_id.unique():
+        c = c+1
 
-#print(len(helper))
+
+print('------------', c)                        # 365
+#print(helper)
 
 
 # excluding all entries with parent.cited_pat_publn_id == 0, in order to create the network afterwards with edge information
