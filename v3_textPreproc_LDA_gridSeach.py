@@ -188,6 +188,16 @@ if __name__ == '__main__':
                  'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii',
                  'robot'])
 
+    # more stopwords: end, specific, , central, machine, method, work, determine, system, vertical, longitudinal, state, outer, variable, include, parameter, number, main, information, make, function, object, device,
+    # present, model, mode, action, workpiece, relative, position, define, multiple, reference, angle, angular, include, time, application, device, plurality, part, type, feature, set, couple, structure
+    # describe, item, also, pre, invention, present, relate, respective, operative, represent, task, extra, double, subject, common, form, manner, thereof, directly, general, exist, previously
+    # sequentially, prepare, kind, input, output, minimum, maximum, base, basic, properly, does, not, therefor, entire, additionally, approach, independent, advance, independently, operatively, operable, becomes, possible,
+    # thereto, expect, indirectly, remain,
+    # maybe stopwords: move, receive, adapt, configure, program, robotic (check if always present in extended dataset as well), axis, preform, movable, create, parallel, give, separate, design,
+    # identification, identify, joint
+    # qf, zmp, llld
+    # todo: maybe try lemmatization only with noun or other subsamples
+
     #todo: adapt when the data sample to be used for all analyses is decided
 
 

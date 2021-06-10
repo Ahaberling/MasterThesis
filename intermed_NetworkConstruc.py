@@ -17,14 +17,17 @@ parent = pd.read_csv('cleaning_robot_EP_backward_citations.csv', quotechar='"', 
 
 
 patent_topicDist = patent_topicDist.to_numpy()
+#topics = topics.to_numpy()
 parent = parent.to_numpy()
 #print(patent_topicDist)
 
 
-cited_pat_publn_id = parent[:,(0,2)]
-print(cited_pat_publn_id)
-print(len(cited_pat_publn_id))
-print(len(parent))
+cited_pat_publn_id = parent[:,(0,2)]            # pat_publn_id, cited_pat_publn_id
+                                                # source      , target
+#print(cited_pat_publn_id)
+#print(len(cited_pat_publn_id))                 # [336208959 0]
+                                                # [272999421 901587843]
+#print(len(parent))                             # 18548
 
 #todo gibt es node ids in parent[:,(0,2)], die nicht in patent_topicDist auftauchen? Falls ja, how do we handle them?
 #todo how do we handle patents that cite things that are not patents (parent[,2] = 0)?
@@ -42,12 +45,14 @@ print(len(parent))
 #top_dic = dict(enumerate(patent_topicDist[:,1:]))
 #top_dic = patent_topicDist
 
-patent_topicDist_prep = patent_topicDist[:,1:]
-
+#print(patent_topicDist, '\n ----------------------')
+patent_topicDist_prep = patent_topicDist[:,1:]                  #todo: why?
+#print(patent_topicDist_prep)
 
 
 inner_keys = ['publn_auth', 'publn_nr', 'publn_date', 'publn_claims', 'publn_title',
                     'publn_abstract', 'nb_IPC', 'abstract_clean', 'topic_list']
+
 outer_keys = patent_topicDist[:,0]
 
 helper = int(len(patent_topicDist_prep.T[9:,:])/3)
