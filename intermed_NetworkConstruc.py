@@ -198,8 +198,8 @@ print('# of edges in the parent data: ', len(cited_pat_publn_id))
 print('# of unique edge sources: ', len(np.unique(cited_pat_publn_id.T[0])))
 print('# of unique edge targets: ', len(np.unique(cited_pat_publn_id.T[1])))
 
-print('# of unique edge targets with no correpsonding node in the patent data: ',len(set_edgeID2.difference(set_nodeID)))          # what is in x that is not in y x.difference(y) / number of nodes that are cited in general (zeros not considered)
-print('# of unique edge targets with correpsonding node in the patent data: ', len(set_edgeID2.intersection(set_nodeID)))  # what is in x that is also in y / number of nodes that are cited and present in the network
+    print('# of unique edge targets with no correpsonding node in the patent data: ',len(set_edgeID2.difference(set_nodeID)))          # what is in x that is not in y x.difference(y) / number of nodes that are cited in general (zeros not considered)
+    print('# of unique edge targets with correpsonding node in the patent data: ', len(set_edgeID2.intersection(set_nodeID)))  # what is in x that is also in y / number of nodes that are cited and present in the network
 
 
 # 18548 - 12950
@@ -343,6 +343,7 @@ for i in topic3_edges_clear:
 
 print(len(bipart.nodes))
 print(len(bipart.edges))
+
 bipart.add_edges_from(topic1_edges_clear)
 print(len(bipart.nodes))
 print(len(bipart.edges))
