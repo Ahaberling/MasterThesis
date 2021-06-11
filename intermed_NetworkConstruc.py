@@ -56,6 +56,8 @@ inner_keys = ['publn_auth', 'publn_nr', 'publn_date', 'publn_claims', 'publn_tit
 outer_keys = patent_topicDist[:,0]
 
 helper = int(len(patent_topicDist_prep.T[9:,:])/3)
+#print(helper)
+#print(patent_topicDist_prep.T[9:,:])
 
 for i in range(1,helper+1):
     #inner_keys.append('{0}_topicID'.format(i))

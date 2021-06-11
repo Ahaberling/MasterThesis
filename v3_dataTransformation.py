@@ -30,8 +30,8 @@ if __name__ == '__main__':
     import re
 
 
-# --- Initialization ---#
-    print('\n# --- Initialization ---#\n')
+#--- Initialization ---#
+    print('\n#--- Initialization ---#\n')
 
     os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
 
@@ -44,8 +44,8 @@ if __name__ == '__main__':
     patent_IPC = patent_IPC.to_numpy()
 
 
-# --- Transformation of topic representation ---#
-    print('\n# --- Transformation of topic representation ---#\n')
+#--- Transformation of topic representation ---#
+    print('\n#--- Transformation of topic representation ---#\n')
 
 
     ### Eliminating round brackets ###
@@ -108,8 +108,8 @@ if __name__ == '__main__':
 
 
 
-# --- Check transformation ---#
-    print('\n# --- Check transformation ---#\n')
+#--- Check transformation ---#
+    print('\n#--- Check transformation ---#\n')
 
     print('Shape of new array: ', np.shape(patent_transf))                                  # (3781, 30)
     print('Are all new columns used? Number of patents with maximum number of topics: ',
@@ -117,8 +117,8 @@ if __name__ == '__main__':
 
 
 
-# --- Append IPC ---#
-    print('\n# --- Append IPC ---#\n')
+#--- Append IPC ---#
+    print('\n#--- Append IPC ---#\n')
 
     # Each Patent has at least one IPC. These IPC'S are appended to the patent_transf array in order to facilitate
     # a brief, heuristic evaluation of topic modeling. Additionally they might be used to conceptualize first basic
@@ -197,8 +197,8 @@ if __name__ == '__main__':
 
     #print(patent_join[100])
 
-# --- Save transformation and IPC appendix---#
-    print('\n# --- Save transformation and IPC appendix---#\n')
+#--- Save transformation and IPC appendix---#
+    print('\n#--- Save transformation and IPC appendix---#\n')
 
     #print('Preview of the resulting Array:\n\n', patent_join[0])                        #  [12568 'EP' 1946896.0 '2008-07-23' 15
                                                                                         # 'Method for adjusting at least one axle'

@@ -1,12 +1,15 @@
 #python -c "import torch; print(torch.__version__)"             1.8.1+cu102
 #python -c "import torch; print(torch.version.cuda)"            10.2
 
-pip install torch-scatter -f https://pytorch-geometric.com/whl/torch-1.8.1+cu102.html
+
+
+'''
+pip install torch-scatter -f https://pytorch-geometric.com/whl/torch-1.8.1+cu102.html       # done
 pip install torch-sparse -f https://pytorch-geometric.com/whl/torch-1.8.1+cu102.html
 pip install torch-cluster -f https://pytorch-geometric.com/whl/torch-1.8.1+cu102.html
 pip install torch-spline-conv -f https://pytorch-geometric.com/whl/torch-1.8.1+cu102.html
-pip install torch-geometric
-
+pip install torch-geometric                                                                 # done
+'''
 import torch
 from torch_geometric.data import Data
 
