@@ -213,9 +213,9 @@ if __name__ == '__main__':
     top_nodes = {n for n, d in bipart.nodes(data=True) if d["bipartite"] == 0}
     bottom_nodes = set(bipart) - top_nodes
 
-    print(top_nodes)
+    #print(top_nodes)
     print(len(top_nodes))
-    print(bottom_nodes)
+    #print(bottom_nodes)
     print(len(bottom_nodes))
 
     print(nx.algorithms.bipartite.density(bipart, top_nodes))
@@ -233,7 +233,7 @@ if __name__ == '__main__':
     #print(topic_g_unweig.edges)
 
     print(len(topicSim_g_unweig.nodes))
-    print(topicSim_g_unweig.nodes)
+    #print(topicSim_g_unweig.nodes)
 
     print(len(topicSim_g_unweig.edges))
     #print(topicSim_g_unweig.edges)
@@ -253,41 +253,49 @@ if __name__ == '__main__':
         return w
 
     def test_weight(G, u, v):
-        w = 13
-        return w
+        #print(u)                # Topic1 of edge
+        #print(v)                # Topic2 of edge
+        #print(G[u])             # Neighbors of Topic1
+        #print(G[v])             # Neighbors of Topic2
+
+        u_nbrs = set(G[u])      # Neighbors of Topic1 in set format for later intersection
+        v_nbrs = set(G[v])      # Neighbors of Topic2 in set format for later intersection
+
+        shared_nbrs = u_nbrs.intersection(v_nbrs)       # Shared neighbors of both topic nodes (intersection)
+
+        #print(shared_nbrs)
+
+        list_of_poducts = []
+
+        for i in shared_nbrs:
+            #print(i)
+            #print(G.edges[u,i])                         # Edge (-weight) of topic1 and shared neighbor
+            #print(G.edges[v,i])                         # Edge (-weight) of topic2 and shared neighbor
+
+            weight1 = list(G.edges[u,i].values())[0]
+            weight2 = list(G.edges[v,i].values())[0]
+
+            #print(weight1)
+            #print(weight2)
+
+            #print(weight1 * weight2)                    # product of weights (contrasting to taking the sum, the product penalized heavily skeewd topic distributions like 0.1 and 0.9
+
+            list_of_poducts.append(weight1 * weight2)
+
+        #print(list_of_poducts)
+
+        projected_weight = sum(list_of_poducts) / len(list_of_poducts)
+        #print(projected_weight)
+
+        return projected_weight , len(list_of_poducts)  # return the resultung weight and the number of shared neighbors
 
     topic_g = nx.algorithms.bipartite.generic_weighted_projected_graph(bipart, top_nodes, weight_function = test_weight)
-    #topicSim_g = nx.algorithms.bipartite.projected_graph(bipart, bottom_nodes, weight_function =)
+    topicSim_g = nx.algorithms.bipartite.generic_weighted_projected_graph(bipart, bottom_nodes, weight_function = test_weight)
 
-    print(topic_g.edges.data('weight'))
+    #print(topicSim_g.edges.data('weight'))
 
+    # g[u] gives neighbors of u
 
-
-
-    '''
-    test_g = nx.Graph()
-    test_g.add_node(1)
-    test_g.add_node(2)
-    test_g.add_edge(1, 2, weight=4.7)
-
-    print(test_g.edges)
-    print(test_g.edges(1))
-    #print(test_g)
-
-    G = nx.Graph([(1, 2, {"color": "yellow"})])
-    print(G[1])  # same as G.adj[1]
-    #AtlasView({2: {'color': 'yellow'}})
-    print(G[1][2])
-    #{'color': 'yellow'}
-    print(G.edges[1, 2])
-    #{'color': 'yellow'}
-
-    print(test_g[1][2])
-    print(test_g.edges[1, 2])
-
-    print(test_g.edges.data('weight'))
-    print(G.edges.data('weight'))
-    print(G.edges.data('color'))
-    '''
+    ### first implementation of community detection on whole network
 
     # nx.write_gml(plain, r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\plain.gml')
