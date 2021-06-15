@@ -353,6 +353,8 @@ if __name__ == '__main__':
         #print('\nShape of the resulting Array (Mallet):', np.shape(patent_topicDist_mallet))            # (3781, 9)
 
 
+        print(patent_topicDist_mallet)
+
         ### Save Topics - Mallet ###
 
         topics_mallet = lda_mallet.print_topics(num_topics=-1, num_words=8)

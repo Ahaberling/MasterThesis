@@ -141,7 +141,7 @@ if __name__ == '__main__':
 
 #--- Bipartite ---#
 
-    # 0 = top ~ topics
+    # 0 = top (~ topics)
 
     bipart.add_nodes_from(node_plain, bipartite=1)
     nx.set_node_attributes(bipart, nested_dic)
@@ -225,5 +225,69 @@ if __name__ == '__main__':
 
     topic_g_unweig = nx.algorithms.bipartite.projected_graph(bipart, top_nodes)
     topicSim_g_unweig = nx.algorithms.bipartite.projected_graph(bipart, bottom_nodes)
+
+    #print(len(topic_g_unweig.nodes))
+    #print(topic_g_unweig.nodes)
+
+    #print(len(topic_g_unweig.edges))
+    #print(topic_g_unweig.edges)
+
+    print(len(topicSim_g_unweig.nodes))
+    print(topicSim_g_unweig.nodes)
+
+    print(len(topicSim_g_unweig.edges))
+    #print(topicSim_g_unweig.edges)
+
+
+    # Weight function examples:
+    def jaccard(G, u, v):
+        unbrs = set(G[u])
+        vnbrs = set(G[v])
+        return float(len(unbrs & vnbrs)) / len(unbrs | vnbrs)
+
+    def my_weight(G, u, v, weight="weight"):
+        w = 0
+        for nbr in set(G[u]) & set(G[v]):
+            w += G[u][nbr].get(weight, 1) + G[v][nbr].get(weight, 1)
+        #print(w)
+        return w
+
+    def test_weight(G, u, v):
+        w = 13
+        return w
+
+    topic_g = nx.algorithms.bipartite.generic_weighted_projected_graph(bipart, top_nodes, weight_function = test_weight)
+    #topicSim_g = nx.algorithms.bipartite.projected_graph(bipart, bottom_nodes, weight_function =)
+
+    print(topic_g.edges.data('weight'))
+
+
+
+
+    '''
+    test_g = nx.Graph()
+    test_g.add_node(1)
+    test_g.add_node(2)
+    test_g.add_edge(1, 2, weight=4.7)
+
+    print(test_g.edges)
+    print(test_g.edges(1))
+    #print(test_g)
+
+    G = nx.Graph([(1, 2, {"color": "yellow"})])
+    print(G[1])  # same as G.adj[1]
+    #AtlasView({2: {'color': 'yellow'}})
+    print(G[1][2])
+    #{'color': 'yellow'}
+    print(G.edges[1, 2])
+    #{'color': 'yellow'}
+
+    print(test_g[1][2])
+    print(test_g.edges[1, 2])
+
+    print(test_g.edges.data('weight'))
+    print(G.edges.data('weight'))
+    print(G.edges.data('color'))
+    '''
 
     # nx.write_gml(plain, r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\plain.gml')
