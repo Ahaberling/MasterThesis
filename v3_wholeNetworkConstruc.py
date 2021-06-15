@@ -8,6 +8,7 @@ if __name__ == '__main__':
 
     import networkx as nx
 
+    import itertools
     import os
 
 #--- Initialization ---#
@@ -287,9 +288,9 @@ if __name__ == '__main__':
         projected_weight = sum(list_of_poducts) / len(list_of_poducts)
         #print(projected_weight)
 
-        return projected_weight , len(list_of_poducts)  # return the resultung weight and the number of shared neighbors
+        return projected_weight #, len(list_of_poducts)  # return the resultung weight and the number of shared neighbors
 
-    topic_g = nx.algorithms.bipartite.generic_weighted_projected_graph(bipart, top_nodes, weight_function = test_weight)
+    #topicOccu_g = nx.algorithms.bipartite.generic_weighted_projected_graph(bipart, top_nodes, weight_function = test_weight)
     topicSim_g = nx.algorithms.bipartite.generic_weighted_projected_graph(bipart, bottom_nodes, weight_function = test_weight)
 
     #print(topicSim_g.edges.data('weight'))
@@ -297,5 +298,42 @@ if __name__ == '__main__':
     # g[u] gives neighbors of u
 
     ### first implementation of community detection on whole network
+    print('first implementation of community detection on whole network')
+    #todo can girvan_newman work with my weights instead of edge betweenness?
+
+    #todo check for more viable community detection implementations
+    # Implement sliding window approach
+    # find way to identify what communities are, what topic(-combination) they are affiliated with and how to measure recombination/diffusion
+
+    '''
+    # girvan_newman - VERY SLOW with edge betweeness  # way too many edges. Even one iteration would take so much time, and i would need a lot!
+    k = 10
+    comp = nx.algorithms.community.centrality.girvan_newman(topicSim_g)
+    for communities in itertools.islice(comp, k):
+        print(tuple(sorted(c) for c in communities))
+    '''
+
+    '''
+    # Label propagation - does not support weight
+    lp_semiSync = nx.algorithms.community.label_propagation.label_propagation_communities(topicSim_g, weight='weight')
+    print(lp_semiSync)
+    for i in lp_semiSync:
+        print(i)
+    '''
+
+    ''' 
+    # label prop 2 somewhat working 
+    lp_async = nx.algorithms.community.label_propagation.asyn_lpa_communities(topicSim_g, weight='weight')
+    print(lp_async)
+    for i in lp_async:
+        print(i)
+    '''
+
+    '''# modularity - not weighted
+    modu_notWeighted = nx.algorithms.community.modularity_max.greedy_modularity_communities(topicSim_g)
+    print(modu_notWeighted)
+    for i in modu_notWeighted:
+        print(i)
+    '''
 
     # nx.write_gml(plain, r'D:\Universitaet Mannheim\MMDS 7. Semester\Master Thesis\Outline\Data\Cleaning Robots\plain.gml')
