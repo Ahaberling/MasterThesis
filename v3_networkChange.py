@@ -9,6 +9,7 @@ if __name__ == '__main__':
 
     import networkx as nx
 
+    import tqdm
     import itertools
     import os
 
@@ -94,6 +95,7 @@ if __name__ == '__main__':
     topicOccu_graphs = {}
     topicSim_graphs = {}
 
+    pbar = tqdm.tqdm(total=len(window90by1))
 
     for window_id, window in window90by1.items():
 
@@ -204,24 +206,48 @@ if __name__ == '__main__':
         topicOccu_graph = nx.algorithms.bipartite.generic_weighted_projected_graph(sliding_graph, top_nodes, weight_function=test_weight)
         topicSim_graph = nx.algorithms.bipartite.generic_weighted_projected_graph(sliding_graph, bottom_nodes, weight_function=test_weight)
 
-        ### Save ###
+        ### Append ###
 
         bipartite_graphs[window_id] = sliding_graph
         topicOccu_graphs[window_id] = topicOccu_graph
         topicSim_graphs[window_id] = topicSim_graph
 
-        break
+        pbar.update(1)
 
-    print(bipartite_graphs)
-    print(bipartite_graphs['window_0'].nodes())
-    print('\n', bipartite_graphs['window_0'].nodes(290106123))
-    print('\n', bipartite_graphs['window_0'].edges())
-    print('\n', bipartite_graphs['window_0'][290106123]['topic_16'])
-    print(topicOccu_graphs)
-    print(topicOccu_graphs)
+    pbar.close()
+
+    #print(bipartite_graphs)
+    #print(bipartite_graphs['window_0'].nodes())
+    #print('\n', bipartite_graphs['window_0'].nodes[290106123])
+    #print('\n', bipartite_graphs['window_0'].edges())
+    #print('\n', bipartite_graphs['window_0'][290106123]['topic_16'])
+    #print(topicOccu_graphs)
+    #print(topicOccu_graphs['window_0'].nodes())
+    #print('\n', topicOccu_graphs['window_0'].nodes['topic_270'])
+    #print('\n', topicOccu_graphs['window_0'].edges())
+    #print('\n', topicOccu_graphs['window_0']['topic_134']['topic_18'])
+    #print(topicSim_graphs)
+    #print(topicSim_graphs['window_0'].nodes())
+    #print('\n', topicSim_graphs['window_0'].nodes[291383952])
+    #print('\n', topicSim_graphs['window_0'].edges())
+    #print('\n', topicSim_graphs['window_0'][291465230][291383952])
 
     #print(topicSim_g.edges.data('weight'))
 
+#--- Save Sliding Graphs ---#
 
+    filename = 'window90by1_bipartite'
+    outfile = open(filename, 'wb')
+    pk.dump(bipartite_graphs, outfile)
+    outfile.close()
 
-#--- Applying Community detection to each graph/window ---#
+    filename = 'window90by1_topicOccu'
+    outfile = open(filename, 'wb')
+    pk.dump(topicOccu_graphs, outfile)
+    outfile.close()
+
+    filename = 'window90by1_topicSim'
+    outfile = open(filename, 'wb')
+    pk.dump(topicSim_graphs, outfile)
+    outfile.close()
+
