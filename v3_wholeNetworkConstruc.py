@@ -172,7 +172,6 @@ if __name__ == '__main__':
             bipart_edges[c, 4] = 'topic_{0}'.format(int(i))
         c = c + 1
 
-
     c = 0
     for i in bipart_edges.T[7]:
         if np.isfinite(i):
@@ -299,7 +298,7 @@ if __name__ == '__main__':
 
     ### first implementation of community detection on whole network
     print('first implementation of community detection on whole network')
-    #todo can girvan_newman work with my weights instead of edge betweenness?
+    #todo can girvan_newman work with my weights instead of edge betweenness? yes it can
 
     #todo check for more viable community detection implementations
     # Implement sliding window approach
@@ -321,13 +320,13 @@ if __name__ == '__main__':
         print(i)
     '''
 
-    ''' 
+
     # label prop 2 somewhat working 
     lp_async = nx.algorithms.community.label_propagation.asyn_lpa_communities(topicSim_g, weight='weight')
     print(lp_async)
     for i in lp_async:
         print(i)
-    '''
+
 
     '''# modularity - not weighted
     modu_notWeighted = nx.algorithms.community.modularity_max.greedy_modularity_communities(topicSim_g)
