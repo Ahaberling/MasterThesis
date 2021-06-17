@@ -62,6 +62,43 @@ if __name__ == '__main__':
     # and even then it would randomly be labeled with one of the two labels. label propagation seems to be not fitting. It might be still prossible to measure diffusion by measuring how long
     # a community is alive/grows.
 
+    # label propagation:
+    # compute communities for time t, evaluate density of communities, then at t+1 check if there are patents linked to two communities (threshold based). These patents
+    # recombine knowledge. for diffusion: check for how many t's this thereshold is met.
+
+    # label propagation:
+    # we probably just take all edges, not only the top 3 (in the bipartite stage) and apply this weighted label propagation. and then look at the connection patens at t+1.
+    # denisty and most frequent topics in these clusters can be used to evaluate the preformance of the label propagation.
+
+    # Louvain:
+    # Do the same
+    # look at resulting partition. not clear yet, if connection patens at t can be view, or if we have to check t+1 again
+    # lovain and modularity in general only good for few big communties (https://towardsdatascience.com/community-detection-algorithms-9bd8951e7dae)
+    # Better? : (many small communities)
+    #from cdlib import algorithms
+    # import networkx as nx
+    # G = nx.karate_club_graph()
+    # coms = algorithms.surprise_communities(G)
+
+    # Leiden: (https://towardsdatascience.com/community-detection-algorithms-9bd8951e7dae)
+    # from cdlib import algorithms
+    # import networkx as nx
+    # G = nx.karate_club_graph()
+    # coms = algorithms.leiden(G)
+
+    # Walktrap Community Detection
+
+    # preformance: https://yoyoinwanderland.github.io/2017/08/08/Community-Detection-in-Python/ igraph better then networkx
+
+
+
     # further community detection:  https://python-louvain.readthedocs.io/en/latest/
     #                               https://python-louvain.readthedocs.io/en/latest/api.html
     # and more
+
+    # new approach: overlapping communities:
+    # if to communities start to overlap (with the adding of new patents) then these patents building the overlapping recombined knowledge. difussion: how long does the overlap stay.
+    # problem: what to do if two overlapping communties become one?
+
+    # maybe put this in futur works
+
