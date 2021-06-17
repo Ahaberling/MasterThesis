@@ -102,3 +102,21 @@ if __name__ == '__main__':
 
     # maybe put this in futur works
 
+    # Clique Percolation Method
+    # not sure if appropraite. maybe duable, but hard to find correct value for k and to find the appropriate number of bipartite links.
+    # Weighted version possible, but additional threshold has to be set.
+
+    # lfm
+    # cool, but is it implemented with weights??
+
+    # big_clam
+    # assuming high density in overlapping communities. is this resonable for us?
+
+    # slpa
+    # not weighted i think. build on lablepropa
+
+    # lais2
+    # not weighted i think but seems cool, no parameters
+
+    # wCommunity
+    # weighted! seems interesting
