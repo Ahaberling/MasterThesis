@@ -42,9 +42,44 @@ if __name__ == '__main__':
 #--- Applying Community detection to each graph/window ---#
 
     #print(topicSim)
-    print(topicSim['window_0'])
-    print(topicSim['window_0'].nodes())
-    print(topicSim['window_0'].edges())
+    #print(topicSim['window_0'])
+    #print(topicSim['window_0'].nodes())
+    #print(topicSim['window_0'].edges())
+
+    ### Label Propagation       # nx.algorithms.community.label_propagation.asyn_lpa_communities
+
+    lp_commu = {}
+
+    for window_id, window in topicSim.items():
+
+        lp = nx.algorithms.community.label_propagation.asyn_lpa_communities(window, weight='weight')
+        #for i in lp:
+            #print(i)
+
+        #print('+++++++++++++++++++++++++++++++++++++++++')
+
+        lp_commu[window_id] = lp
+
+    print(lp_commu)
+    print(lp_commu['window_0'])
+    for i in lp_commu['window_0']:
+        print(i)
+
+
+    # non-overlapping:
+    # label propagation weighted
+    # leiden weighted (what is 'initial_membership' parameter? Important?)
+    # walk trap (seems to be implemented only for unweigthed graphs -> rethink bipartite link creation of only taking the 3 most prominent topics)
+
+    # overlapping:
+    # kclique   # can be used on weighted, but not sure if implemented here
+    # wCommunity    (weighted but have to reread because of parameters
+    # lais2 # relies on density function. reread. seems not implemented to consider weights
+
+
+
+
+#---------------------------------------
 
     # apply community detection on very window
     # save result in dict
@@ -120,3 +155,5 @@ if __name__ == '__main__':
 
     # wCommunity
     # weighted! seems interesting
+
+    # applying: kclique, wCommunity, lais2
