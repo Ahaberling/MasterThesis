@@ -8,6 +8,7 @@ if __name__ == '__main__':
     import pickle as pk
 
     import networkx as nx
+    from cdlib import algorithms
 
     import tqdm
     import itertools
@@ -49,16 +50,66 @@ if __name__ == '__main__':
     ### Label Propagation       # nx.algorithms.community.label_propagation.asyn_lpa_communities
 
     lp_commu = {}
+    leiden_commu = {}
+    walktrap_commu = {}
 
+    kclique_commu = {}
+    wCommunity_commu = {}
+    lais2_commu = {}
+
+    pbar = tqdm.tqdm(total=len(topicSim))
     for window_id, window in topicSim.items():
 
         lp = nx.algorithms.community.label_propagation.asyn_lpa_communities(window, weight='weight')
+        #leiden = algorithms.leiden(window)
+        #walktrap = algorithms.walktrap(window)
+
+        #kclique = algorithms.kclique(window, k = 3)
+        #wCommunity = algorithms.wCommunity(window, weightName='weight') #min_bel_degree=0.6, threshold_bel_degree=0.6)
+        #lais2 = algorithms.lais2(window)
+
+        # problem: some graphs are not connected:   'networkx.exception.AmbiguousSolution: Disconnected graph: Ambiguous solution for bipartite sets.'
+        # solution 1: take not top 3 edges for bipartite graphs but all
+        # if not working, take biggest component? Probably not so cool..
+        # Take different algorithms that can handle disconnectedness?
+        # keep in mind for overlapping community detection as well
+
         #for i in lp:
             #print(i)
 
         #print('+++++++++++++++++++++++++++++++++++++++++')
 
         lp_commu[window_id] = list(lp)
+        #leiden_commu[window_id] = leiden.to_node_community_map()
+        #walktrap_commu[window_id] = walktrap.to_node_community_map()
+
+        #kclique_commu[window_id] = kclique.to_node_community_map()
+        #wCommunity_commu[window_id] = wCommunity.to_node_community_map()
+        #lais2_commu[window_id] = lais2.to_node_community_map()
+
+        # {'window_0': defaultdict(<class 'list'>, {288766563: [0, 3], 288803376: [0], 288819596: [0],
+        # 290076304: [0, 1, 3, 5], 290106123: [0, 1, 3, 5], 290234572: [0], 291465230: [0, 1, 3, 5],
+        # 289730801: [1], 290720988: [1], 290011409: [2], 290122867: [2], 290720623: [2], 290787054: [2],
+        # 289643751: [4, 6], 291383952: [4, 6], 291793181: [4, 6], 293035547: [4], 290844808: [7], 291727396: [7],
+        # 290373076: [8], 291482760: [8], 289802971: [9], 290768405: [9], 289649697: [10], 290146627: [10],
+        # 290721004: [11], 290721071: [11], 289859057: [12], 290348470: [12], 288878152: [13], 289989447: [13],
+        # ...
+        # 291407609: [42], 290844922: [43], 290720124: [44]}), 'window_30': ...
+
+        # change data structure.
+        # filter every community of size 1 out (or even of size 1 and 2, but that will require more effort)
+        # construct similar list containing recombinations
+
+
+        pbar.update(1)
+
+    #print(lp_commu)
+    #print(leiden_commu)
+    #print(walktrap_commu)
+
+    #print(kclique_commu)
+    #print(wCommunity_commu)
+    #print(lais2_commu)
 
     #print(lp_commu)
     #print(lp_commu['window_0'])
@@ -96,12 +147,17 @@ if __name__ == '__main__':
 
 #--- Recombination ---# (semi cool, because no idea of communities are stable, yet)
 
+
+    window_all_ids = {}
+
     for i in range(0, len(lp_commu)-1):
 
         #print(lp_commu['window_{0}'.format(i)])
         all_ids_t = lp_commu['window_{0}'.format(i*30)]
 
         all_ids_t = [item for sublist in all_ids_t for item in sublist]
+
+        window_all_ids['window_{0}'.format(i * 30)] = all_ids_t
 
         #print(all_ids_t)
 
@@ -110,9 +166,66 @@ if __name__ == '__main__':
         #print(len(all_ids_t) == len(np.unique(all_ids_t)))
 
 
+    recombination_list = []
+    recombination_dic = {}
+
+    for i in range(0, len(window_all_ids)-2):
+        t = set(window_all_ids['window_{0}'.format(i * 30)])
+        t_plus1 = set(window_all_ids['window_{0}'.format((i+1) * 30)])
+
+        new_patents = t_plus1.difference(t)
+
+        #print(t)
+        #print(t_plus1)
+        #print(new_patents)
 
 
+        for patent in new_patents:
 
+            neighbors = list(topicSim['window_{0}'.format((i+1) * 30)].neighbors(patent))
+            #print(patent)
+            #print(neighbors)
+
+            if len(neighbors) >=2:
+
+                bridge_list = []
+                already_found_community = []
+
+                for neighbor in neighbors:
+
+                    #print(neighbor)
+
+                    for community in lp_commu_clean['window_{0}'.format((i+1) * 30)]:
+
+                        #print(community)
+                        #print(bridge_list)
+                        #print(already_found_community)
+
+                        if set([neighbor]).issubset(community):
+                            if community not in already_found_community:
+                                bridge_list.append(neighbor)
+                                already_found_community.append(community)
+
+
+                if len(bridge_list) >= 2:
+                    recombination_list.append([patent, bridge_list])
+
+        recombination_dic['window_{0}'.format((i + 1) * 30)] =
+        #print(i)
+
+    print(recombination_list)
+    #print('-------')
+    #print(lp_commu_clean['window_5580'])
+
+
+    # incoperate threshold approach (relative to overall size)
+
+    for recomb in recombination_list:
+
+
+    # relative to community sizes
+
+#--------------------------------
 
     # 0. delete all communities that are not a least of size x (for now 2)
     # 0.5 take communities and calculate the most relevant topic/s in them, with frequency
@@ -271,4 +384,5 @@ if __name__ == '__main__':
     # wCommunity
     # weighted! seems interesting
 
+    # applying lable propa networkx weighted, leiden, walktrap
     # applying: kclique, wCommunity, lais2
