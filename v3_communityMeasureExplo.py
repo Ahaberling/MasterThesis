@@ -166,7 +166,7 @@ if __name__ == '__main__':
         #print(len(all_ids_t) == len(np.unique(all_ids_t)))
 
 
-    recombination_list = []
+
     recombination_dic = {}
 
     for i in range(0, len(window_all_ids)-2):
@@ -180,11 +180,14 @@ if __name__ == '__main__':
         #print(new_patents)
 
 
+        window_list = []
+
         for patent in new_patents:
 
             neighbors = list(topicSim['window_{0}'.format((i+1) * 30)].neighbors(patent))
             #print(patent)
             #print(neighbors)
+            patent_list = []
 
             if len(neighbors) >=2:
 
@@ -194,6 +197,8 @@ if __name__ == '__main__':
                 for neighbor in neighbors:
 
                     #print(neighbor)
+
+
 
                     for community in lp_commu_clean['window_{0}'.format((i+1) * 30)]:
 
@@ -206,21 +211,50 @@ if __name__ == '__main__':
                                 bridge_list.append(neighbor)
                                 already_found_community.append(community)
 
-
                 if len(bridge_list) >= 2:
-                    recombination_list.append([patent, bridge_list])
+                    patent_list.append(bridge_list)
 
-        recombination_dic['window_{0}'.format((i + 1) * 30)] =
-        #print(i)
+            if len(patent_list) != 0:
+                window_list.append([patent, patent_list])
+                #print(window_list)
 
-    print(recombination_list)
+
+        recombination_dic['window_{0}'.format((i + 1) * 30)] = window_list # list of all patents that recombine  [[patent, [neighbor, neighbor]],...]
+    print(recombination_dic)    # {'window_30': [], 'window_60': [], ... 'window_1290': [[281956640, [[284628144, 283521830]]], [284868326, [[281705097, 281040787]]], ... ], ...}
+
+
+    for window_id, window in recombination_dic.items():
+        #print(len(window))
+
+        threshold_meet = 0       # not meet
+
+        if len(window) != 0:
+
+            print(len(topicSim[window_id]))
+            print(len(window))
+            print(len(window) / len(topicSim[window_id]))
+
+            value = len(window) / len(topicSim[window_id])
+
+            if value >= 0.05:
+                threshold_meet = 1
+
+        #recombination_dic[window_id] = recombination_dic[window_id].append(threshold_meet)
+        recombination_dic[window_id].append(threshold_meet)
+
+    print(recombination_dic)
+
+        #print(len(topicSim[window_id]))
+        #print('---')
+
+    #print(patentRecomb_list)
     #print('-------')
     #print(lp_commu_clean['window_5580'])
 
 
     # incoperate threshold approach (relative to overall size)
 
-    for recomb in recombination_list:
+    #for recomb in recombination_list:
 
 
     # relative to community sizes
