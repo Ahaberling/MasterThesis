@@ -33,10 +33,12 @@ if __name__ == '__main__':
 
     ### Declare sliding window approach ###
 
-    window90by1_bool = True
-    window60by1_bool = True
-    window90by7_bool = True
-    window60by7_bool = True
+    window90by1_bool = False
+    window60by1_bool = False
+    window90by7_bool = False
+    window60by7_bool = False
+
+    window365by30_bool = True
 
 
 
@@ -227,4 +229,52 @@ if __name__ == '__main__':
         filename = 'window60by7'
         outfile = open(filename,'wb')
         pk.dump(window60by7,outfile)
+        outfile.close()
+
+
+
+#--- slinding window approache 365 days by 30 days ---#
+    print('\n#--- slinding window approache 365 days by 30 days ---#\n')
+
+
+    ### 365 days sliding by 30 days ###
+
+    patent_time_unique = np.unique(patent_time)                                                                                 #  817
+    patent_time_unique_filled = np.arange(np.min(patent_time_unique), np.max(patent_time_unique))                               # 6027
+    patent_time_unique_filled_365 = patent_time_unique_filled[patent_time_unique_filled <= max(patent_time_unique_filled)-365]    #5662
+
+    if window365by30_bool == True:
+
+        window365by30 = {}
+        len_window = []
+
+        c = 0
+        pbar = tqdm.tqdm(total=len(patent_time_unique_filled_365))
+
+        for i in patent_time_unique_filled_365:
+
+            if c % 30 == 0:
+                lower_limit = i
+                upper_limit = i + 365
+
+                patent_window = patent_lda_ipc[(patent_lda_ipc[:, 3].astype('datetime64') < upper_limit) & (patent_lda_ipc[:, 3].astype('datetime64') >= lower_limit)]
+                len_window.append(len(patent_window))
+
+                window365by30['window_{0}'.format(c)] = patent_window
+
+            pbar.update(1)
+            #if i >= 100:
+                #break
+
+            c = c + 1
+
+        pbar.close()
+
+        #print(len(window365by30))                     # 189 windows
+        #print(sum(len_window)/len(len_window))      # on average 225.83597883597884 patents per window
+
+
+        filename = 'window365by30'
+        outfile = open(filename,'wb')
+        pk.dump(window365by30, outfile)
         outfile.close()

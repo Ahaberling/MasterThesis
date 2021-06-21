@@ -26,8 +26,11 @@ if __name__ == '__main__':
     topics = topics.to_numpy()
     parent = parent.to_numpy()
 
-    with open('window90by1', 'rb') as handle:
-        window90by1 = pk.load(handle)
+    #with open('window90by1', 'rb') as handle:
+    #    windows = pk.load(handle)
+
+    with open('window365by30', 'rb') as handle:
+        windows = pk.load(handle)
 
 #--- Custom weighting function for preojection ---#
 
@@ -95,9 +98,9 @@ if __name__ == '__main__':
     topicOccu_graphs = {}
     topicSim_graphs = {}
 
-    pbar = tqdm.tqdm(total=len(window90by1))
+    pbar = tqdm.tqdm(total=len(windows))
 
-    for window_id, window in window90by1.items():
+    for window_id, window in windows.items():
 
         ### Create Graph ###
 
@@ -165,6 +168,9 @@ if __name__ == '__main__':
         ### Create Edges ###
 
         edges = window[:, np.r_[0, 9:18]]  # first three topics
+
+        #edges = window[:, np.r_[0, 9:31]]  # topics
+        #for i in range(1, 7 * 3, 3):
 
         c = 0
         for i in edges.T[1]:
@@ -236,17 +242,17 @@ if __name__ == '__main__':
 
 #--- Save Sliding Graphs ---#
 
-    filename = 'window90by1_bipartite'
+    filename = 'windows_bipartite'
     outfile = open(filename, 'wb')
     pk.dump(bipartite_graphs, outfile)
     outfile.close()
 
-    filename = 'window90by1_topicOccu'
+    filename = 'windows_topicOccu'
     outfile = open(filename, 'wb')
     pk.dump(topicOccu_graphs, outfile)
     outfile.close()
 
-    filename = 'window90by1_topicSim'
+    filename = 'windows_topicSim'
     outfile = open(filename, 'wb')
     pk.dump(topicSim_graphs, outfile)
     outfile.close()

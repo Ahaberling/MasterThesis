@@ -27,16 +27,16 @@ if __name__ == '__main__':
     parent = parent.to_numpy()
 
     '''
-    with open('window90by1_bipartite', 'rb') as handle:
+    with open('windows_bipartite', 'rb') as handle:
         bipartite = pk.load(handle)
     '''
     '''
-    with open('window90by1_topicOccu', 'rb') as handle:
+    with open('windows_topicOccu', 'rb') as handle:
         topicOccu = pk.load(handle)
     '''
 
 
-    with open('window90by1_topicSim', 'rb') as handle:
+    with open('windows_topicSim', 'rb') as handle:
         topicSim = pk.load(handle)
 
 #--- Applying Community detection to each graph/window ---#
@@ -63,12 +63,43 @@ if __name__ == '__main__':
     #print(lp_commu)
     #print(lp_commu['window_0'])
     #for i in lp_commu['window_0']:          # {291407609} {290720124, 290720623}
-        #print(i)
+    #    print(i)
+
+    lp_commu_clean ={}
+
+    for window_id, window in lp_commu.items():
+
+        #print(window)
+        lp_commu_clean[window_id] = [x for x in window if len(x) >= 3]
+        #print(lp_commu_clean[window_id])
+        #break
+
+    # now i want to go into every window of lp_commu_clean and find for every community the patent with the highest degree
+
+
+#--- community stability ---# (ignored for now, because it is more suitbale to try this with good networks)
+
+    '''
+    c = 0
+    for window_id, window in lp_commu_clean.items():
+        print(len(topicSim[window_id]))
+        for community in window:
+            degree_list = []
+            for patent in community:
+                degree_list.append((patent, topicSim[window_id].degree[patent]))
+            print(degree_list)
+        print('------')
+        c = c +1
+        if c ==4:
+            break
+    '''
+
+#--- Recombination ---# (semi cool, because no idea of communities are stable, yet)
 
     for i in range(0, len(lp_commu)-1):
 
         #print(lp_commu['window_{0}'.format(i)])
-        all_ids_t = lp_commu['window_{0}'.format(i)]
+        all_ids_t = lp_commu['window_{0}'.format(i*30)]
 
         all_ids_t = [item for sublist in all_ids_t for item in sublist]
 
@@ -79,6 +110,10 @@ if __name__ == '__main__':
         #print(len(all_ids_t) == len(np.unique(all_ids_t)))
 
 
+
+
+
+
     # 0. delete all communities that are not a least of size x (for now 2)
     # 0.5 take communities and calculate the most relevant topic/s in them, with frequency
 
@@ -86,7 +121,7 @@ if __name__ == '__main__':
     # 2. see which patents are new every t
     # 3. see if the new patents connects to patents of overall two or more different communities at t-1
     # 4. if some, save window_id, bridging patent, community endpoint 1, community topics 1, community endpoint 2, community topics 2,
-    # 5.  check if the number of bridging patents between two communities meets a certain threshold ( x% of all new papers or x% of community size 1 + community size 2, or the average of the two)
+    # 5. check if the number of bridging patents between two communities meets a certain threshold ( x% of all new papers or x% of community size 1 + community size 2, or the average of the two)
     # Measure of diffusion a lot more difficult. One would have to follow the communities over t. if it is possible to identify communities that are stable over t, then
     # it would be possible to assess for how many t's a threshold of bridging patents is meet. This seems too be to much for my thesis. Alternatively one could check how many citations
     # a bridging patent gets over time, but this is contrary to the reason why we are doing it with topics in the first place, and only a lazy approximation
@@ -107,6 +142,9 @@ if __name__ == '__main__':
     # 3. Can I develop a stability measure when doing this for all communities (how much movement is there between communities)
     # is there a already established measure i can use? I guess smth like modularity onyl talks about the quality of the partition, not about the sbaility over time.
 
+    # why do i want the stability of communities?
+    # 1. as validation of the community detection algorithm
+    # 2. as argument. If my communities are stable, then i can try to finding nodes linking between them
 
 
 
