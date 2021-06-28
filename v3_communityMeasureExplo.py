@@ -133,7 +133,7 @@ if __name__ == '__main__':
         pbar.update(1)
 
         c = c + 1
-        if c >= 15:
+        if c >= 25:
             break
 
 
@@ -160,17 +160,38 @@ if __name__ == '__main__':
 
     ### Transform data structure ###
 
+    greedy_modularity_commu_transf = {}
+
     for window_id, window in greedy_modularity_commu.items():
 
-        community_list = []
 
-        print(window)
-        print(list(window.keys())[-1])
+        #print(window)
+        #print(list(window.keys())[-1])
         number_communities = window[list(window.keys())[-1]]
-        print(number_communities)
+        #print(number_communities)
 
-        #for patent_id, community_id in window.items():
+        community_list = []
+        focal_commu = []
+        c = 0
 
+        for patent_id, community_id in window.items():
+            print(patent_id, community_id[0])
+
+            if community_id[0] == c:
+                focal_commu.append(patent_id)
+
+            else:
+                community_list.append(focal_commu)
+                print(focal_commu)
+                focal_commu = []
+                focal_commu.append(patent_id)
+                c = c + 1
+
+
+
+        greedy_modularity_commu_transf[window_id] = community_list
+
+    #print(greedy_modularity_commu_transf)
 
         #print(greedy_modularity_commu[window_id[-1]])
         #for patent_id, community_affil in window.items():
@@ -188,13 +209,22 @@ if __name__ == '__main__':
     #print(lp_commu_clean)       # {'window_0': [{288766563, 290106123, 291465230, 290076304, 289730801, 290720988}, {288803376, 290234572, 288819596}, {291383952, ...
 
 
+    greedy_modularity_commu_clean = {}
+
+    for window_id, window in greedy_modularity_commu_transf.items():
+        greedy_modularity_commu_clean[window_id] = [x for x in window if len(x) >= 3]
+
+    #print(greedy_modularity_commu_clean)       # {'window_0': [[288766563, 290106123, 288819596, 290234572, 291465230, 290076304, 288803376, 289730801, 290720988], [291383952, ...
 
 
 
 
 
 
-    if 1 == 2:
+
+
+
+    if 1 == 1:
 
     #--- community stability ---# (ignored for now, because it is more suitbale to try this with good networks)
 
@@ -310,7 +340,9 @@ if __name__ == '__main__':
             #recombination_dic[window_id] = recombination_dic[window_id].append(threshold_meet)
             recombination_dic[window_id].append(threshold_meet)
 
-        print(recombination_dic)
+        print(recombination_dic)    # {'window_30': [0], 'window_60': [0], 'window_90': [0], 'window_120': [0], 'window_150': [0],
+                                    #  'window_180': [0], 'window_210': [0], 'window_240': [0], 'window_270': [0],
+                                    # 'window_300': [[287657442, [[287933459, 290076304]]], ...
 
             #print(len(topicSim[window_id]))
             #print('---')
