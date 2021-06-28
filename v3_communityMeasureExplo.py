@@ -9,6 +9,7 @@ if __name__ == '__main__':
 
     import networkx as nx
     from cdlib import algorithms
+    #import wurlitzer                   #not working for windows
 
     import tqdm
     import itertools
@@ -36,56 +37,105 @@ if __name__ == '__main__':
         topicOccu = pk.load(handle)
     '''
 
-
     with open('windows_topicSim', 'rb') as handle:
         topicSim = pk.load(handle)
 
-#--- Applying Community detection to each graph/window ---#
+#--- Applying Community detection to each graph/window and populate respective dictionaries ---#
 
-    #print(topicSim)
-    #print(topicSim['window_0'])
-    #print(topicSim['window_0'].nodes())
-    #print(topicSim['window_0'].edges())
+    ### Creating dictionaries to save communities ###
 
-    ### Label Propagation       # nx.algorithms.community.label_propagation.asyn_lpa_communities
+    # suitable algorithms - crisp #
+    lp_commu = {}                           # Label Propagation (networkx)
+    greedy_modularity_commu = {}            #
+    paris_commu = {}                        # A little underdog?
 
-    lp_commu = {}
-    leiden_commu = {}
-    walktrap_commu = {}
+    # unsuitable algorithms - crip #
+    '''
+    lp2_commu = {}                          # Label Propagation (cdlib) | no weight consideration
+    leiden_commu = {}                       #                           | need connected graph 
+    walktrap_commu = {}                     #                           | need connected graph 
+    eigenvector_commu = {}                  #                           | need connected graph 
+    spinglass_commu = {}                    #                           | need connected graph 
 
+    gdmp2_commu = {}                        #                           | does not procude communities
+
+    sbm_dl_commu = {}                       #                           | need GraphTool
+    sbm_dl_nested_commu = {}                #                           | need GraphTool
+    infomap_commu = {}                      #                           | needs Linux (I assume)
+    aslpaw_commu = {}                       #                           | needs Linux (I assume)
+    '''
+
+    # suitable algorithms - overlapping #
     kclique_commu = {}
-    wCommunity_commu = {}
     lais2_commu = {}
+    # try lfm as well if desperate
+
+    # unsuitable algorithms - overlapping #
+    '''
+    wCommunity_commu = {}                   #                           | need connected graph OR nodes with at least one degree
+    '''
+
+    ### Applying Community Detection and filling dictionaries ###
+
+    c = 0
 
     pbar = tqdm.tqdm(total=len(topicSim))
     for window_id, window in topicSim.items():
 
+        # suitable algorithms - crisp #
         lp = nx.algorithms.community.label_propagation.asyn_lpa_communities(window, weight='weight')
-        #leiden = algorithms.leiden(window)
-        #walktrap = algorithms.walktrap(window)
-
-        #kclique = algorithms.kclique(window, k = 3)
-        #wCommunity = algorithms.wCommunity(window, weightName='weight') #min_bel_degree=0.6, threshold_bel_degree=0.6)
-        #lais2 = algorithms.lais2(window)
-
-        # problem: some graphs are not connected:   'networkx.exception.AmbiguousSolution: Disconnected graph: Ambiguous solution for bipartite sets.'
-        # solution 1: take not top 3 edges for bipartite graphs but all
-        # if not working, take biggest component? Probably not so cool..
-        # Take different algorithms that can handle disconnectedness?
-        # keep in mind for overlapping community detection as well
-
-        #for i in lp:
-            #print(i)
-
-        #print('+++++++++++++++++++++++++++++++++++++++++')
+        greedy_modularity = algorithms.greedy_modularity(window, weight='weight')
+        paris = algorithms.paris(window)
 
         lp_commu[window_id] = list(lp)
-        #leiden_commu[window_id] = leiden.to_node_community_map()
-        #walktrap_commu[window_id] = walktrap.to_node_community_map()
+        greedy_modularity_commu[window_id] = greedy_modularity.to_node_community_map()
+        paris_commu[window_id] = paris.to_node_community_map()
 
-        #kclique_commu[window_id] = kclique.to_node_community_map()
-        #wCommunity_commu[window_id] = wCommunity.to_node_community_map()
-        #lais2_commu[window_id] = lais2.to_node_community_map()
+        # unsuitable algorithms - crisp #
+        '''
+        lp2 = algorithms.label_propagation(window) # (no weight)
+        leiden = algorithms.leiden(window)
+        walktrap = algorithms.walktrap(window)
+        eigenvector = algorithms.eigenvector(window)
+        spinglass = algorithms.spinglass(window)
+        gdmp2 = algorithms.gdmp2(window)
+        sbm_dl = algorithms.sbm_dl(window) 
+        sbm_dl_nested = algorithms.sbm_dl_nested(window)
+        aslpaw = algorithms.aslpaw(window) 
+        infomap = algorithms.infomap(window) 
+        
+        lp2_commu[window_id] = lp2.to_node_community_map()
+        leiden_commu[window_id] = leiden.to_node_community_map()
+        walktrap_commu[window_id] = walktrap.to_node_community_map()
+        eigenvector_commu[window_id] = eigenvector.to_node_community_map()  
+        spinglass_commu[window_id] = spinglass.to_node_community_map()  
+        gdmp2_commu[window_id] = gdmp2.to_node_community_map()
+        sbm_dl_commu[window_id] = sbm_dl.to_node_community_map()  
+        sbm_dl_nested_commu[window_id] = sbm_dl_nested.to_node_community_map()
+        aslpaw_commu[window_id] = aslpaw.to_node_community_map()  
+        infomap_commu[window_id] = infomap.to_node_community_map()
+        '''
+
+        # suitable algorithms - overlapping #
+        kclique = algorithms.kclique(window, k = 3)
+        lais2 = algorithms.lais2(window)
+
+        kclique_commu[window_id] = kclique.to_node_community_map()
+        lais2_commu[window_id] = lais2.to_node_community_map()
+
+        # unsuitable algorithms - overlapping #
+        '''
+        wCommunity = algorithms.wCommunity(window, weightName='weight')  # min_bel_degree=0.6, threshold_bel_degree=0.6)
+        
+        wCommunity_commu[window_id] = wCommunity.to_node_community_map()
+        '''
+
+        pbar.update(1)
+
+        c = c + 1
+        if c >= 15:
+            break
+
 
         # {'window_0': defaultdict(<class 'list'>, {288766563: [0, 3], 288803376: [0], 288819596: [0],
         # 290076304: [0, 1, 3, 5], 290106123: [0, 1, 3, 5], 290234572: [0], 291465230: [0, 1, 3, 5],
@@ -100,323 +150,341 @@ if __name__ == '__main__':
         # filter every community of size 1 out (or even of size 1 and 2, but that will require more effort)
         # construct similar list containing recombinations
 
+        # problem: some graphs are not connected:   'networkx.exception.AmbiguousSolution: Disconnected graph: Ambiguous solution for bipartite sets.'
+        # solution 1: take not top 3 edges for bipartite graphs but all
+        # if not working, take biggest component? Probably not so cool..
+        # Take different cd algorithms that can handle disconnectedness?
+        # keep in mind for overlapping community detection as well
 
-        pbar.update(1)
 
-    #print(lp_commu)
-    #print(leiden_commu)
-    #print(walktrap_commu)
 
-    #print(kclique_commu)
-    #print(wCommunity_commu)
-    #print(lais2_commu)
+    ### Transform data structure ###
 
-    #print(lp_commu)
-    #print(lp_commu['window_0'])
-    #for i in lp_commu['window_0']:          # {291407609} {290720124, 290720623}
-    #    print(i)
+    for window_id, window in greedy_modularity_commu.items():
+
+        community_list = []
+
+        print(window)
+        print(list(window.keys())[-1])
+        number_communities = window[list(window.keys())[-1]]
+        print(number_communities)
+
+        #for patent_id, community_id in window.items():
+
+
+        #print(greedy_modularity_commu[window_id[-1]])
+        #for patent_id, community_affil in window.items():
+            #print(patent_id, community_affil[0])
+            # od.keys()[-1]
+
+    ### Clean Communties (if necessary) ###
+
 
     lp_commu_clean ={}
 
     for window_id, window in lp_commu.items():
-
-        #print(window)
         lp_commu_clean[window_id] = [x for x in window if len(x) >= 3]
-        #print(lp_commu_clean[window_id])
-        #break
 
-    # now i want to go into every window of lp_commu_clean and find for every community the patent with the highest degree
-
-
-#--- community stability ---# (ignored for now, because it is more suitbale to try this with good networks)
-
-    '''
-    c = 0
-    for window_id, window in lp_commu_clean.items():
-        print(len(topicSim[window_id]))
-        for community in window:
-            degree_list = []
-            for patent in community:
-                degree_list.append((patent, topicSim[window_id].degree[patent]))
-            print(degree_list)
-        print('------')
-        c = c +1
-        if c ==4:
-            break
-    '''
-
-#--- Recombination ---# (semi cool, because no idea of communities are stable, yet)
-
-
-    window_all_ids = {}
-
-    for i in range(0, len(lp_commu)-1):
-
-        #print(lp_commu['window_{0}'.format(i)])
-        all_ids_t = lp_commu['window_{0}'.format(i*30)]
-
-        all_ids_t = [item for sublist in all_ids_t for item in sublist]
-
-        window_all_ids['window_{0}'.format(i * 30)] = all_ids_t
-
-        #print(all_ids_t)
-
-        #print(len(all_ids_t))
-        #print(len(np.unique(all_ids_t)))
-        #print(len(all_ids_t) == len(np.unique(all_ids_t)))
+    #print(lp_commu_clean)       # {'window_0': [{288766563, 290106123, 291465230, 290076304, 289730801, 290720988}, {288803376, 290234572, 288819596}, {291383952, ...
 
 
 
-    recombination_dic = {}
-
-    for i in range(0, len(window_all_ids)-2):
-        t = set(window_all_ids['window_{0}'.format(i * 30)])
-        t_plus1 = set(window_all_ids['window_{0}'.format((i+1) * 30)])
-
-        new_patents = t_plus1.difference(t)
-
-        #print(t)
-        #print(t_plus1)
-        #print(new_patents)
-
-
-        window_list = []
-
-        for patent in new_patents:
-
-            neighbors = list(topicSim['window_{0}'.format((i+1) * 30)].neighbors(patent))
-            #print(patent)
-            #print(neighbors)
-            patent_list = []
-
-            if len(neighbors) >=2:
-
-                bridge_list = []
-                already_found_community = []
-
-                for neighbor in neighbors:
-
-                    #print(neighbor)
 
 
 
-                    for community in lp_commu_clean['window_{0}'.format((i+1) * 30)]:
-
-                        #print(community)
-                        #print(bridge_list)
-                        #print(already_found_community)
-
-                        if set([neighbor]).issubset(community):
-                            if community not in already_found_community:
-                                bridge_list.append(neighbor)
-                                already_found_community.append(community)
-
-                if len(bridge_list) >= 2:
-                    patent_list.append(bridge_list)
-
-            if len(patent_list) != 0:
-                window_list.append([patent, patent_list])
-                #print(window_list)
 
 
-        recombination_dic['window_{0}'.format((i + 1) * 30)] = window_list # list of all patents that recombine  [[patent, [neighbor, neighbor]],...]
-    print(recombination_dic)    # {'window_30': [], 'window_60': [], ... 'window_1290': [[281956640, [[284628144, 283521830]]], [284868326, [[281705097, 281040787]]], ... ], ...}
+    if 1 == 2:
 
+    #--- community stability ---# (ignored for now, because it is more suitbale to try this with good networks)
 
-    for window_id, window in recombination_dic.items():
-        #print(len(window))
-
-        threshold_meet = 0       # not meet
-
-        if len(window) != 0:
-
+        '''
+        c = 0
+        for window_id, window in lp_commu_clean.items():
             print(len(topicSim[window_id]))
-            print(len(window))
-            print(len(window) / len(topicSim[window_id]))
+            for community in window:
+                degree_list = []
+                for patent in community:
+                    degree_list.append((patent, topicSim[window_id].degree[patent]))
+                print(degree_list)
+            print('------')
+            c = c +1
+            if c ==4:
+                break
+        '''
 
-            value = len(window) / len(topicSim[window_id])
-
-            if value >= 0.05:
-                threshold_meet = 1
-
-        #recombination_dic[window_id] = recombination_dic[window_id].append(threshold_meet)
-        recombination_dic[window_id].append(threshold_meet)
-
-    print(recombination_dic)
-
-        #print(len(topicSim[window_id]))
-        #print('---')
-
-    #print(patentRecomb_list)
-    #print('-------')
-    #print(lp_commu_clean['window_5580'])
+    #--- Recombination ---# (semi cool, because no idea of communities are stable, yet)
 
 
-    # incoperate threshold approach (relative to overall size)
+        window_all_ids = {}
 
-    #for recomb in recombination_list:
+        for i in range(0, len(lp_commu)-1):
 
+            #print(lp_commu['window_{0}'.format(i)])
+            all_ids_t = lp_commu['window_{0}'.format(i*30)]
 
-    # relative to community sizes
+            all_ids_t = [item for sublist in all_ids_t for item in sublist]
 
-#--------------------------------
+            window_all_ids['window_{0}'.format(i * 30)] = all_ids_t
 
-    # 0. delete all communities that are not a least of size x (for now 2)
-    # 0.5 take communities and calculate the most relevant topic/s in them, with frequency
+            #print(all_ids_t)
 
-    # 1. take normal sliding window
-    # 2. see which patents are new every t
-    # 3. see if the new patents connects to patents of overall two or more different communities at t-1
-    # 4. if some, save window_id, bridging patent, community endpoint 1, community topics 1, community endpoint 2, community topics 2,
-    # 5. check if the number of bridging patents between two communities meets a certain threshold ( x% of all new papers or x% of community size 1 + community size 2, or the average of the two)
-    # Measure of diffusion a lot more difficult. One would have to follow the communities over t. if it is possible to identify communities that are stable over t, then
-    # it would be possible to assess for how many t's a threshold of bridging patents is meet. This seems too be to much for my thesis. Alternatively one could check how many citations
-    # a bridging patent gets over time, but this is contrary to the reason why we are doing it with topics in the first place, and only a lazy approximation
-
-    # Overlapping communities:
-
-    # same approach
-    # calculate communities for every window
-    # check if there are overlapping communities. check if they meet a threshold (x% of all new patets vs x% of community sizes) if so then these patents that are overlapping are recombining information. Same limitation for diffusion: to evaluate how long the threshold is meet
-    # one has to establish the consistency / stability of communtiies over time.
-
-    # how to check stability over time of communities:
-    # 0. establish core of community (node with most internal connection within the community) (one core for each window and each communitiy)
-    # if the core drops out, then look for the second/third/... most connected node in the network, that exists in t+1
-    # 1. how many patents that left the community also left the graph in general
-    # 2. how many patents that joined the community also joined the graph in general
-    #
-    # 3. Can I develop a stability measure when doing this for all communities (how much movement is there between communities)
-    # is there a already established measure i can use? I guess smth like modularity onyl talks about the quality of the partition, not about the sbaility over time.
-
-    # why do i want the stability of communities?
-    # 1. as validation of the community detection algorithm
-    # 2. as argument. If my communities are stable, then i can try to finding nodes linking between them
+            #print(len(all_ids_t))
+            #print(len(np.unique(all_ids_t)))
+            #print(len(all_ids_t) == len(np.unique(all_ids_t)))
 
 
 
-    '''
-    #test = [x for x in lp_commu['window_0']]
-    #print(test)
+        recombination_dic = {}
 
-    x = {290720124}
-    #rnd_bool = x in lp_commu['window_0']
-    #rnd_bool = x.issubset(lp_commu['window_0'])
+        for i in range(0, len(window_all_ids)-2):
+            t = set(window_all_ids['window_{0}'.format(i * 30)])
+            t_plus1 = set(window_all_ids['window_{0}'.format((i+1) * 30)])
 
-    test = [x for set in lp_commu['window_0'] if x.issubset(set)]
+            new_patents = t_plus1.difference(t)
 
-    print(test)
-    '''
+            #print(t)
+            #print(t_plus1)
+            #print(new_patents)
 
 
-    # is the similarity between patens changing over time? No, because chnage in the network is only caused by added patents. these patents instantly bring their
-    # topic affiliatio. this affiliation is not changing over time, since the abstract and the lda model is not changing. this leads to no change in the patent similarity as well.
-    # this means that all networks are not dynamic, expect for the topic occurance network.
+            window_list = []
 
-    #print(rnd_bool)
+            for patent in new_patents:
 
-    #s = (val for val in range(10))
-    #print(1 in s)
+                neighbors = list(topicSim['window_{0}'.format((i+1) * 30)].neighbors(patent))
+                #print(patent)
+                #print(neighbors)
+                patent_list = []
 
-    #x = {range(10) }
-    #print(x)
-    '''
-    if  in lp_commu['window_0']:
-        print('yeees')
-    else:
-        print('noooo')
+                if len(neighbors) >=2:
 
-    print(lp_commu['window_0'])
-    '''
-    # non-overlapping:
-    # label propagation weighted
-    # leiden weighted (what is 'initial_membership' parameter? Important?)
-    # walk trap (seems to be implemented only for unweigthed graphs -> rethink bipartite link creation of only taking the 3 most prominent topics)
+                    bridge_list = []
+                    already_found_community = []
 
-    # overlapping:
-    # kclique   # can be used on weighted, but not sure if implemented here
-    # wCommunity    (weighted but have to reread because of parameters
-    # lais2 # relies on density function. reread. seems not implemented to consider weights
+                    for neighbor in neighbors:
+
+                        #print(neighbor)
 
 
 
+                        for community in lp_commu_clean['window_{0}'.format((i+1) * 30)]:
 
-#---------------------------------------
+                            #print(community)
+                            #print(bridge_list)
+                            #print(already_found_community)
 
-    # apply community detection on very window
-    # save result in dict
-    # find most likely topic/s for each community with some sort of confidence score
-    # result: {winow_0: {{[2356, 3332, 2345, 3434, ...], Most frequent Topic Id, confidence score},{[12334], mf topic id, score}} , window_1: {...}, ...}
-    # every time there is 1 or [threshold] patents spanning between two communities/between two topics, the knowledge has been recombined.
-    # Diffusion is how long these communities keep being connected.
+                            if set([neighbor]).issubset(community):
+                                if community not in already_found_community:
+                                    bridge_list.append(neighbor)
+                                    already_found_community.append(community)
 
-    # how do we measure recombination?
-    # maybe with overlapping community detection. Every node in an overlap is recombining the knowledge of both communities. Diffusion = how long the overlap lasts.
+                    if len(bridge_list) >= 2:
+                        patent_list.append(bridge_list)
 
-    # recombination with label propagagtion:
-    # community detection with label propagation: recombination occures whenever a patent is linked to at least two communities, or a threshhold of x patents is linked to at least two communities.
-    # Problem with labelpropagation with weights: this middle patent(s) would always take the label of the community it has a stronger bond to. it is very very unlikely, that these nodes have same weights on the outgoing ties
-    # and even then it would randomly be labeled with one of the two labels. label propagation seems to be not fitting. It might be still prossible to measure diffusion by measuring how long
-    # a community is alive/grows.
-
-    # label propagation:
-    # compute communities for time t, evaluate density of communities, then at t+1 check if there are patents linked to two communities (threshold based). These patents
-    # recombine knowledge. for diffusion: check for how many t's this thereshold is met.
-
-    # label propagation:
-    # we probably just take all edges, not only the top 3 (in the bipartite stage) and apply this weighted label propagation. and then look at the connection patens at t+1.
-    # denisty and most frequent topics in these clusters can be used to evaluate the preformance of the label propagation.
-
-    # Louvain:
-    # Do the same
-    # look at resulting partition. not clear yet, if connection patens at t can be view, or if we have to check t+1 again
-    # lovain and modularity in general only good for few big communties (https://towardsdatascience.com/community-detection-algorithms-9bd8951e7dae)
-    # Better? : (many small communities)
-    #from cdlib import algorithms
-    # import networkx as nx
-    # G = nx.karate_club_graph()
-    # coms = algorithms.surprise_communities(G)
-
-    # Leiden: (https://towardsdatascience.com/community-detection-algorithms-9bd8951e7dae)
-    # from cdlib import algorithms
-    # import networkx as nx
-    # G = nx.karate_club_graph()
-    # coms = algorithms.leiden(G)
-
-    # Walktrap Community Detection
-
-    # preformance: https://yoyoinwanderland.github.io/2017/08/08/Community-Detection-in-Python/ igraph better then networkx
+                if len(patent_list) != 0:
+                    window_list.append([patent, patent_list])
+                    #print(window_list)
 
 
+            recombination_dic['window_{0}'.format((i + 1) * 30)] = window_list # list of all patents that recombine  [[patent, [neighbor, neighbor]],...]
+        print(recombination_dic)    # {'window_30': [], 'window_60': [], ... 'window_1290': [[281956640, [[284628144, 283521830]]], [284868326, [[281705097, 281040787]]], ... ], ...}
 
-    # further community detection:  https://python-louvain.readthedocs.io/en/latest/
-    #                               https://python-louvain.readthedocs.io/en/latest/api.html
-    # and more
 
-    # new approach: overlapping communities:
-    # if to communities start to overlap (with the adding of new patents) then these patents building the overlapping recombined knowledge. difussion: how long does the overlap stay.
-    # problem: what to do if two overlapping communties become one?
+        for window_id, window in recombination_dic.items():
+            #print(len(window))
 
-    # maybe put this in futur works
+            threshold_meet = 0       # not meet
 
-    # Clique Percolation Method
-    # not sure if appropraite. maybe duable, but hard to find correct value for k and to find the appropriate number of bipartite links.
-    # Weighted version possible, but additional threshold has to be set.
+            if len(window) != 0:
 
-    # lfm
-    # cool, but is it implemented with weights??
+                print(len(topicSim[window_id]))
+                print(len(window))
+                print(len(window) / len(topicSim[window_id]))
 
-    # big_clam
-    # assuming high density in overlapping communities. is this resonable for us?
+                value = len(window) / len(topicSim[window_id])
 
-    # slpa
-    # not weighted i think. build on lablepropa
+                if value >= 0.05:
+                    threshold_meet = 1
 
-    # lais2
-    # not weighted i think but seems cool, no parameters
+            #recombination_dic[window_id] = recombination_dic[window_id].append(threshold_meet)
+            recombination_dic[window_id].append(threshold_meet)
 
-    # wCommunity
-    # weighted! seems interesting
+        print(recombination_dic)
 
-    # applying lable propa networkx weighted, leiden, walktrap
-    # applying: kclique, wCommunity, lais2
+            #print(len(topicSim[window_id]))
+            #print('---')
+
+        #print(patentRecomb_list)
+        #print('-------')
+        #print(lp_commu_clean['window_5580'])
+
+
+        # incoperate threshold approach (relative to overall size)
+
+        #for recomb in recombination_list:
+
+
+        # relative to community sizes
+
+    #--------------------------------
+
+        # 0. delete all communities that are not a least of size x (for now 2)
+        # 0.5 take communities and calculate the most relevant topic/s in them, with frequency
+
+        # 1. take normal sliding window
+        # 2. see which patents are new every t
+        # 3. see if the new patents connects to patents of overall two or more different communities at t-1
+        # 4. if some, save window_id, bridging patent, community endpoint 1, community topics 1, community endpoint 2, community topics 2,
+        # 5. check if the number of bridging patents between two communities meets a certain threshold ( x% of all new papers or x% of community size 1 + community size 2, or the average of the two)
+        # Measure of diffusion a lot more difficult. One would have to follow the communities over t. if it is possible to identify communities that are stable over t, then
+        # it would be possible to assess for how many t's a threshold of bridging patents is meet. This seems too be to much for my thesis. Alternatively one could check how many citations
+        # a bridging patent gets over time, but this is contrary to the reason why we are doing it with topics in the first place, and only a lazy approximation
+
+        # Overlapping communities:
+
+        # same approach
+        # calculate communities for every window
+        # check if there are overlapping communities. check if they meet a threshold (x% of all new patets vs x% of community sizes) if so then these patents that are overlapping are recombining information. Same limitation for diffusion: to evaluate how long the threshold is meet
+        # one has to establish the consistency / stability of communtiies over time.
+
+        # how to check stability over time of communities:
+        # 0. establish core of community (node with most internal connection within the community) (one core for each window and each communitiy)
+        # if the core drops out, then look for the second/third/... most connected node in the network, that exists in t+1
+        # 1. how many patents that left the community also left the graph in general
+        # 2. how many patents that joined the community also joined the graph in general
+        #
+        # 3. Can I develop a stability measure when doing this for all communities (how much movement is there between communities)
+        # is there a already established measure i can use? I guess smth like modularity onyl talks about the quality of the partition, not about the sbaility over time.
+
+        # why do i want the stability of communities?
+        # 1. as validation of the community detection algorithm
+        # 2. as argument. If my communities are stable, then i can try to finding nodes linking between them
+
+
+
+        '''
+        #test = [x for x in lp_commu['window_0']]
+        #print(test)
+    
+        x = {290720124}
+        #rnd_bool = x in lp_commu['window_0']
+        #rnd_bool = x.issubset(lp_commu['window_0'])
+    
+        test = [x for set in lp_commu['window_0'] if x.issubset(set)]
+    
+        print(test)
+        '''
+
+
+        # is the similarity between patens changing over time? No, because chnage in the network is only caused by added patents. these patents instantly bring their
+        # topic affiliatio. this affiliation is not changing over time, since the abstract and the lda model is not changing. this leads to no change in the patent similarity as well.
+        # this means that all networks are not dynamic, expect for the topic occurance network.
+
+        #print(rnd_bool)
+
+        #s = (val for val in range(10))
+        #print(1 in s)
+
+        #x = {range(10) }
+        #print(x)
+        '''
+        if  in lp_commu['window_0']:
+            print('yeees')
+        else:
+            print('noooo')
+    
+        print(lp_commu['window_0'])
+        '''
+        # non-overlapping:
+        # label propagation weighted
+        # leiden weighted (what is 'initial_membership' parameter? Important?)
+        # walk trap (seems to be implemented only for unweigthed graphs -> rethink bipartite link creation of only taking the 3 most prominent topics)
+
+        # overlapping:
+        # kclique   # can be used on weighted, but not sure if implemented here
+        # wCommunity    (weighted but have to reread because of parameters
+        # lais2 # relies on density function. reread. seems not implemented to consider weights
+
+
+
+
+    #---------------------------------------
+
+        # apply community detection on very window
+        # save result in dict
+        # find most likely topic/s for each community with some sort of confidence score
+        # result: {winow_0: {{[2356, 3332, 2345, 3434, ...], Most frequent Topic Id, confidence score},{[12334], mf topic id, score}} , window_1: {...}, ...}
+        # every time there is 1 or [threshold] patents spanning between two communities/between two topics, the knowledge has been recombined.
+        # Diffusion is how long these communities keep being connected.
+
+        # how do we measure recombination?
+        # maybe with overlapping community detection. Every node in an overlap is recombining the knowledge of both communities. Diffusion = how long the overlap lasts.
+
+        # recombination with label propagagtion:
+        # community detection with label propagation: recombination occures whenever a patent is linked to at least two communities, or a threshhold of x patents is linked to at least two communities.
+        # Problem with labelpropagation with weights: this middle patent(s) would always take the label of the community it has a stronger bond to. it is very very unlikely, that these nodes have same weights on the outgoing ties
+        # and even then it would randomly be labeled with one of the two labels. label propagation seems to be not fitting. It might be still prossible to measure diffusion by measuring how long
+        # a community is alive/grows.
+
+        # label propagation:
+        # compute communities for time t, evaluate density of communities, then at t+1 check if there are patents linked to two communities (threshold based). These patents
+        # recombine knowledge. for diffusion: check for how many t's this thereshold is met.
+
+        # label propagation:
+        # we probably just take all edges, not only the top 3 (in the bipartite stage) and apply this weighted label propagation. and then look at the connection patens at t+1.
+        # denisty and most frequent topics in these clusters can be used to evaluate the preformance of the label propagation.
+
+        # Louvain:
+        # Do the same
+        # look at resulting partition. not clear yet, if connection patens at t can be view, or if we have to check t+1 again
+        # lovain and modularity in general only good for few big communties (https://towardsdatascience.com/community-detection-algorithms-9bd8951e7dae)
+        # Better? : (many small communities)
+        #from cdlib import algorithms
+        # import networkx as nx
+        # G = nx.karate_club_graph()
+        # coms = algorithms.surprise_communities(G)
+
+        # Leiden: (https://towardsdatascience.com/community-detection-algorithms-9bd8951e7dae)
+        # from cdlib import algorithms
+        # import networkx as nx
+        # G = nx.karate_club_graph()
+        # coms = algorithms.leiden(G)
+
+        # Walktrap Community Detection
+
+        # preformance: https://yoyoinwanderland.github.io/2017/08/08/Community-Detection-in-Python/ igraph better then networkx
+
+
+
+        # further community detection:  https://python-louvain.readthedocs.io/en/latest/
+        #                               https://python-louvain.readthedocs.io/en/latest/api.html
+        # and more
+
+        # new approach: overlapping communities:
+        # if to communities start to overlap (with the adding of new patents) then these patents building the overlapping recombined knowledge. difussion: how long does the overlap stay.
+        # problem: what to do if two overlapping communties become one?
+
+        # maybe put this in futur works
+
+        # Clique Percolation Method
+        # not sure if appropraite. maybe duable, but hard to find correct value for k and to find the appropriate number of bipartite links.
+        # Weighted version possible, but additional threshold has to be set.
+
+        # lfm
+        # cool, but is it implemented with weights??
+
+        # big_clam
+        # assuming high density in overlapping communities. is this resonable for us?
+
+        # slpa
+        # not weighted i think. build on lablepropa
+
+        # lais2
+        # not weighted i think but seems cool, no parameters
+
+        # wCommunity
+        # weighted! seems interesting
+
+        # applying lable propa networkx weighted, leiden, walktrap
+        # applying: kclique, wCommunity, lais2
