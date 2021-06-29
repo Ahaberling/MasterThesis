@@ -13,6 +13,7 @@ if __name__ == '__main__':
 
     import tqdm
     import itertools
+    import operator
     import os
 
 #--- Initialization ---#
@@ -47,7 +48,7 @@ if __name__ == '__main__':
     # suitable algorithms - crisp #
     lp_commu = {}                           # Label Propagation (networkx)
     greedy_modularity_commu = {}            #
-    paris_commu = {}                        # A little underdog?
+
 
     # unsuitable algorithms - crip #
     '''
@@ -58,6 +59,7 @@ if __name__ == '__main__':
     spinglass_commu = {}                    #                           | need connected graph 
 
     gdmp2_commu = {}                        #                           | does not procude communities
+    paris_commu = {}                        #                           | does not seem to work porperly #todo check why?
 
     sbm_dl_commu = {}                       #                           | need GraphTool
     sbm_dl_nested_commu = {}                #                           | need GraphTool
@@ -84,12 +86,12 @@ if __name__ == '__main__':
 
         # suitable algorithms - crisp #
         lp = nx.algorithms.community.label_propagation.asyn_lpa_communities(window, weight='weight')
-        greedy_modularity = algorithms.greedy_modularity(window, weight='weight')
+        #greedy_modularity = algorithms.greedy_modularity(window)    #, weight='weight')
         #paris = algorithms.paris(window)
 
 
         lp_commu[window_id] = list(lp)
-        greedy_modularity_commu[window_id] = greedy_modularity.to_node_community_map()
+        #greedy_modularity_commu[window_id] = greedy_modularity.to_node_community_map()
         #paris_commu[window_id] = paris.to_node_community_map()
 
 
@@ -135,8 +137,8 @@ if __name__ == '__main__':
         pbar.update(1)
 
         c = c + 1
-        #if c >= 25:
-            #break
+        if c >= 25:
+            break
 
 
         # {'window_0': defaultdict(<class 'list'>, {288766563: [0, 3], 288803376: [0], 288819596: [0],
@@ -166,8 +168,6 @@ if __name__ == '__main__':
     greedy_modularity_commu_transf = {}
 
     for window_id, window in greedy_modularity_commu.items():
-
-        number_communities = window[list(window.keys())[-1]]
 
         community_list = []
         focal_commu = []
@@ -212,6 +212,76 @@ if __name__ == '__main__':
         paris_commu_transf[window_id] = community_list
     '''
 
+    # lais2 #
+
+    lais2_commu_transf = {}
+
+    for window_id, window in lais2_commu.items():
+
+        community_list = []
+        max_commu_counter = []
+
+        for patent_id, community_id in window.items():
+            max_commu_counter.append(len(community_id))
+
+        max_commu_counter = max(max_commu_counter)
+
+        for j in range(max_commu_counter+1):
+            focal_commu = []
+
+            for patent_id, community_id in window.items():
+
+                if j in community_id:
+                    focal_commu.append(patent_id)
+
+            community_list.append(focal_commu)
+
+        lais2_commu_transf[window_id] = community_list
+
+
+
+    # kclique #
+
+    kclique_commu_transf = {}
+
+    for window_id, window in kclique_commu.items():
+
+        community_list = []
+        max_commu_counter = []
+
+        for patent_id, community_id in window.items():
+            max_commu_counter.append(len(community_id))
+
+        if len(max_commu_counter) >= 1:
+            max_commu_counter = max(max_commu_counter)
+
+
+            for j in range(max_commu_counter+1):
+                focal_commu = []
+
+                for patent_id, community_id in window.items():
+
+                    if j in community_id:
+                        focal_commu.append(patent_id)
+
+                community_list.append(focal_commu)
+
+        else:
+            community_list.append([])
+
+        kclique_commu_transf[window_id] = community_list
+
+
+
+    # First I need stbale communities and a way to identify tem over time
+    # then I can transform lais2_commu['window_X'] into list of recombinations, e.g.:
+    # 288803376: [0]            -> out
+    # 288766563: [0, 3]         -> stay same
+    # 290106123: [0, 1, 3, 5]   - 290106123: [0, 1], 290106123: [0, 3], 290106123: [0, 5], 290106123: [1, 3], 290106123: [1, 5], 290106123: [3, 5]
+    # then I can index by recombination and list patent_ids that recombine afterwards
+    # then I can calculate if thresholds are meet
+
+
     ### Clean Communties (if necessary) ###
 
 
@@ -238,172 +308,223 @@ if __name__ == '__main__':
 
     '''
 
+    lais2_commu_clean = {}
 
-    if 1 == 1:
+    for window_id, window in lais2_commu_transf.items():
+        lais2_commu_clean[window_id] = [x for x in window if len(x) >= 3]
 
-    #--- community stability ---# (ignored for now, because it is more suitbale to try this with good networks)
+    lais2_commu_clean = kclique_commu_transf # k already discriminates community size
+    '''
+    kclique_commu_clean = {}
 
-        '''
-        c = 0
-        for window_id, window in lp_commu_clean.items():
-            print(len(topicSim[window_id]))
-            for community in window:
-                degree_list = []
-                for patent in community:
-                    degree_list.append((patent, topicSim[window_id].degree[patent]))
-                print(degree_list)
-            print('------')
-            c = c +1
-            if c ==4:
-                break
-        '''
+    for window_id, window in kclique_commu_transf.items():
+        kclique_commu_clean[window_id] = [x for x in window if len(x) >= 3]
+    '''
 
-    #--- Recombination ---# (semi cool, because no idea of communities are stable, yet)
 
-        # label propagation #
-        lp_window_all_ids = {}
+#--- Stability of Communities ---#
 
-        for i in range(0, len(lp_commu)-1):
+    for i in range(0, len(lp_commu_clean)-1):
+        #print('i - lp')
+        lp_window= lp_commu_clean['window_{0}'.format(i*30)]
+        #print('i')
+        #print(topicSim['window_{0}'.format(i*30)].nodes())
+        #print('i+1')
+        #print(topicSim['window_{0}'.format((i+1)*30)].nodes())
 
-            all_ids_t = lp_commu['window_{0}'.format(i*30)]
-            all_ids_t = [item for sublist in all_ids_t for item in sublist]
-            lp_window_all_ids['window_{0}'.format(i * 30)] = all_ids_t
+        #print(topicSim[window_id].degree(288766563))
 
-        lp_recombination_dic = {}
 
-        for i in range(0, len(lp_window_all_ids)-2):
-            t = set(lp_window_all_ids['window_{0}'.format(i * 30)])
-            t_plus1 = set(lp_window_all_ids['window_{0}'.format((i+1) * 30)])
+        #print(next(topicSim[window_id]))
 
-            new_patents = t_plus1.difference(t)
+        for community in lp_window:
+            print(community)
 
-            window_list = []
+            suriviver =  []
 
-            for patent in new_patents:
+            for patent in community:
+                if patent in topicSim['window_{0}'.format((i+1)*30)]:
+                    suriviver.append((patent, topicSim['window_{0}'.format(i*30)].degree(patent) ))
 
-                neighbors = list(topicSim['window_{0}'.format((i+1) * 30)].neighbors(patent))
+            suriviver.sort(key=operator.itemgetter(1), reverse=True)
+            suriviver_topK = suriviver[0:5]
+            #print(suriviver)
+            #print(suriviver_topK)
 
-                patent_list = []
-
-                if len(neighbors) >=2:
-
-                    bridge_list = []
-                    already_found_community = []
-
-                    for neighbor in neighbors:
-
-                        for community in lp_commu_clean['window_{0}'.format((i+1) * 30)]:
-
-                            if set([neighbor]).issubset(community):
-                                if community not in already_found_community:
-                                    bridge_list.append(neighbor)
-                                    already_found_community.append(community)
-
-                    if len(bridge_list) >= 2:
-                        patent_list.append(bridge_list)
-
-                if len(patent_list) != 0:
-                    window_list.append([patent, patent_list])
-
-            lp_recombination_dic['window_{0}'.format((i + 1) * 30)] = window_list # list of all patents that recombine  [[patent, [neighbor, neighbor]],...]
-        print(lp_recombination_dic)    # {'window_30': [], 'window_60': [], ...,  'window_300': [[287657442, [[287933459, 290076304]]], ...
+        print(lp_commu_clean['window_{0}'.format(i * 30)])
+        # append suriviver_topK to each community...
 
 
 
+#--- Recombination - crisp ---# (semi cool, because no idea of communities are stable, yet)
 
-        # greedy_modularity #
-        gm_window_all_ids = {}
+    # label propagation #
+    lp_window_all_ids = {}
 
-        for i in range(0, len(greedy_modularity_commu_transf)-1):
+    for i in range(0, len(lp_commu)-1):
 
-            all_ids_t = greedy_modularity_commu_transf['window_{0}'.format(i*30)]
-            all_ids_t = [item for sublist in all_ids_t for item in sublist]
-            gm_window_all_ids['window_{0}'.format(i * 30)] = all_ids_t
+        all_ids_t = lp_commu['window_{0}'.format(i*30)]
+        all_ids_t = [item for sublist in all_ids_t for item in sublist]
+        lp_window_all_ids['window_{0}'.format(i * 30)] = all_ids_t
 
-        gm_recombination_dic = {}
+    lp_recombination_dic = {}
 
-        for i in range(0, len(gm_window_all_ids)-2):
-            t = set(gm_window_all_ids['window_{0}'.format(i * 30)])
-            t_plus1 = set(gm_window_all_ids['window_{0}'.format((i+1) * 30)])
+    for i in range(0, len(lp_window_all_ids)-2):
+        t = set(lp_window_all_ids['window_{0}'.format(i * 30)])
+        t_plus1 = set(lp_window_all_ids['window_{0}'.format((i+1) * 30)])
 
-            new_patents = t_plus1.difference(t)
+        new_patents = t_plus1.difference(t)
 
-            window_list = []
+        window_list = []
 
-            for patent in new_patents:
+        for patent in new_patents:
 
-                neighbors = list(topicSim['window_{0}'.format((i+1) * 30)].neighbors(patent))
+            neighbors = list(topicSim['window_{0}'.format((i+1) * 30)].neighbors(patent))
 
-                patent_list = []
+            patent_list = []
 
-                if len(neighbors) >=2:
+            if len(neighbors) >=2:
 
-                    bridge_list = []
-                    already_found_community = []
+                bridge_list = []
+                already_found_community = []
 
-                    for neighbor in neighbors:
+                for neighbor in neighbors:
 
-                        for community in greedy_modularity_commu_clean['window_{0}'.format((i+1) * 30)]:
+                    for community in lp_commu_clean['window_{0}'.format((i+1) * 30)]:
 
-                            if set([neighbor]).issubset(community):
-                                if community not in already_found_community:
-                                    bridge_list.append(neighbor)
-                                    already_found_community.append(community)
-                                    print(bridge_list)
+                        if set([neighbor]).issubset(community):
+                            if community not in already_found_community:
+                                bridge_list.append(neighbor)
+                                already_found_community.append(community)
 
-                    if len(bridge_list) >= 2:
-                        patent_list.append(bridge_list)
+                if len(bridge_list) >= 2:
+                    patent_list.append(bridge_list)
 
-                if len(patent_list) != 0:
-                    window_list.append([patent, patent_list])
+            if len(patent_list) != 0:
+                window_list.append([patent, patent_list])
 
-            gm_recombination_dic['window_{0}'.format((i + 1) * 30)] = window_list # list of all patents that recombine  [[patent, [neighbor, neighbor]],...]
-        print(gm_recombination_dic)    # {'window_30': [], 'window_60': [], 'window_90': [], 'window_120': [], ...          all empty :(
-
-
-
-    # --- Recombination Thrshold ---# (semi cool, because no idea of communities are stable, yet)
-
-        '''
-        for window_id, window in recombination_dic.items():
-            #print(len(window))
-
-            threshold_meet = 0       # not meet
-
-            if len(window) != 0:
-
-                print(len(topicSim[window_id]))
-                print(len(window))
-                print(len(window) / len(topicSim[window_id]))
-
-                value = len(window) / len(topicSim[window_id])
-
-                if value >= 0.05:
-                    threshold_meet = 1
-
-            #recombination_dic[window_id] = recombination_dic[window_id].append(threshold_meet)
-            recombination_dic[window_id].append(threshold_meet)
-
-        print(recombination_dic)    # {'window_30': [0], 'window_60': [0], 'window_90': [0], 'window_120': [0], 'window_150': [0],
-                                    #  'window_180': [0], 'window_210': [0], 'window_240': [0], 'window_270': [0],
-                                    # 'window_300': [[287657442, [[287933459, 290076304]]], ...
-        '''
-            #print(len(topicSim[window_id]))
-            #print('---')
-
-        #print(patentRecomb_list)
-        #print('-------')
-        #print(lp_commu_clean['window_5580'])
+        lp_recombination_dic['window_{0}'.format((i + 1) * 30)] = window_list # list of all patents that recombine  [[patent, [neighbor, neighbor]],...]
+    #print(lp_recombination_dic)    # {'window_30': [], 'window_60': [], ...,  'window_300': [[287657442, [[287933459, 290076304]]], ...
 
 
-        # incoperate threshold approach (relative to overall size)
-
-        #for recomb in recombination_list:
 
 
-        # relative to community sizes
+    # greedy_modularity #
+    gm_window_all_ids = {}
+
+    for i in range(0, len(greedy_modularity_commu_transf)-1):
+
+        all_ids_t = greedy_modularity_commu_transf['window_{0}'.format(i*30)]
+        all_ids_t = [item for sublist in all_ids_t for item in sublist]
+        gm_window_all_ids['window_{0}'.format(i * 30)] = all_ids_t
+
+    gm_recombination_dic = {}
+
+    for i in range(0, len(gm_window_all_ids)-2):
+        t = set(gm_window_all_ids['window_{0}'.format(i * 30)])
+        t_plus1 = set(gm_window_all_ids['window_{0}'.format((i+1) * 30)])
+
+        new_patents = t_plus1.difference(t)
+
+        window_list = []
+
+        for patent in new_patents:
+
+            neighbors = list(topicSim['window_{0}'.format((i+1) * 30)].neighbors(patent))
+
+            patent_list = []
+
+            if len(neighbors) >=2:
+
+                bridge_list = []
+                already_found_community = []
+
+                for neighbor in neighbors:
+
+                    for community in greedy_modularity_commu_clean['window_{0}'.format((i+1) * 30)]:
+
+                        if set([neighbor]).issubset(community):
+                            if community not in already_found_community:
+                                bridge_list.append(neighbor)
+                                already_found_community.append(community)
+                                #print(bridge_list)
+
+                if len(bridge_list) >= 2:
+                    patent_list.append(bridge_list)
+
+            if len(patent_list) != 0:
+                window_list.append([patent, patent_list])
+
+        gm_recombination_dic['window_{0}'.format((i + 1) * 30)] = window_list # list of all patents that recombine  [[patent, [neighbor, neighbor]],...]
+    #print(gm_recombination_dic)    # {'window_30': [], 'window_60': [], 'window_90': [], 'window_120': [], ...          all empty :(
+
+
+
+# --- Recombination Thrshold  - crisp ---# (semi cool, because no idea of communities are stable, yet)
+
+    # label propagation #
+    for window_id, window in lp_recombination_dic.items():
+
+        threshold_meet = 0       # not meet
+
+        if len(window) != 0:
+            value = len(window) / len(topicSim[window_id])
+
+            if value >= 0.05:
+                threshold_meet = 1
+
+        lp_recombination_dic[window_id].append(threshold_meet)
+
+    #print(lp_recombination_dic)    # {'window_30': [0], 'window_60': [0], 'window_90': [0], 'window_120': [0], 'window_150': [0],
+                                #  'window_180': [0], 'window_210': [0], 'window_240': [0], 'window_270': [0],
+                                # 'window_300': [[287657442, [[287933459, 290076304]]], ...
+
+    # label propagation #
+    for window_id, window in gm_recombination_dic.items():
+
+        threshold_meet = 0  # not meet
+
+        if len(window) != 0:
+            value = len(window) / len(topicSim[window_id])
+            # This can be done relative to community size instead of relative to overall size, but latter makes more sense for me right now
+
+            if value >= 0.05:
+                threshold_meet = 1
+
+        gm_recombination_dic[window_id].append(threshold_meet)
+
+    #print(gm_recombination_dic)  # {'window_30': [0], 'window_60': [0], 'window_90': [0], ...
+
+
+#--- Recombination - overlapping ---# (semi cool, because no idea of communities are stable, yet)
+
+
+
+
+
+    # --- community stability ---# (ignored for now, because it is more suitbale to try this with good networks)
+
+    '''
+    c = 0
+    for window_id, window in lp_commu_clean.items():
+        print(len(topicSim[window_id]))
+        for community in window:
+            degree_list = []
+            for patent in community:
+                degree_list.append((patent, topicSim[window_id].degree[patent]))
+            print(degree_list)
+        print('------')
+        c = c +1
+        if c ==4:
+            break
+    '''
 
     #--------------------------------
+
+
+
+
+
 
         # 0. delete all communities that are not a least of size x (for now 2)
         # 0.5 take communities and calculate the most relevant topic/s in them, with frequency
@@ -439,7 +560,7 @@ if __name__ == '__main__':
 
 
 
-        '''
+    '''
         #test = [x for x in lp_commu['window_0']]
         #print(test)
     
@@ -450,7 +571,7 @@ if __name__ == '__main__':
         test = [x for set in lp_commu['window_0'] if x.issubset(set)]
     
         print(test)
-        '''
+    '''
 
 
         # is the similarity between patens changing over time? No, because chnage in the network is only caused by added patents. these patents instantly bring their
@@ -464,14 +585,15 @@ if __name__ == '__main__':
 
         #x = {range(10) }
         #print(x)
-        '''
+
+    '''
         if  in lp_commu['window_0']:
             print('yeees')
         else:
             print('noooo')
     
         print(lp_commu['window_0'])
-        '''
+    '''
         # non-overlapping:
         # label propagation weighted
         # leiden weighted (what is 'initial_membership' parameter? Important?)
