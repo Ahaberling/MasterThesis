@@ -324,9 +324,11 @@ if __name__ == '__main__':
 
 #--- Stability of Communities ---#
 
+    lp_commu_topK = {}
+
     for i in range(0, len(lp_commu_clean)-1):
         #print('i - lp')
-        lp_window= lp_commu_clean['window_{0}'.format(i*30)]
+        lp_window = lp_commu_clean['window_{0}'.format(i*30)]
         #print('i')
         #print(topicSim['window_{0}'.format(i*30)].nodes())
         #print('i+1')
@@ -337,8 +339,10 @@ if __name__ == '__main__':
 
         #print(next(topicSim[window_id]))
 
+        surviver_window = []
+
         for community in lp_window:
-            print(community)
+            #print(community)
 
             suriviver =  []
 
@@ -350,9 +354,60 @@ if __name__ == '__main__':
             suriviver_topK = suriviver[0:5]
             #print(suriviver)
             #print(suriviver_topK)
+            surviver_window.append(suriviver_topK)
 
-        print(lp_commu_clean['window_{0}'.format(i * 30)])
-        # append suriviver_topK to each community...
+        #print('surviver_window')
+        #print(surviver_window)
+
+        lp_window = lp_commu_clean['window_{0}'.format(i * 30)]
+        #print(lp_window)
+        communities_plusTopK = []
+
+        for j in range(len(lp_window)):
+            #print(lp_window[j])
+            communities_plusTopK.append([lp_window[j], surviver_window[j]])
+
+        lp_commu_topK['window_{0}'.format(i * 30)] = communities_plusTopK
+        #print(lp_commu_topK['window_{0}'.format(i * 30)])
+
+
+
+    ### Community Labeling ###
+    lp_commu_labeled = {}
+    topk_label_list = []
+    available_ids = range(1000000)
+
+    print(lp_commu_topK)
+
+    for i in range(0, len(lp_commu_topK)-1):
+        lp_window = lp_commu_topK['window_{0}'.format(i * 30)]
+        #print('lp_window')
+        #print(lp_window)
+
+        for community in lp_window:
+            #print(community)
+            #print(community[1])
+
+            new_community_threshold = 0
+
+            for topK_patent in community[1]:
+                #print(topK_patent[0])
+
+                if topK_patent in topk_label_list:
+                    1+1
+
+                else:
+                    new_community_threshold = new_community_threshold + 1
+
+                    if
+
+            if new_community_threshold == len(community[1]):
+                community_id = available_ids.pop(0)
+
+                for topK_patent in community[1]:
+                    topk_label_list.append((topK_patent, community_id))
+
+
 
 
 
