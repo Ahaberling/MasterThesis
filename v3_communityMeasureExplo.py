@@ -347,11 +347,13 @@ if __name__ == '__main__':
             suriviver =  []
 
             for patent in community:
-                if patent in topicSim['window_{0}'.format((i+1)*30)]:
-                    suriviver.append((patent, topicSim['window_{0}'.format(i*30)].degree(patent) ))
+                #if patent in topicSim['window_{0}'.format((i+1)*30)]:                  # Without this, the name 'surviver' is not really fitting anymore
+                    #suriviver.append((patent, topicSim['window_{0}'.format(i*30)].degree(patent) ))
+
+                suriviver.append((patent, topicSim['window_{0}'.format(i * 30)].degree(patent)))
 
             suriviver.sort(key=operator.itemgetter(1), reverse=True)
-            suriviver_topK = suriviver[0:5]
+            suriviver_topK = suriviver[0:1]
             #print(suriviver)
             #print(suriviver_topK)
             surviver_window.append(suriviver_topK)
@@ -368,10 +370,10 @@ if __name__ == '__main__':
             communities_plusTopK.append([lp_window[j], surviver_window[j]])
 
         lp_commu_topK['window_{0}'.format(i * 30)] = communities_plusTopK
-        #print(lp_commu_topK['window_{0}'.format(i * 30)])
+        print(lp_commu_topK['window_{0}'.format(i * 30)])
 
 
-
+    '''
     ### Community Labeling ###
     lp_commu_labeled = {}
     topk_label_list = []
@@ -406,7 +408,7 @@ if __name__ == '__main__':
 
                 for topK_patent in community[1]:
                     topk_label_list.append((topK_patent, community_id))
-
+    '''
 
 
 
