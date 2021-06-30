@@ -417,9 +417,10 @@ if __name__ == '__main__':
 
     for row in range(len(community_tracing_array)):
 
+        current_window = lp_commu_topK['window_{0}'.format(row * 30)]
+
         if row != 0:
             prev_window = lp_commu_topK['window_{0}'.format(row - 1 * 30)]
-            current_window = lp_commu_topK['window_{0}'.format(row * 30)]
 
             for column in range(len(community_tracing_array.T)):
 
@@ -433,7 +434,7 @@ if __name__ == '__main__':
                     community_candidate = [community[0] for community in prev_window if prev_topk in community[0]]
 
                     if len(community_candidate) >= 2:
-                        community_candidate =   # take the bigger one
+                        community_size, community_candidate = max([(len(x), x) for x in community_candidate])
                                                 # alternative: take the one for which prev_topk has most edges in or biggest edge weight sum in
 
                     candidate_list = []
@@ -451,8 +452,26 @@ if __name__ == '__main__':
                             community_tracing_array[row, column] = topk_candidate
                             break
 
+        for community in current_window:
+
+            if community[1][0][0] not in row:
+
+                c = len(row)
+                for column in row[-1]:
+
+                    if column != 0:
+                        community_tracing_array[row, c+1] = community[1][0][0]
+                        c = c - 1
 
 
+    list = [(1,2,3),(4,5,6,7,8),(9,13),(10,11)]
+    #max_element = max(list, key=len)
+
+    #print(max_element)
+
+
+               longest_element = max([        x  for x in ('a','b','aa')])
+    print(longest_element)
 
 
 
@@ -505,7 +524,7 @@ if __name__ == '__main__':
 
 
 
-
+    '''
 #--- Recombination - crisp ---# (semi cool, because no idea of communities are stable, yet)
 
     # label propagation #
@@ -644,7 +663,7 @@ if __name__ == '__main__':
         gm_recombination_dic[window_id].append(threshold_meet)
 
     #print(gm_recombination_dic)  # {'window_30': [0], 'window_60': [0], 'window_90': [0], ...
-
+    '''
 
 #--- Recombination - overlapping ---# (semi cool, because no idea of communities are stable, yet)
 
