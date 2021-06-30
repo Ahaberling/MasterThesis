@@ -81,6 +81,9 @@ if __name__ == '__main__':
 
     c = 0
 
+    #todo place seeds if possible
+
+
     pbar = tqdm.tqdm(total=len(topicSim))
     for window_id, window in topicSim.items():
 
@@ -350,7 +353,14 @@ if __name__ == '__main__':
                 #if patent in topicSim['window_{0}'.format((i+1)*30)]:                  # Without this, the name 'surviver' is not really fitting anymore
                     #suriviver.append((patent, topicSim['window_{0}'.format(i*30)].degree(patent) ))
 
-                suriviver.append((patent, topicSim['window_{0}'.format(i * 30)].degree(patent)))
+                suriviver.append((patent, topicSim['window_{0}'.format(i * 30)].degree(patent)))    # Here we take the overall degree, not the degree restricted to
+                                                                                                    # nodes in the community. This is due to the assumption that most
+                                                                                                    # high degree labeled to be in a community also have the most edges
+                                                                                                    # to nodes in this community. This assumption can be falsified later.
+                                                                                                    # Later on not only the degree, but rather the sum of edges weighes
+                                                                                                    # might be used to find this core node of the community.
+                                                                                                    # This approach might be extended to consider not only the top degree
+                                                                                                    # node as core, but the top k degree nodes.
 
             suriviver.sort(key=operator.itemgetter(1), reverse=True)
             suriviver_topK = suriviver[0:1]
@@ -370,11 +380,94 @@ if __name__ == '__main__':
             communities_plusTopK.append([lp_window[j], surviver_window[j]])
 
         lp_commu_topK['window_{0}'.format(i * 30)] = communities_plusTopK
-        print(lp_commu_topK['window_{0}'.format(i * 30)])
+        #print(lp_commu_topK['window_{0}'.format(i * 30)])
 
+
+
+    ### Community Labeling ###
+
+    # Assumption: highly connected nodes in (/within) a community are somewhat stable parts of communities. We assume that
+    # these high degree nodes are not randomly changing community affiliation in the clustering algorithms, and even are
+    # propably the least likely and thereby the least nodes that leave the community
+
+
+    #for each window (array x-axis)
+    #   if not first row:
+    #       for each column (community id)
+    #           if topk of above column is in a current community
+    #               insert topk as community id
+    #           elif highest surving of above topk community in a current community
+    #               look for highest suring that is in a solo community
+    #                   insert topk as community id
+    #           else (if no nodes appears anymore)                                                     # This means: if a community is dying and on the last tick, at least one patent switches the community, than this counts as merging (which is ok, i guess. At least arguable)
+    #               insert 0
+    #   for each community in dic window
+    #       if topk not in array window
+    #          open new community
+    #
+
+
+    max_number_commu = 0
+    for window_id, window in lp_commu_topK.items():
+        for community in window:
+            max_number_commu = max_number_commu+1
+
+    community_tracing_array  = np.zeros((len(topicSim), max_number_commu))      # this is the max columns needed for the case that no community is tracable
+    #print(np.shape(community_tracing_array))
+
+    for row in range(len(community_tracing_array)):
+
+        if row != 0:
+            prev_window = lp_commu_topK['window_{0}'.format(row - 1 * 30)]
+            current_window = lp_commu_topK['window_{0}'.format(row * 30)]
+
+            for column in range(len(community_tracing_array.T)):
+
+                prev_topk = community_tracing_array[row-1, column]
+                topk_candidate = [community[1][0][0] for community in current_window if prev_topk in community[0]]
+
+                if len(topk_candidate) == 1:
+                    community_tracing_array[row, column] = topk_candidate
+
+                else:                                                           # (e.g. 0 because the node disappears or 2 because it is in two communities)
+                    community_candidate = [community[0] for community in prev_window if prev_topk in community[0]]
+
+                    if len(community_candidate) >= 2:
+                        community_candidate =   # take the bigger one
+                                                # alternative: take the one for which prev_topk has most edges in or biggest edge weight sum in
+
+                    candidate_list = []
+                    for candidate in community_candidate:
+
+                        candidate_list.append((candidate, topicSim['window_{0}'.format(row-1 * 30)].degree(candidate)))
+
+                    candidate_list.sort(key=operator.itemgetter(1), reverse=True)
+
+                    for degree_candidate in candidate_list:
+
+                        next_topk_candidate = [community[1][0][0] for community in current_window if degree_candidate[0] in community[0]]
+
+                        if len(next_topk_candidate) ==1:
+                            community_tracing_array[row, column] = topk_candidate
+                            break
+
+
+
+
+
+
+
+    print('sd')
+    print(lp_commu_topK['window_{0}'.format(0 * 30)])
+    if 288766563 in lp_commu_topK['window_{0}'.format(0 * 30)]:
+        print('yes')
+    else:
+        print('no')
+
+    x = [item[1][0][0] for item in lp_commu_topK['window_{0}'.format(0 * 30)] if 288766563 in item[0]]
+    print(x)
 
     '''
-    ### Community Labeling ###
     lp_commu_labeled = {}
     topk_label_list = []
     available_ids = range(1000000)
