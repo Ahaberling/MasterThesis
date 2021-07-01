@@ -418,7 +418,6 @@ if __name__ == '__main__':
 
     for row in range(0, len(community_tracing_array)-1):
 
-
         current_window = lp_commu_topK['window_{0}'.format(row * 30)]
 
         if row != 0:
@@ -431,6 +430,11 @@ if __name__ == '__main__':
 
                 if len(topk_candidate) == 1:
                     community_tracing_array[row, column] = topk_candidate[0]
+
+                    '''
+                elif len(topk_candidate) >= 2:
+                    print(topk_candidate, current_window)
+                    '''
 
                 else:                                                           # (e.g. 0 because the node disappears or 2 because it is in two communities)
                     community_candidate = [community[0] for community in prev_window if prev_topk in community[0]]
@@ -485,12 +489,88 @@ if __name__ == '__main__':
                         break
                 '''
 
-
-    print(1+1)
-
     # cut array to exlcude non relevant 0 columns
-    # make list with flattened array and take only uniqze ids
+
+
+    for i in range(len(community_tracing_array.T)):
+        if sum(community_tracing_array[:,i]) == 0:
+            cutoff = i
+            break
+
+    community_tracing_array = community_tracing_array[0:len(community_tracing_array)-1,0:cutoff]
+
+    # make list with flattened array and take only unique ids
+
+    topk_list = np.unique(community_tracing_array.flatten())[1:]
+
     # for each id, look in which column the id first appeared
+
+    topk_list_associ = []
+
+    for topk in topk_list:
+        candidate_list = []
+
+        if topk == 291465230:
+            print(1+1)
+
+        for column in range(len(community_tracing_array.T)):
+
+            if topk in community_tracing_array[:,column]:
+
+                window_pos = np.where(community_tracing_array[:,column] == topk)
+                #window_pos = community_tracing_array[:,column].index(topk)
+
+                #window_pos = [i for i, x in enumerate(community_tracing_array[:,column]) if x == topk]
+
+
+
+                #print('window_pos')
+                #print(window_pos)
+                window_pos = max(window_pos[0])
+                #print(window_pos)
+                window = lp_commu_topK['window_{0}'.format(window_pos * 30)]
+                #print(window)
+                #print(max([(len(x[0]), x[1][0][0]) for x in window]))
+                community_size, community_topk = max([(len(x[0]), x[1][0][0]) for x in window])
+
+                candidate_list.append((column, community_size))
+
+        candidate_list.sort(key=operator.itemgetter(1), reverse=True)
+
+
+        topk_list_associ.append((topk, candidate_list[-1][0]))
+
+
+
+                #topk_list_associ.append((i, j))
+                #break
+
+    #print(topk_list_associ)
+    #print(lp_commu_topK)
+    #print('lp_commu_topK')
+
+    lp_commu_id = {}
+
+    for window_id, window in lp_commu_topK.items():
+        new_window = []
+
+        for community in window:
+            topk = community[1][0][0]
+            community_id = [tuple[1] for tuple in topk_list_associ if tuple[0] == topk]
+
+            new_window.append([community[0], community_id])
+
+        lp_commu_id[window_id] = new_window
+
+    #print(lp_commu_id)
+    #print(topk_list_associ)
+    #print(lp_commu_id['window_300'])
+    #print(lp_commu_topK['window_300'], '\n')
+
+    #print(lp_commu_id['window_0'])
+    #print(lp_commu_topK['window_0'])
+
+
     # associate this topk id with the column (community id)
 
 
