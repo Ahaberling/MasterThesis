@@ -140,8 +140,8 @@ if __name__ == '__main__':
         pbar.update(1)
 
         c = c + 1
-        if c >= 25:
-            break
+        #if c >= 25:
+            #break
 
 
         # {'window_0': defaultdict(<class 'list'>, {288766563: [0, 3], 288803376: [0], 288819596: [0],
@@ -412,15 +412,17 @@ if __name__ == '__main__':
         for community in window:
             max_number_commu = max_number_commu+1
 
-    community_tracing_array  = np.zeros((len(topicSim), max_number_commu))      # this is the max columns needed for the case that no community is tracable
+    community_tracing_array  = np.zeros((len(topicSim), max_number_commu), dtype=int)      # this is the max columns needed for the case that no community is tracable
     #print(np.shape(community_tracing_array))
 
-    for row in range(len(community_tracing_array)):
+
+    for row in range(0, len(community_tracing_array)-1):
+
 
         current_window = lp_commu_topK['window_{0}'.format(row * 30)]
 
         if row != 0:
-            prev_window = lp_commu_topK['window_{0}'.format(row - 1 * 30)]
+            prev_window = lp_commu_topK['window_{0}'.format((row - 1) * 30)]
 
             for column in range(len(community_tracing_array.T)):
 
@@ -428,7 +430,7 @@ if __name__ == '__main__':
                 topk_candidate = [community[1][0][0] for community in current_window if prev_topk in community[0]]
 
                 if len(topk_candidate) == 1:
-                    community_tracing_array[row, column] = topk_candidate
+                    community_tracing_array[row, column] = topk_candidate[0]
 
                 else:                                                           # (e.g. 0 because the node disappears or 2 because it is in two communities)
                     community_candidate = [community[0] for community in prev_window if prev_topk in community[0]]
@@ -436,55 +438,61 @@ if __name__ == '__main__':
                     if len(community_candidate) >= 2:
                         community_size, community_candidate = max([(len(x), x) for x in community_candidate])
                                                 # alternative: take the one for which prev_topk has most edges in or biggest edge weight sum in
+                    if len(community_candidate) != 0:
 
-                    candidate_list = []
-                    for candidate in community_candidate:
+                        candidate_list = []
+                        for candidate in community_candidate[0]:
 
-                        candidate_list.append((candidate, topicSim['window_{0}'.format(row-1 * 30)].degree(candidate)))
+                            candidate_list.append((candidate, topicSim['window_{0}'.format((row-1) * 30)].degree(candidate)))
 
-                    candidate_list.sort(key=operator.itemgetter(1), reverse=True)
+                        candidate_list.sort(key=operator.itemgetter(1), reverse=True)
 
-                    for degree_candidate in candidate_list:
+                        for degree_candidate in candidate_list:
 
-                        next_topk_candidate = [community[1][0][0] for community in current_window if degree_candidate[0] in community[0]]
+                            next_topk_candidate = [community[1][0][0] for community in current_window if degree_candidate[0] in community[0]]
 
-                        if len(next_topk_candidate) ==1:
-                            community_tracing_array[row, column] = topk_candidate
-                            break
+                            if len(next_topk_candidate) ==1:
+                                community_tracing_array[row, column] = next_topk_candidate[0]
+                                break
+
 
         for community in current_window:
 
-            if community[1][0][0] not in row:
+            community_identifier = community[1][0][0]
 
-                c = len(row)
-                for column in row[-1]:
+            if community_identifier not in community_tracing_array[row]:
 
-                    if column != 0:
-                        community_tracing_array[row, c+1] = community[1][0][0]
-                        c = c - 1
+                for column_id in range(len(community_tracing_array.T)):
+
+                    if sum(community_tracing_array[:, column_id]) == 0:                 # RuntimeWarning: overflow encountered in long_scalars
+                    #if len(np.unique(community_tracing_array[:, column_id])) >= 2:     # Takes way longer
+
+                        community_tracing_array[row, column_id] = community[1][0][0]
+                        break
+
+                '''
+                c = len(community_tracing_array[row])
+                for back_column in reversed(community_tracing_array[row]):
+
+                    if back_column != 0:
+                        community_tracing_array[row, c] = community[1][0][0]
+                        break
+
+                    c = c - 1
+
+                    if c == 0:
+                        community_tracing_array[row, c] = community[1][0][0]
+                        break
+                '''
 
 
-    list = [(1,2,3),(4,5,6,7,8),(9,13),(10,11)]
-    #max_element = max(list, key=len)
+    print(1+1)
 
-    #print(max_element)
+    # cut array to exlcude non relevant 0 columns
+    # make list with flattened array and take only uniqze ids
+    # for each id, look in which column the id first appeared
+    # associate this topk id with the column (community id)
 
-
-               longest_element = max([        x  for x in ('a','b','aa')])
-    print(longest_element)
-
-
-
-
-    print('sd')
-    print(lp_commu_topK['window_{0}'.format(0 * 30)])
-    if 288766563 in lp_commu_topK['window_{0}'.format(0 * 30)]:
-        print('yes')
-    else:
-        print('no')
-
-    x = [item[1][0][0] for item in lp_commu_topK['window_{0}'.format(0 * 30)] if 288766563 in item[0]]
-    print(x)
 
     '''
     lp_commu_labeled = {}
