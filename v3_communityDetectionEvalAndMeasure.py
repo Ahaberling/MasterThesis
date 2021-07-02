@@ -43,19 +43,32 @@ if __name__ == '__main__':
 
     with open('windows_lp_communities', 'rb') as handle:
         lp_communities = pk.load(handle)
+    '''
+    with open('windows_gm_communities', 'rb') as handle:
+        gm_communities = pk.load(handle)
+
+    with open('windows_lais2_communities', 'rb') as handle:
+        lais2_communities = pk.load(handle)
+
+    with open('windows_kclique_communities', 'rb') as handle:
+        kclique_communities = pk.load(handle)
+
+    '''
 
 
+#--- Recombination - crisp ---#
 
-'''
-#--- Recombination - crisp ---# (semi cool, because no idea of communities are stable, yet)
+    # dont take the community dicts for this part below. we want all ids in the window, not only the id that are new in the window!
 
     # label propagation #
     lp_window_all_ids = {}
 
-    for i in range(0, len(lp_commu)-1):
+    for i in range(0, len(lp_communities)-1):
 
-        all_ids_t = lp_commu['window_{0}'.format(i*30)]
+        all_ids_t = lp_communities['window_{0}'.format(i*30)]
+        all_ids_t = [community[0] for community in all_ids_t]
         all_ids_t = [item for sublist in all_ids_t for item in sublist]
+
         lp_window_all_ids['window_{0}'.format(i * 30)] = all_ids_t
 
     lp_recombination_dic = {}
@@ -81,7 +94,7 @@ if __name__ == '__main__':
 
                 for neighbor in neighbors:
 
-                    for community in lp_commu_clean['window_{0}'.format((i+1) * 30)]:
+                    for community in lp_communities['window_{0}'.format((i+1) * 30)]:
 
                         if set([neighbor]).issubset(community):
                             if community not in already_found_community:
@@ -97,7 +110,7 @@ if __name__ == '__main__':
         lp_recombination_dic['window_{0}'.format((i + 1) * 30)] = window_list # list of all patents that recombine  [[patent, [neighbor, neighbor]],...]
     #print(lp_recombination_dic)    # {'window_30': [], 'window_60': [], ...,  'window_300': [[287657442, [[287933459, 290076304]]], ...
 
-
+'''
 
 
     # greedy_modularity #

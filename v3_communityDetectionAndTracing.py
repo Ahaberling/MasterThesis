@@ -305,6 +305,11 @@ if __name__ == '__main__':
 
         kclique_commu_transf[window_id] = community_list
 
+
+    #print(lais2_commu_transf, '\n')
+    #print(kclique_commu_transf)
+    #print(1+1)
+
     # First I need stbale communities and a way to identify tem over time
     # then I can transform lais2_commu['window_X'] into list of recombinations, e.g.:
     # 288803376: [0]            -> out
@@ -347,7 +352,16 @@ if __name__ == '__main__':
     for window_id, window in lais2_commu_transf.items():
         lais2_commu_clean[window_id] = [x for x in window if len(x) >= 3]
 
-    lais2_commu_clean[window_id]  = kclique_commu_transf # k already discriminates community size
+    #kclique_commu_clean  = kclique_commu_transf # k already discriminates community size
+
+    kclique_commu_clean = {}
+
+    for window_id, window in kclique_commu_transf.items():
+        kclique_commu_clean[window_id] = [x for x in window if len(x) >= 3]
+
+    #print(kclique_commu_clean)
+    #print(1+1)
+
     '''
     kclique_commu_clean = {}
 
@@ -423,63 +437,63 @@ if __name__ == '__main__':
 
 
 
-        # greedy_modularity #
+    # greedy_modularity #
 
-        gm_commu_clean = greedy_modularity_commu_clean
-        gm_commu_topK = {}
+    gm_commu_clean = greedy_modularity_commu_clean
+    gm_commu_topK = {}
 
-        for i in range(0, len(gm_commu_clean) - 1):
-            # print('i - lp')
-            gm_window = gm_commu_clean['window_{0}'.format(i * 30)]
-            # print('i')
-            # print(topicSim['window_{0}'.format(i*30)].nodes())
-            # print('i+1')
-            # print(topicSim['window_{0}'.format((i+1)*30)].nodes())
+    for i in range(0, len(gm_commu_clean) - 1):
+        # print('i - lp')
+        gm_window = gm_commu_clean['window_{0}'.format(i * 30)]
+        # print('i')
+        # print(topicSim['window_{0}'.format(i*30)].nodes())
+        # print('i+1')
+        # print(topicSim['window_{0}'.format((i+1)*30)].nodes())
 
-            # print(topicSim[window_id].degree(288766563))
+        # print(topicSim[window_id].degree(288766563))
 
-            # print(next(topicSim[window_id]))
+        # print(next(topicSim[window_id]))
 
-            surviver_window = []
+        surviver_window = []
 
-            for community in gm_window:
-                # print(community)
+        for community in gm_window:
+            # print(community)
 
-                suriviver = []
+            suriviver = []
 
-                for patent in community:
-                    # if patent in topicSim['window_{0}'.format((i+1)*30)]:                  # Without this, the name 'surviver' is not really fitting anymore
-                    # suriviver.append((patent, topicSim['window_{0}'.format(i*30)].degree(patent) ))
+            for patent in community:
+                # if patent in topicSim['window_{0}'.format((i+1)*30)]:                  # Without this, the name 'surviver' is not really fitting anymore
+                # suriviver.append((patent, topicSim['window_{0}'.format(i*30)].degree(patent) ))
 
-                    suriviver.append((patent, topicSim['window_{0}'.format(i * 30)].degree(
-                        patent)))  # Here we take the overall degree, not the degree restricted to
-                    # nodes in the community. This is due to the assumption that most
-                    # high degree labeled to be in a community also have the most edges
-                    # to nodes in this community. This assumption can be falsified later.
-                    # Later on not only the degree, but rather the sum of edges weighes
-                    # might be used to find this core node of the community.
-                    # This approach might be extended to consider not only the top degree
-                    # node as core, but the top k degree nodes.
+                suriviver.append((patent, topicSim['window_{0}'.format(i * 30)].degree(
+                    patent)))  # Here we take the overall degree, not the degree restricted to
+                # nodes in the community. This is due to the assumption that most
+                # high degree labeled to be in a community also have the most edges
+                # to nodes in this community. This assumption can be falsified later.
+                # Later on not only the degree, but rather the sum of edges weighes
+                # might be used to find this core node of the community.
+                # This approach might be extended to consider not only the top degree
+                # node as core, but the top k degree nodes.
 
-                suriviver.sort(key=operator.itemgetter(1), reverse=True)
-                suriviver_topK = suriviver[0:1]
-                # print(suriviver)
-                # print(suriviver_topK)
-                surviver_window.append(suriviver_topK)
+            suriviver.sort(key=operator.itemgetter(1), reverse=True)
+            suriviver_topK = suriviver[0:1]
+            # print(suriviver)
+            # print(suriviver_topK)
+            surviver_window.append(suriviver_topK)
 
-            # print('surviver_window')
-            # print(surviver_window)
+        # print('surviver_window')
+        # print(surviver_window)
 
-            gm_window = gm_commu_clean['window_{0}'.format(i * 30)]
-            # print(lp_window)
-            communities_plusTopK = []
+        gm_window = gm_commu_clean['window_{0}'.format(i * 30)]
+        # print(lp_window)
+        communities_plusTopK = []
 
-            for j in range(len(gm_window)):
-                # print(lp_window[j])
-                communities_plusTopK.append([gm_window[j], surviver_window[j]])
+        for j in range(len(gm_window)):
+            # print(lp_window[j])
+            communities_plusTopK.append([gm_window[j], surviver_window[j]])
 
-            gm_commu_topK['window_{0}'.format(i * 30)] = communities_plusTopK
-            # print(lp_commu_topK['window_{0}'.format(i * 30)])
+        gm_commu_topK['window_{0}'.format(i * 30)] = communities_plusTopK
+        # print(lp_commu_topK['window_{0}'.format(i * 30)])
 
     '''
     print(lp_commu_topK['window_0'], '\n')
@@ -556,6 +570,75 @@ if __name__ == '__main__':
     #print(lp_commu_topK['window_900'], '\n')
     #print(lais2_commu_topK['window_900'], '\n')
 
+    # kclique #
+    kclique_commu_topK = {}
+
+    # print('----------------- \n')
+    # print(lais2_commu_clean)
+    # print(lais2_commu_clean['window_0'])
+
+    for i in range(0, len(kclique_commu_clean) - 1):
+        # print('i - lp')
+        kclique_window = kclique_commu_clean['window_{0}'.format(i * 30)]
+        # print('i')
+        # print(topicSim['window_{0}'.format(i*30)].nodes())
+        # print('i+1')
+        # print(topicSim['window_{0}'.format((i+1)*30)].nodes())
+
+        # print(topicSim[window_id].degree(288766563))
+
+        # print(next(topicSim[window_id]))
+
+        surviver_window = []
+
+        for community in kclique_window:
+            # print(community)
+
+            suriviver = []
+
+            for patent in community:
+                # if patent in topicSim['window_{0}'.format((i+1)*30)]:                  # Without this, the name 'surviver' is not really fitting anymore
+                # suriviver.append((patent, topicSim['window_{0}'.format(i*30)].degree(patent) ))
+
+                suriviver.append((patent, topicSim['window_{0}'.format(i * 30)].degree(patent)))  # Here we take the overall degree, not the degree restricted to
+                # nodes in the community. This is due to the assumption that most
+                # high degree labeled to be in a community also have the most edges
+                # to nodes in this community. This assumption can be falsified later.
+                # Later on not only the degree, but rather the sum of edges weighes
+                # might be used to find this core node of the community.
+                # This approach might be extended to consider not only the top degree
+                # node as core, but the top k degree nodes.
+
+            suriviver.sort(key=operator.itemgetter(1), reverse=True)
+            suriviver_topK = suriviver[0:1]
+            # print(suriviver)
+            # print(suriviver_topK)
+            surviver_window.append(suriviver_topK)
+
+        # print('surviver_window')
+        # print(surviver_window)
+
+        kclique_window = kclique_commu_clean['window_{0}'.format(i * 30)]
+        # print(lp_window)
+        communities_plusTopK = []
+
+        for j in range(len(kclique_window)):
+            # print(lp_window[j])
+            communities_plusTopK.append([kclique_window[j], surviver_window[j]])
+
+        kclique_commu_topK['window_{0}'.format(i * 30)] = communities_plusTopK
+        # print(lp_commu_topK['window_{0}'.format(i * 30)])
+
+    #print(lp_commu_topK['window_0'], '\n')
+    #print(kclique_commu_topK['window_0'], '\n')
+
+    #print(kclique_commu_clean)
+    #print(kclique_commu_topK)
+
+    #print(lp_commu_topK['window_900'], '\n')
+    #print(kclique_commu_topK['window_900'], '\n')
+
+    #print(1+1)
 
 
     ### Community Labeling ###
@@ -579,7 +662,7 @@ if __name__ == '__main__':
     #       if topk not in array window
     #          open new community
     #
-    """
+
     # label prop # 
     max_number_commu = 0
     for window_id, window in lp_commu_topK.items():
@@ -615,6 +698,7 @@ if __name__ == '__main__':
 
                     if len(community_candidate) >= 2:
                         community_size, community_candidate = max([(len(x), x) for x in community_candidate])
+                        community_candidate = [community_candidate]
                                                 # alternative: take the one for which prev_topk has most edges in or biggest edge weight sum in
                     if len(community_candidate) != 0:
 
@@ -750,10 +834,10 @@ if __name__ == '__main__':
     outfile = open(filename, 'wb')
     pk.dump(lp_commu_id, outfile)
     outfile.close()
-    """
+
 
     # greedy modularity #
-    """
+
     max_number_commu = 0
     for window_id, window in gm_commu_topK.items():
         for community in window:
@@ -788,6 +872,7 @@ if __name__ == '__main__':
 
                     if len(community_candidate) >= 2:
                         community_size, community_candidate = max([(len(x), x) for x in community_candidate])
+                        community_candidate = [community_candidate]
                                                 # alternative: take the one for which prev_topk has most edges in or biggest edge weight sum in
                     if len(community_candidate) != 0:
 
@@ -924,9 +1009,10 @@ if __name__ == '__main__':
     outfile = open(filename, 'wb')
     pk.dump(gm_commu_id, outfile)
     outfile.close()
-    """
+
 
     # lais2 #
+
 
     max_number_commu = 0
     for window_id, window in lais2_commu_topK.items():
@@ -964,8 +1050,8 @@ if __name__ == '__main__':
                     # window are merged, even though they might not be the same
                     # todo: does this stability measure even make sense for overlapping? how is diffusion and recombination measured?
 
-                    print(prev_window)          # lais2:    # [[[288766563, 288803376, 288819596, 290076304, 290106123, 290234572, 291465230], [(291465230, 4)]], [[290076304, 290106123, 291465230, 289730801, 290720988], [(291465230, 4)]], [[290011409, 290122867, 290720623, 290787054], [(290011409, 2)]], [[288766563, 290076304, 290106123, 291465230], [(291465230, 4)]], [[289643751, 291383952, 291793181, 293035547], [(291383952, 3)]]]
-                    print(prev_topk)            # lais2:    # 291465230
+                    #print(prev_window)          # lais2:    # [[[288766563, 288803376, 288819596, 290076304, 290106123, 290234572, 291465230], [(291465230, 4)]], [[290076304, 290106123, 291465230, 289730801, 290720988], [(291465230, 4)]], [[290011409, 290122867, 290720623, 290787054], [(290011409, 2)]], [[288766563, 290076304, 290106123, 291465230], [(291465230, 4)]], [[289643751, 291383952, 291793181, 293035547], [(291383952, 3)]]]
+                    #print(prev_topk)            # lais2:    # 291465230
                     # what i should get         #           # [[288766563, 288803376, 288819596, 290076304, 290106123, 290234572, 291465230], [290076304, 290106123, 291465230, 289730801, 290720988],[288766563, 290076304, 290106123, 291465230]]
 
                     #print(prev_window)          # LP:      # [[{288766563, 290106123, 291465230, 290076304, 289730801, 290720988}, [(291465230, 4)]], [{288803376, 288819596, 290234572}, [(288819596, 2)]], [{291383952, 293035547, 291793181, 289643751}, [(291383952, 3)]], [{290011409, 290122867, 290787054, 290720623}, [(290011409, 2)]]]
@@ -977,12 +1063,14 @@ if __name__ == '__main__':
                     #print(community_candidate) # gm:       # [[290115954, 286499669, 286404823]]
 
                     community_candidate = [community[0] for community in prev_window if prev_topk in community[0]]
-                    community_candidate2 = [community_candidate]
-                    community_candidate3 = [item for sublist in community_candidate2 for item in sublist]
-                    community_candidate = community_candidate3
+                    #community_candidate2 = [community_candidate]
+                    #community_candidate3 = [item for sublist in community_candidate2 for item in sublist]
+                    #community_candidate = community_candidate3
+                    #print(community_candidate)
 
                     if len(community_candidate) >= 2:
                         community_size, community_candidate = max([(len(x), x) for x in community_candidate])
+                        community_candidate = [community_candidate]
                         # Just taking the biggest community where candidate occures. This might seem problematic, but the real "problem" is described in the to-do
                         # alternative: take the one for which prev_topk has most edges in or biggest edge weight sum in
                     if len(community_candidate) != 0:
@@ -1004,6 +1092,10 @@ if __name__ == '__main__':
                                 break
 
         for community in current_window:
+            #print(community)
+            #print(community[1])
+            #print(community[1][0])
+            #print(community[1][0][0])
 
             community_identifier = community[1][0][0]
 
@@ -1103,16 +1195,211 @@ if __name__ == '__main__':
 
     #print(lp_commu_id)
     #print(topk_list_associ)
-    print(lais2_commu_id['window_0'])
-    print(lais2_commu_topK['window_0'], '\n')
+    #print(lais2_commu_id['window_0'])
+    #print(lais2_commu_topK['window_0'], '\n')
 
-    print(lais2_commu_id['window_900'])
-    print(lais2_commu_topK['window_900'])
-    print('sdfgerg')
+    #print(lais2_commu_id['window_900'])
+    #print(lais2_commu_topK['window_900'])
+    #print('sdfgerg')
 
 
     filename = 'windows_lais2_communities'
     outfile = open(filename, 'wb')
     pk.dump(lais2_commu_id, outfile)
     outfile.close()
+
+
+    # kclique #
+
+    max_number_commu = 0
+    for window_id, window in kclique_commu_topK.items():
+        for community in window:
+            max_number_commu = max_number_commu + 1
+
+    community_tracing_array = np.zeros((len(topicSim), max_number_commu), dtype=int)  # this is the max columns needed for the case that no community is tracable
+    # print(np.shape(community_tracing_array))
+
+
+    for row in range(0, len(community_tracing_array) - 1):
+
+        current_window = kclique_commu_topK['window_{0}'.format(row * 30)]
+
+        if row != 0:
+            prev_window = kclique_commu_topK['window_{0}'.format((row - 1) * 30)]
+
+            for column in range(len(community_tracing_array.T)):
+
+                prev_topk = community_tracing_array[row - 1, column]
+                topk_candidate = [community[1][0][0] for community in current_window if prev_topk in community[0]]
+
+                if len(topk_candidate) == 1:
+                    community_tracing_array[row, column] = topk_candidate[0]
+
+                    '''
+                elif len(topk_candidate) >= 2:
+                    print(topk_candidate, current_window)
+                    '''
+
+                else:  # (e.g. 0 because the node disappears or 2 because it is in two communities)
+
+                    # Limitation: for overlapping algorithms, taking only the node with the higest degree might be not suitable. Looking at this case below, 3 of 5 communities of that
+                    # window are merged, even though they might not be the same
+                    # todo: does this stability measure even make sense for overlapping? how is diffusion and recombination measured?
+
+                    # print(prev_window)          # lais2:    # [[[288766563, 288803376, 288819596, 290076304, 290106123, 290234572, 291465230], [(291465230, 4)]], [[290076304, 290106123, 291465230, 289730801, 290720988], [(291465230, 4)]], [[290011409, 290122867, 290720623, 290787054], [(290011409, 2)]], [[288766563, 290076304, 290106123, 291465230], [(291465230, 4)]], [[289643751, 291383952, 291793181, 293035547], [(291383952, 3)]]]
+                    # print(prev_topk)            # lais2:    # 291465230
+                    # what i should get         #           # [[288766563, 288803376, 288819596, 290076304, 290106123, 290234572, 291465230], [290076304, 290106123, 291465230, 289730801, 290720988],[288766563, 290076304, 290106123, 291465230]]
+
+                    # print(prev_window)          # LP:      # [[{288766563, 290106123, 291465230, 290076304, 289730801, 290720988}, [(291465230, 4)]], [{288803376, 288819596, 290234572}, [(288819596, 2)]], [{291383952, 293035547, 291793181, 289643751}, [(291383952, 3)]], [{290011409, 290122867, 290787054, 290720623}, [(290011409, 2)]]]
+                    # print(prev_topk)            # LP:      # 291465230
+                    # print(community_candidate)  # LP:      # [{288766563, 290106123, 291465230, 290076304, 289730801, 290720988}]
+
+                    # print(prev_window)         # gm:       # [[[290115954, 286499669, 286404823], [(290115954, 2)]], [[289751121, 289458126, 289593087], [(289751121, 2)]]]
+                    # print(prev_topk)           # gm:       # 290115954
+                    # print(community_candidate) # gm:       # [[290115954, 286499669, 286404823]]
+
+                    community_candidate = [community[0] for community in prev_window if prev_topk in community[0]]
+                    # community_candidate2 = [community_candidate]
+                    # community_candidate3 = [item for sublist in community_candidate2 for item in sublist]
+                    # community_candidate = community_candidate3
+                    # print(community_candidate)
+
+                    if len(community_candidate) >= 2:
+                        community_size, community_candidate = max([(len(x), x) for x in community_candidate])
+                        community_candidate = [community_candidate]
+                        # Just taking the biggest community where candidate occures. This might seem problematic, but the real "problem" is described in the to-do
+                        # alternative: take the one for which prev_topk has most edges in or biggest edge weight sum in
+                    if len(community_candidate) != 0:
+
+                        candidate_list = []
+                        for candidate in community_candidate[0]:
+                            candidate_list.append(
+                                (candidate, topicSim['window_{0}'.format((row - 1) * 30)].degree(candidate)))
+
+                        candidate_list.sort(key=operator.itemgetter(1), reverse=True)
+
+                        for degree_candidate in candidate_list:
+
+                            next_topk_candidate = [community[1][0][0] for community in current_window if
+                                                   degree_candidate[0] in community[0]]
+
+                            if len(next_topk_candidate) == 1:
+                                community_tracing_array[row, column] = next_topk_candidate[0]
+                                break
+
+        for community in current_window:
+            #print(community)
+            #print(community[1])
+            #print(community[1][0])
+            #print(community[1][0][0])
+
+            community_identifier = community[1][0][0]
+
+            if community_identifier not in community_tracing_array[row]:
+
+                for column_id in range(len(community_tracing_array.T)):
+
+                    if sum(community_tracing_array[:,column_id]) == 0:  # RuntimeWarning: overflow encountered in long_scalars
+                        # if len(np.unique(community_tracing_array[:, column_id])) >= 2:     # Takes way longer
+
+                        community_tracing_array[row, column_id] = community[1][0][0]
+                        break
+
+                '''
+                c = len(community_tracing_array[row])
+                for back_column in reversed(community_tracing_array[row]):
+    
+                    if back_column != 0:
+                        community_tracing_array[row, c] = community[1][0][0]
+                        break
+    
+                    c = c - 1
+    
+                    if c == 0:
+                        community_tracing_array[row, c] = community[1][0][0]
+                        break
+                '''
+
+    # cut array to exlcude non relevant 0 columns
+
+
+    for i in range(len(community_tracing_array.T)):
+        if sum(community_tracing_array[:, i]) == 0:
+            cutoff = i
+            break
+
+    community_tracing_array = community_tracing_array[0:len(community_tracing_array) - 1, 0:cutoff]
+
+    # make list with flattened array and take only unique ids
+
+    topk_list = np.unique(community_tracing_array.flatten())[1:]
+
+    # for each id, look in which column the id first appeared
+
+    topk_list_associ = []
+
+    for topk in topk_list:
+        candidate_list = []
+
+        if topk == 291465230:
+            print(1 + 1)
+
+        for column in range(len(community_tracing_array.T)):
+
+            if topk in community_tracing_array[:, column]:
+                window_pos = np.where(community_tracing_array[:, column] == topk)
+                # window_pos = community_tracing_array[:,column].index(topk)
+
+                # window_pos = [i for i, x in enumerate(community_tracing_array[:,column]) if x == topk]
+
+                # print('window_pos')
+                # print(window_pos)
+                window_pos = max(window_pos[0])
+                # print(window_pos)
+                window = kclique_commu_topK['window_{0}'.format(window_pos * 30)]
+                # print(window)
+                # print(max([(len(x[0]), x[1][0][0]) for x in window]))
+                community_size, community_topk = max([(len(x[0]), x[1][0][0]) for x in window])
+
+                candidate_list.append((column, community_size))
+
+        candidate_list.sort(key=operator.itemgetter(1), reverse=True)
+
+        topk_list_associ.append((topk, candidate_list[-1][0]))
+
+        # topk_list_associ.append((i, j))
+        # break
+
+    # print(topk_list_associ)
+    # print(lp_commu_topK)
+    # print('lp_commu_topK')
+
+    kclique_commu_id = {}
+
+    for window_id, window in kclique_commu_topK.items():
+        new_window = []
+
+        for community in window:
+            topk = community[1][0][0]
+            community_id = [tuple[1] for tuple in topk_list_associ if tuple[0] == topk]
+
+            new_window.append([community[0], community_id])
+
+        kclique_commu_id[window_id] = new_window
+
+    # print(lp_commu_id)
+    # print(topk_list_associ)
+    #print(kclique_commu_id['window_0'])
+    #print(kclique_commu_topK['window_0'], '\n')
+
+    #print(kclique_commu_id['window_900'])
+    #print(kclique_commu_topK['window_900'])
+    #print('sdfgerg')
+
+
+    filename = 'windows_kclique_communities'
+    outfile = open(filename, 'wb')
+    pk.dump(kclique_commu_id, outfile)
+    outfile.close()
+
 
