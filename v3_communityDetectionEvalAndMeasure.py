@@ -55,8 +55,8 @@ if __name__ == '__main__':
 
     '''
 
-    print(topicSim['window_0'])
-    print(topicSim['window_0'].nodes())
+    #print(topicSim['window_0'])
+    #print(topicSim['window_0'].nodes())
 
 
 #--- Recombination - crisp ---#
@@ -193,6 +193,17 @@ if __name__ == '__main__':
     # label propagation #
     for window_id, window in lp_recombination_dic.items():
 
+        if len(window) != 0:
+            print(window)
+            helper = [community[1] for community in window]
+            print(helper, '\n')
+            print(lp_communities[window_id])
+            break
+    #helper = [window for window_id, window in lp_recombination_dic.items()]
+    #print('helper')
+    #print(helper)
+
+    '''
         threshold_meet = 0       # 0 = not meet | 1 = meet
 
         if len(window) != 0:
@@ -202,7 +213,7 @@ if __name__ == '__main__':
                 threshold_meet = 1
 
         lp_recombination_dic[window_id].append(threshold_meet)
-
+    '''
     #print(lp_recombination_dic)    # {'window_30': [0], 'window_60': [0], 'window_90': [0], 'window_120': [0], 'window_150': [0],
                                 #  'window_180': [0], 'window_210': [0], 'window_240': [0], 'window_270': [0],
                                 # 'window_300': [[287657442, [[287933459, 290076304]]], ...
