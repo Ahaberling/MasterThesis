@@ -376,6 +376,7 @@ if __name__ == '__main__':
     #print(lp_commu_clean['window_900'], '\n')
     #print(lais2_commu_clean['window_900'], '\n')
 
+#-------------------------------------------------------------------------------------------------------------------------------
 
 #--- Stability of Communities TopK ---#
 
@@ -678,6 +679,9 @@ if __name__ == '__main__':
 
         current_window = lp_commu_topK['window_{0}'.format(row * 30)]
 
+        if row == 23:
+            print(1+1)
+
         if row != 0:
             prev_window = lp_commu_topK['window_{0}'.format((row - 1) * 30)]
 
@@ -772,42 +776,62 @@ if __name__ == '__main__':
     # for each id, look in which column the id first appeared
 
     #########
+    #print(lp_commu_topK['window_690'])
+    #print(lp_commu_topK['window_900'])
 
     topk_dic_associ = {}
 
     #for winow_id, window in topk_dic.items():
     for i in range(len(topk_dic)):
 
+        tuple_list = []
+
         for topk in topk_dic['window_{0}'.format(i * 30)]:
 
-            candidate_list = []
+            #candidate_list = []
 
             column_pos = np.where(community_tracing_array[i,:] == topk)
-            window = lp_commu_topK['window_{0}'.format(i * 30)]
+            #window = lp_commu_topK['window_{0}'.format(i * 30)]
             #print(topk)
             #print(community_tracing_array[i,:])
             #print(column_pos[0])
 
-            for column in column_pos:
+            tuple_list.append((topk, min(column_pos[0])))
+
+
+        topk_dic_associ['window_{0}'.format(i * 30)] =  tuple_list            # list of tuples (topk, community_id)
+
+        print(topk_dic_associ['window_{0}'.format(i * 30)])
+
+            #for column in column_pos:
 
 
 
-            candidate_list.append((column, community_size))
+            #candidate_list.append((column, community_size))
+
+    print(lp_commu_topK['window_300'])
+    print(topk_dic_associ['window_300'], '\n')
+
+    print(lp_commu_topK['window_600'])
+    print(topk_dic_associ['window_600'], '\n')
+
+    print(lp_commu_topK['window_900'])
+    print(topk_dic_associ['window_900'], '\n')
 
 
 
 
-        '''    community_size, community_topk = max([(len(x[0]), x[1][0][0]) for x in window])
-            candidate_list.append((column, community_size))
-        candidate_list.sort(key=operator.itemgetter(1), reverse=True)
-        topk_list_associ.append((topk, candidate_list[-1][0]))
-        '''
+    '''    community_size, community_topk = max([(len(x[0]), x[1][0][0]) for x in window])
+        candidate_list.append((column, community_size))
+    candidate_list.sort(key=operator.itemgetter(1), reverse=True)
+    topk_list_associ.append((topk, candidate_list[-1][0]))
+    '''
 
 
-        #topk_dic_associ[window_id] = # list ok tuples (topk, community_id)
+
 
     ########
-
+    """
     topk_list_associ = []
 
     for topk in topk_list:
@@ -842,7 +866,7 @@ if __name__ == '__main__':
 
 
         topk_list_associ.append((topk, candidate_list[-1][0]))
-
+    """
 
 
                 #topk_list_associ.append((i, j))
@@ -859,7 +883,10 @@ if __name__ == '__main__':
 
         for community in window:
             topk = community[1][0][0]
-            community_id = [tuple[1] for tuple in topk_list_associ if tuple[0] == topk]
+
+
+            community_id = [tuple[1] for tuple in topk_dic_associ[window_id] if tuple[0] == topk]
+            #community_id = [tuple[1] for tuple in topk_list_associ if tuple[0] == topk]
 
             new_window.append([community[0], community_id])
 
@@ -874,6 +901,11 @@ if __name__ == '__main__':
     print(lp_commu_topK['window_0'])
     print('sdfgerg')
     '''
+
+    print(lp_commu_id['window_300'])
+    print(lp_commu_id['window_600'])
+    print(lp_commu_id['window_900'])
+    print(lp_commu_id['window_3000'])
 
     filename = 'windows_lp_communities'
     outfile = open(filename, 'wb')
