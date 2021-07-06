@@ -439,6 +439,7 @@ if __name__ == '__main__':
 
     # greedy_modularity #
 
+    """
     gm_commu_clean = greedy_modularity_commu_clean
     gm_commu_topK = {}
 
@@ -639,7 +640,7 @@ if __name__ == '__main__':
     #print(kclique_commu_topK['window_900'], '\n')
 
     #print(1+1)
-
+    """
 
     ### Community Labeling ###
 
@@ -760,8 +761,52 @@ if __name__ == '__main__':
     # make list with flattened array and take only unique ids
 
     topk_list = np.unique(community_tracing_array.flatten())[1:]
+    topk_dic = {}
+
+    for i in range(len(community_tracing_array)):
+
+        topk_dic['window_{0}'.format(i * 30)] = np.unique(community_tracing_array[i,:])[1:]
+        #print(np.unique(community_tracing_array[i, :]))
+        #print(np.unique(community_tracing_array[i, :])[1:])
 
     # for each id, look in which column the id first appeared
+
+    #########
+
+    topk_dic_associ = {}
+
+    #for winow_id, window in topk_dic.items():
+    for i in range(len(topk_dic)):
+
+        for topk in topk_dic['window_{0}'.format(i * 30)]:
+
+            candidate_list = []
+
+            column_pos = np.where(community_tracing_array[i,:] == topk)
+            window = lp_commu_topK['window_{0}'.format(i * 30)]
+            #print(topk)
+            #print(community_tracing_array[i,:])
+            #print(column_pos[0])
+
+            for column in column_pos:
+
+
+
+            candidate_list.append((column, community_size))
+
+
+
+
+        '''    community_size, community_topk = max([(len(x[0]), x[1][0][0]) for x in window])
+            candidate_list.append((column, community_size))
+        candidate_list.sort(key=operator.itemgetter(1), reverse=True)
+        topk_list_associ.append((topk, candidate_list[-1][0]))
+        '''
+
+
+        #topk_dic_associ[window_id] = # list ok tuples (topk, community_id)
+
+    ########
 
     topk_list_associ = []
 
@@ -837,7 +882,7 @@ if __name__ == '__main__':
 
 
     # greedy modularity #
-
+    """
     max_number_commu = 0
     for window_id, window in gm_commu_topK.items():
         for community in window:
@@ -1009,11 +1054,11 @@ if __name__ == '__main__':
     outfile = open(filename, 'wb')
     pk.dump(gm_commu_id, outfile)
     outfile.close()
-
+    """
 
     # lais2 #
 
-
+    """
     max_number_commu = 0
     for window_id, window in lais2_commu_topK.items():
         for community in window:
@@ -1208,9 +1253,10 @@ if __name__ == '__main__':
     pk.dump(lais2_commu_id, outfile)
     outfile.close()
 
-
+    """
     # kclique #
 
+    """
     max_number_commu = 0
     for window_id, window in kclique_commu_topK.items():
         for community in window:
@@ -1401,9 +1447,10 @@ if __name__ == '__main__':
     outfile = open(filename, 'wb')
     pk.dump(kclique_commu_id, outfile)
     outfile.close()
-
+    
+    """
 ####################################################################
-
+    """
     with open('windows_lp_communities', 'rb') as handle:
         lp_communities = pk.load(handle)
 
@@ -1479,10 +1526,11 @@ if __name__ == '__main__':
     #print(lp_recombination_dic)    # {'window_30': [], 'window_60': [], ...,  'window_300': [[287657442, [[287933459, 290076304]]], ...
 
 
-
+    """
 
     # greedy_modularity #
 
+    """
     '''
     gm_window_all_ids = {}
 
@@ -1538,9 +1586,11 @@ if __name__ == '__main__':
         gm_recombination_dic['window_{0}'.format((i + 1) * 30)] = window_list  # list of all patents that recombine  [[patent, [neighbor, neighbor]],...]
     #print(gm_recombination_dic)  # {'window_30': [], 'window_60': [], ...,  'window_300': [[287657442, [[287933459, 290076304]]], ...
 
-
+    """
 
 # --- Recombination Thrshold  - crisp ---#
+
+    """
 
     # label propagation #
     for window_id, window in lp_recombination_dic.items():
@@ -1714,7 +1764,7 @@ if __name__ == '__main__':
 
         lp_commu_id[window_id] = new_window
         print(1+1)
-
+    """
 
         # this is not working
         # I think what I need is not a plain list with all topk unique ids (because topk' id's can identify different community in different points in time)
