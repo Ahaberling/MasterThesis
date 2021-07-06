@@ -84,11 +84,11 @@ if __name__ == '__main__':
     # greedy_modularity #
     gm_topD = identify_topD(gm_clean)
 
-    # lais2 #
-    lais2_topD = identify_topD(lais2_clean)
-
     # kclique #
     kclique_topD = identify_topD(kclique_clean)
+
+    # lais2 #
+    lais2_topD = identify_topD(lais2_clean)
 
 
 #---  Community Tracing ---#
@@ -101,9 +101,17 @@ if __name__ == '__main__':
                 max_number = max_number + len(window)
         return max_number
 
+
+    # label propagation #
     lp_max_number_community = max_number_community(lp_topD)
+
+    # greedy_modularity #
     gm_max_number_community = max_number_community(gm_topD)
+
+    # kclique #
     kclique_max_number_community = max_number_community(kclique_topD)
+
+    # lais2 #
     lais2_max_number_community = max_number_community(lais2_topD)
 
 
@@ -182,10 +190,17 @@ if __name__ == '__main__':
 
         return community_tracing_array
 
-    # Label Propagation
+
+    # label propagation #
     lp_tracing = tracing_array(lp_max_number_community, lp_topD)
+
+    # greedy_modularity #
     #gm_tracing = tracing_array(gm_max_number_community, gm_topD)
+
+    # kclique #
     #kclique_tracing = tracing_array(kclique_max_number_community, kclique_topD)
+
+    # lais2 #
     #lais2_tracing = tracing_array(lais2_max_number_community, lais2_topD)
 
 
