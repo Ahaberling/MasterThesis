@@ -133,6 +133,10 @@ if __name__ == '__main__':
                 for column in range(len(community_tracing_array.T)):
 
                     prev_topD = community_tracing_array[row - 1, column]
+
+                    if prev_topD == 285449519:
+                        print(1+1)
+
                                                  # community[1][0][0] = TopD of community                             community[0] = set of id's of community
                     current_topD_candidate      = [community[1][0][0] for community in current_window if prev_topD in community[0]]
                     current_topD_candidate_size = [len(community[0]) for community in current_window if prev_topD in community[0]]
@@ -212,151 +216,124 @@ if __name__ == '__main__':
 
 #---  Community Labeling ---#
 
-    ### Create dict with all unique topD per window
-    topD_dic = {}
+    def community_labeling(cd_tracing, cd_tracing_size, cd_topD):
 
-    for row in range(len(lp_tracing)):
-        topD_dic['window_{0}'.format(row * 30)] = np.unique(lp_tracing[row,:])[1:]
+        ### Create dict with all unique topD per window
+        topD_dic = {}
 
-    ### Create dict that associates a topD identifier with a stable community id (column number) for each window ###
-    topk_dic_associ = {}
+        for row in range(len(cd_tracing)):
+            topD_dic['window_{0}'.format(row * 30)] = np.unique(cd_tracing[row, :])[1:]
 
-    for i in range(len(topD_dic)):
-        tuple_list = []
+        ### Create dict that associates a topD identifier with a stable community id (column number) for each window ###
+        topD_associ = {}
 
-        if i == 12:
-            print(111+111)
-            print(111+111)
+        for i in range(len(topD_dic)):
+            tuple_list = []
 
-        for topD in topD_dic['window_{0}'.format(i * 30)]:
-            column_pos = np.where(lp_tracing[i,:] == topD)
-            print(column_pos)
-            print(column_pos[0])
-            print(len(column_pos[0]))
+            for topD in topD_dic['window_{0}'.format(i * 30)]:
 
+                if topD == 287921238:
+                    print(1+1)
 
-            if len(column_pos[0]) == 1:
-                column_pos = column_pos
+                column_pos = np.where(cd_tracing[i, :] == topD)
 
-            else:
-                label_candidates = []
-                for column in column_pos[0]:
-                    label_candidates.append((column, lp_tracing_size[i-1, column]))
+                if len(column_pos[0]) == 1:
+                    column_pos = column_pos
 
-                label_candidates.sort(key=operator.itemgetter(1), reverse=True)
+                else:
 
-                column_pos = label_candidates[0][0]
+                    community_candidates = []
 
-            tuple_list.append((topD, column_pos[0]))
-
-        topk_dic_associ['window_{0}'.format(i * 30)] = tuple_list            # list of tuples (topk, community_id)
-
-        #print(topk_dic_associ['window_{0}'.format(i * 30)])
-
-    """
-    print(lp_topD['window_300'])
-    print(topk_dic_associ['window_300'], '\n')
-
-    print(lp_topD['window_600'])
-    print(topk_dic_associ['window_600'], '\n')
-
-    print(lp_topD['window_900'])
-    print(topk_dic_associ['window_900'], '\n')
-    """
-
-    """
-
-    '''    community_size, community_topk = max([(len(x[0]), x[1][0][0]) for x in window])
-        candidate_list.append((column, community_size))
-    candidate_list.sort(key=operator.itemgetter(1), reverse=True)
-    topk_list_associ.append((topk, candidate_list[-1][0]))
-    '''
+                    for column in column_pos:
+                        commu_candidate = [community[0] for community in cd_topD['window_{0'.format(i)] if topD in community[0]]
+                        community_candidates.append((column, ))
 
 
 
 
-    ########
-    """
-    """
-    topk_list_associ = []
+                    # check communities for all columns
+                    # take the community (column) that had topD in it before
+                    # if both had topD, or none -> take bigger one
 
-    for topk in topk_list:
-        candidate_list = []
+                    label_candidates = []
+                    for column in column_pos[0]:
+                        label_candidates.append((column, cd_tracing_size[i - 1, column]))
 
-        if topk == 291465230:
-            print(1+1)
+                    label_candidates.sort(key=operator.itemgetter(1), reverse=True)
 
-        for column in range(len(community_tracing_array.T)):
+                    column_pos = [label_candidates[0][0]]
 
-            if topk in community_tracing_array[:,column]:
+                tuple_list.append((topD, int(column_pos[0])))
 
-                window_pos = np.where(community_tracing_array[:,column] == topk)
-                #window_pos = community_tracing_array[:,column].index(topk)
+            topD_associ['window_{0}'.format(i * 30)] = tuple_list  # list of tuples (topk, community_id)
 
-                #window_pos = [i for i, x in enumerate(community_tracing_array[:,column]) if x == topk]
+        ### Relabel all communities in cd_topD with static community id instead of dynamic TopD ###
 
+        cd_labeled = {}
 
+        for window_id, window in cd_topD.items():
+            new_window = []
 
-                #print('window_pos')
-                #print(window_pos)
-                window_pos = max(window_pos[0])
-                #print(window_pos)
-                window = lp_commu_topK['window_{0}'.format(window_pos * 30)]
-                #print(window)
-                #print(max([(len(x[0]), x[1][0][0]) for x in window]))
-                community_size, community_topk = max([(len(x[0]), x[1][0][0]) for x in window])
+            for community in window:
+                topD = community[1][0][0]
 
-                candidate_list.append((column, community_size))
+                community_id = [tuple[1] for tuple in topD_associ[window_id] if tuple[0] == topD]
 
-        candidate_list.sort(key=operator.itemgetter(1), reverse=True)
+                new_window.append([community[0], community_id])
 
+            cd_labeled[window_id] = new_window
 
-        topk_list_associ.append((topk, candidate_list[-1][0]))
-    """
-    """
+        return cd_labeled, topD_associ
 
-                #topk_list_associ.append((i, j))
-                #break
-
-    #print(topk_list_associ)
-    #print(lp_commu_topK)
-    #print('lp_commu_topK')
-
-    lp_commu_id = {}
-
-    for window_id, window in lp_commu_topK.items():
-        new_window = []
-
-        for community in window:
-            topk = community[1][0][0]
+    lp_labeled, lp_topD_associ= community_labeling(lp_tracing, lp_tracing_size, lp_topD)
+    #gm_labeled, gm_topD_associ = community_labeling(gm_tracing, gm_tracing_size, gm_topD)
+    #kclique_labeled, kclique_topD_associ = community_labeling(kclique_tracing, kclique_tracing_size, kclique_topD)
+    #lais2_labeled, lais2_topD_associ = community_labeling(lais2_tracing, lais2_tracing_size, lais2_topD)
 
 
-            community_id = [tuple[1] for tuple in topk_dic_associ[window_id] if tuple[0] == topk]
-            #community_id = [tuple[1] for tuple in topk_list_associ if tuple[0] == topk]
 
-            new_window.append([community[0], community_id])
+#--- Community Visualization ---#
 
-        lp_commu_id[window_id] = new_window
-    '''
-    #print(lp_commu_id)
-    #print(topk_list_associ)
-    print(lp_commu_id['window_300'])
-    print(lp_commu_topK['window_300'], '\n')
+    def visual_array(cd_tracing, topD_associ):
 
-    print(lp_commu_id['window_0'])
-    print(lp_commu_topK['window_0'])
-    print('sdfgerg')
-    '''
+        #visual_array = np.zeros((len(topicSim), max_number), dtype=int)
+        visual_array = np.full((np.shape(cd_tracing)[0], np.shape(cd_tracing)[1]), 9999999)
 
-    print(lp_commu_id['window_300'])
-    print(lp_commu_id['window_600'])
-    print(lp_commu_id['window_900'])
-    print(lp_commu_id['window_3000'])
+        for row in range(len(visual_array)):
+            for column in range(len(visual_array.T)):
 
-    filename = 'windows_lp_communities'
-    outfile = open(filename, 'wb')
-    pk.dump(lp_commu_id, outfile)
-    outfile.close()
+                if cd_tracing[row, column] != 0:
+
+                    topD = cd_tracing[row, column]
+
+                    label_entry = [tuple[1] for tuple in topD_associ['window_{0}'.format(row * 30)] if topD == tuple[0]]
+                    visual_array[row, column] = label_entry[0]
+
+        return visual_array
 
 
-    """
+    lp_visual = visual_array(lp_tracing, lp_topD_associ)
+
+    print(lp_labeled['window_630'])
+    print(lp_topD['window_630'])
+    print(lp_topD_associ['window_630'], '\n')
+
+    print(lp_labeled['window_660'])
+    print(lp_topD['window_660'])
+    print(lp_topD_associ['window_660'], '\n')
+
+
+    print(lp_labeled['window_690'])
+    print(lp_topD['window_690'])
+    print(lp_topD_associ['window_690'], '\n')
+
+
+    print(1+1)
+#--- Saving ---#
+
+    #filename = 'windows_lp_communities'
+    #outfile = open(filename, 'wb')
+    #pk.dump(lp_labeled, outfile)
+    #outfile.close()
+
+
