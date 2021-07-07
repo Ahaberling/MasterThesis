@@ -237,16 +237,35 @@ if __name__ == '__main__':
 
                 column_pos = np.where(cd_tracing[i, :] == topD)
 
-                if len(column_pos[0]) == 1:
-                    column_pos = column_pos
+                # if topD is present in more then one column of a row:
+                if len(column_pos[0]) != 1:
 
-                else:
+                    # in which communities is topD present?
+                    community_candidate_list = []
+                    for community in cd_topD['window_{0}'.format(i * 30)]:
+                        if topD in community[0]:
+                            community_candidate_list.append(community)
+                    # how do I link the communities to the columns?
 
-                    community_candidates = []
 
-                    for column in column_pos:
-                        commu_candidate = [community[0] for community in cd_topD['window_{0'.format(i)] if topD in community[0]]
-                        community_candidates.append((column, ))
+                    if len(community_candidate_list) == 1:
+
+                    #if it is more then one:
+                    #   for each community:
+                    #       check if topD in community
+                    #   if topD in == 1 community:
+                    #       take this community
+                    #   else:
+                    #       get degrees of all patents in current community
+                    #       sort by degree
+                    #       c = 0
+                    #       for each patent:
+                    #           if patent in == 1 community:
+                    #               take this community
+                    #               break
+                    #               c = c + 1
+                    #       if c == len(each patent):
+                    #           take biggest community
 
 
 
