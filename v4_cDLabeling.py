@@ -115,12 +115,13 @@ if __name__ == '__main__':
     lais2_max_number_community = max_number_community(lais2_topD)
 
 
-    ### Tracing array ###
+    ### Tracing arrays ###
 
     def tracing_array(max_number, cd_topD):
 
-        # Create Array  #
+        # Create Arrays #
         community_tracing_array = np.zeros((len(topicSim), max_number), dtype=int)
+        community_size_array = np.zeros((len(topicSim), max_number), dtype=int)
 
         for row in range(len(community_tracing_array)):
             current_window = cd_topD['window_{0}'.format(row * 30)]
@@ -132,12 +133,13 @@ if __name__ == '__main__':
                 for column in range(len(community_tracing_array.T)):
 
                     prev_topD = community_tracing_array[row - 1, column]
-                    # community[1][0][0] = TopD of community                             community[0] = set of id's of community
-                    current_topD_candidate = [community[1][0][0] for community in current_window if
-                                              prev_topD in community[0]]
+                                                 # community[1][0][0] = TopD of community                             community[0] = set of id's of community
+                    current_topD_candidate      = [community[1][0][0] for community in current_window if prev_topD in community[0]]
+                    current_topD_candidate_size = [len(community[0]) for community in current_window if prev_topD in community[0]]
 
                     if len(current_topD_candidate) == 1:  # >=2 only possible for overlapping CD
                         community_tracing_array[row, column] = current_topD_candidate[0]
+                        community_size_array[row, column] = current_topD_candidate_size[0]
 
                     else:  # (e.g. 0 because the node disappears or 2 because it is in two communities)
                         community_candidate = [community[0] for community in prev_window if prev_topD in community[0]]
@@ -157,11 +159,12 @@ if __name__ == '__main__':
 
                             for degree_candidate in all_new_candidates:
 
-                                next_topk_candidate = [community[1][0][0] for community in current_window if
-                                                       degree_candidate[0] in community[0]]
+                                next_topk_candidate = [community[1][0][0] for community in current_window if degree_candidate[0] in community[0]]
+                                next_topk_candidate_size = [len(community[0]) for community in current_window if degree_candidate[0] in community[0]]
 
                                 if len(next_topk_candidate) == 1:
                                     community_tracing_array[row, column] = next_topk_candidate[0]
+                                    community_size_array[row, column] = next_topk_candidate_size[0]
                                     break
 
             # Part2: Create new communitiy entries if tracing did not create them #
@@ -177,96 +180,89 @@ if __name__ == '__main__':
                                column_id]) == 0:  # RuntimeWarning: overflow encountered in long_scalars
 
                             community_tracing_array[row, column_id] = community[1][0][0]
+                            community_size_array[row, column_id] = len(community[0])
                             break
 
 
-        # Resize the array and exclude non relevant columns #
+        # Resize the arrays and exclude non relevant columns #
         for i in range(len(community_tracing_array.T)):
             if sum(community_tracing_array[:, i]) == 0:
                 cutoff = i
                 break
 
         community_tracing_array = community_tracing_array[:, 0:cutoff]
+        community_size_array = community_size_array[:, 0:cutoff]
 
-        return community_tracing_array
+        return community_tracing_array, community_size_array
 
 
     # label propagation #
-    lp_tracing = tracing_array(lp_max_number_community, lp_topD)
+    lp_tracing, lp_tracing_size = tracing_array(lp_max_number_community, lp_topD)
 
     # greedy_modularity #
-    #gm_tracing = tracing_array(gm_max_number_community, gm_topD)
+    #gm_tracing, gm_tracing_size = tracing_array(gm_max_number_community, gm_topD)
 
     # kclique #
-    #kclique_tracing = tracing_array(kclique_max_number_community, kclique_topD)
+    #kclique_tracing, kclique_tracing_size = tracing_array(kclique_max_number_community, kclique_topD)
 
     # lais2 #
-    #lais2_tracing = tracing_array(lais2_max_number_community, lais2_topD)
+    #lais2_tracing, lais2_tracing_size = tracing_array(lais2_max_number_community, lais2_topD)
 
 
 
+#---  Community Labeling ---#
 
+    ### Create dict with all unique topD per window
+    topD_dic = {}
 
-    """
+    for row in range(len(lp_tracing)):
+        topD_dic['window_{0}'.format(row * 30)] = np.unique(lp_tracing[row,:])[1:]
 
-    # make list with flattened array and take only unique ids
-
-    topk_list = np.unique(community_tracing_array.flatten())[1:]
-    topk_dic = {}
-
-    for i in range(len(community_tracing_array)):
-
-        topk_dic['window_{0}'.format(i * 30)] = np.unique(community_tracing_array[i,:])[1:]
-        #print(np.unique(community_tracing_array[i, :]))
-        #print(np.unique(community_tracing_array[i, :])[1:])
-
-    # for each id, look in which column the id first appeared
-
-    #########
-    #print(lp_commu_topK['window_690'])
-    #print(lp_commu_topK['window_900'])
-
+    ### Create dict that associates a topD identifier with a stable community id (column number) for each window ###
     topk_dic_associ = {}
 
-    #for winow_id, window in topk_dic.items():
-    for i in range(len(topk_dic)):
-
+    for i in range(len(topD_dic)):
         tuple_list = []
 
-        for topk in topk_dic['window_{0}'.format(i * 30)]:
+        if i == 12:
+            print(1+1)
 
-            #candidate_list = []
-
-            column_pos = np.where(community_tracing_array[i,:] == topk)
-            #window = lp_commu_topK['window_{0}'.format(i * 30)]
-            #print(topk)
-            #print(community_tracing_array[i,:])
-            #print(column_pos[0])
-
-            tuple_list.append((topk, min(column_pos[0])))
+        for topD in topD_dic['window_{0}'.format(i * 30)]:
+            column_pos = np.where(lp_tracing[i,:] == topD)
+            print(column_pos)
+            print(len(column_pos))
 
 
-        topk_dic_associ['window_{0}'.format(i * 30)] =  tuple_list            # list of tuples (topk, community_id)
+            if len(column_pos[0]) == 1:
+                column_pos = column_pos[0]
 
-        print(topk_dic_associ['window_{0}'.format(i * 30)])
+            else:
+                label_candidates = []
+                for column in column_pos[0]:
+                    label_candidates.append((column, lp_tracing_size[i-1, column[0]]))
 
-            #for column in column_pos:
+                label_candidates.sort(key=operator.itemgetter(1), reverse=True)
 
+                column_pos = label_candidates[0][0]
 
+            tuple_list.append((topD, column_pos[0]))
 
-            #candidate_list.append((column, community_size))
+        topk_dic_associ['window_{0}'.format(i * 30)] = tuple_list            # list of tuples (topk, community_id)
 
-    print(lp_commu_topK['window_300'])
+        #print(topk_dic_associ['window_{0}'.format(i * 30)])
+
+    """
+    print(lp_topD['window_300'])
     print(topk_dic_associ['window_300'], '\n')
 
-    print(lp_commu_topK['window_600'])
+    print(lp_topD['window_600'])
     print(topk_dic_associ['window_600'], '\n')
 
-    print(lp_commu_topK['window_900'])
+    print(lp_topD['window_900'])
     print(topk_dic_associ['window_900'], '\n')
+    """
 
-
-
+    """
 
     '''    community_size, community_topk = max([(len(x[0]), x[1][0][0]) for x in window])
         candidate_list.append((column, community_size))
