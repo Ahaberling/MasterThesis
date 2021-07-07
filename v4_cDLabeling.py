@@ -225,21 +225,23 @@ if __name__ == '__main__':
         tuple_list = []
 
         if i == 12:
-            print(1+1)
+            print(111+111)
+            print(111+111)
 
         for topD in topD_dic['window_{0}'.format(i * 30)]:
             column_pos = np.where(lp_tracing[i,:] == topD)
             print(column_pos)
-            print(len(column_pos))
+            print(column_pos[0])
+            print(len(column_pos[0]))
 
 
             if len(column_pos[0]) == 1:
-                column_pos = column_pos[0]
+                column_pos = column_pos
 
             else:
                 label_candidates = []
                 for column in column_pos[0]:
-                    label_candidates.append((column, lp_tracing_size[i-1, column[0]]))
+                    label_candidates.append((column, lp_tracing_size[i-1, column]))
 
                 label_candidates.sort(key=operator.itemgetter(1), reverse=True)
 
