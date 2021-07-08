@@ -221,6 +221,24 @@ if __name__ == '__main__':
 
     def community_labeling(cd_tracing, cd_tracing_size, cd_topD):
 
+
+        #1. topD = higest degree node in a community (that is not overlapping)
+        #2. topD_associ dict:
+        #   if only one column
+        #       -> assign column
+        #   else
+        #       if all prev_topD's in columns equal
+        #           look in previous dict
+        #           if prev_entry is one of the columns
+        #               take entry
+        #           else
+        #               get all nodes with degree of current community
+        #               sort by degree desc
+        #               for node in list
+        #                   if node in excatly one community
+        #                   -> assign column
+        # Limitation: nodes with same degree. might not be fair to just pull the first one, but at this stage it probably doesnt matter anymore
+
         ### Create dict with all unique topD per window
         topD_dic = {}
 
@@ -235,7 +253,7 @@ if __name__ == '__main__':
 
             for topD in topD_dic['window_{0}'.format(i * 30)]:
 
-                if topD == 287921238:
+                if topD == 287592206:
                     print(1+1)
 
                 column_pos = np.where(cd_tracing[i, :] == topD)
@@ -243,50 +261,81 @@ if __name__ == '__main__':
                 # if topD is present in more then 1 column of a row:
                 if len(column_pos[0]) != 1:
 
-                    prev_topD_candidates = []
+                    prev_id_list = []
 
                     for column in column_pos[0]:
-                        prev_topD_candidates.append((cd_tracing[i-1,column], column))
 
-                    community_candidates = []
-                    for prev_topD in prev_topD_candidates:
-                        communities = [(community, prev_topD[1]) for community in cd_topD['window_{0}'.format((i-1) * 30)] if prev_topD[0] in community[0]]
-                        community_candidates.append(communities)
+                        prev_topD = cd_tracing[i-1, column]
 
-                    community_candidates_withTopD = []
+                        prev_id_list.append((prev_topD, column))
 
-                    for community in community_candidates:
-                        print(community[0][0][0])
-                        if topD in community[0][0][0]:
-                            community_candidates_withTopD.append(community)
+                    prev_id_list_unique = np.unique([prev_id[0] for prev_id in prev_id_list])
 
-                    if len(community_candidates_withTopD) == 1:
-                        print(community[0][1])
-                        column_pos = [community[0][1]]
+                    if topD in prev_id_list_unique:
+
+                        column_pos = [prev_topD[1] for prev_topD in topD_associ['window_{0}'.format((i-1) * 30)] if prev_topD[0] == topD]
+
+                    #elif len(np.unique(prev_id_list_unique)) == 1:
+                    #    column_pos = [topD[1] for prev_topD in topD_associ['window_{0}'.format((i-1) * 30)] if prev_topD[0] == prev_id_list[0][0]]
 
                     else:
-                        print(1+1)
+                        prev_topDs_withColumn = []
+
+                        for column in column_pos[0]:
+                            prev_topDs_withColumn.append((cd_tracing[i-1,column], column))
+
+                        prev_topD_communities_withColumn = []
+                        for prev_topD in prev_topDs_withColumn:
+                            communities = [(community, prev_topD[1]) for community in cd_topD['window_{0}'.format((i-1) * 30)] if prev_topD[0] in community[0]]
+                            prev_topD_communities_withColumn.append(communities)
+
+                        #community_candidates_withTopD = []
+
+                        #for community in community_candidates:
+                            #if topD in community[0][0][0]:
+                                #community_candidates_withTopD.append(community)
+
+                        #if len(community_candidates_withTopD) == 1:
+                            #column_pos = [community[0][1]]
+
+
                         current_community = [community for community in cd_topD['window_{0}'.format(i * 30)] if topD in community[1][0]]
 
                         #Assumption. if topD is identifier for a community, the it is the identifier for only that community and not for multiple
 
-                        next_topD_candidates = []
-                        print(current_community[0][0])
+                        current_community_degree_list = []
                         for patent in current_community[0][0]:
-                            next_topD_candidates.append((patent, topicSim['window_{0}'.format(i * 30)].degree(patent)))
+                            current_community_degree_list.append((patent, topicSim['window_{0}'.format(i * 30)].degree(patent)))
 
-                        next_topD_candidates.sort(key=operator.itemgetter(1), reverse=True)
-                        next_topD_candidates = next_topD_candidates[1:]         # we already checked for topD
+                        current_community_degree_list.sort(key=operator.itemgetter(1), reverse=True)
+                        #current_community_degree_list_sorted = current_community_degree_list[1:]         # we already checked for topD
 
-                        for candidate in next_topD_candidates:
-                            for community in community_candidates:
-                                if candidate[0] in community[0][0]:
-                                    column_pos = community[1]
-                                    break
+                        for candidate in current_community_degree_list:
+                            checklist_inMultipleCommunities = []
+                            prev_topD_communities_withColumn_mod = [prev_community[0][0] for prev_community in prev_topD_communities_withColumn]
+
+                            community_helper_list = []
+                            for community_helper in prev_topD_communities_withColumn_mod:
+                                if community_helper not in community_helper_list:
+                                    community_helper_list.append(community_helper)
+
+                            prev_topD_communities_withColumn_unique = community_helper_list
+
+                            for prev_community in prev_topD_communities_withColumn_unique:
+                                if candidate[0] in prev_community[0]:
+                                    checklist_inMultipleCommunities.append(prev_community)
+                            if len(checklist_inMultipleCommunities) == 1:
+                                #if len(checklist_inMultipleCommunities) != 0:
+                                new_topD = checklist_inMultipleCommunities[0][1][0][0]
+
+                                column_pos = [prev_topD[1] for prev_topD in topD_associ['window_{0}'.format((i-1) * 30)] if prev_topD[0] == new_topD]
+
+                                break
 
 
                 # CHECK IF PREVIOUS TOPDS ARE IDENTICAL. IF SO: TAKE THE SAME AS IN THE PREVIOUS DICT.
-
+                print(column_pos)
+                print(topD)
                 tuple_list.append((topD, int(column_pos[0])))
 
             topD_associ['window_{0}'.format(i * 30)] = tuple_list  # list of tuples (topk, community_id)
