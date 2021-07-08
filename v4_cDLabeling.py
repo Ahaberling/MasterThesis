@@ -137,9 +137,6 @@ if __name__ == '__main__':
 
                     prev_topD = community_tracing_array[row - 1, column]
 
-                    if prev_topD == 285449519:
-                        print(1+1)
-
                                                  # community[1][0][0] = TopD of community                             community[0] = set of id's of community
                     current_topD_candidate      = [community[1][0][0] for community in current_window if prev_topD in community[0]]
                     current_topD_candidate_size = [len(community[0]) for community in current_window if prev_topD in community[0]]
@@ -207,37 +204,19 @@ if __name__ == '__main__':
     lp_tracing, lp_tracing_size = tracing_array(lp_max_number_community, lp_topD)
 
     # greedy_modularity #
-    #gm_tracing, gm_tracing_size = tracing_array(gm_max_number_community, gm_topD)
+    gm_tracing, gm_tracing_size = tracing_array(gm_max_number_community, gm_topD)
 
     # kclique #
-    #kclique_tracing, kclique_tracing_size = tracing_array(kclique_max_number_community, kclique_topD)
+    kclique_tracing, kclique_tracing_size = tracing_array(kclique_max_number_community, kclique_topD)
 
     # lais2 #
-    #lais2_tracing, lais2_tracing_size = tracing_array(lais2_max_number_community, lais2_topD)
+    lais2_tracing, lais2_tracing_size = tracing_array(lais2_max_number_community, lais2_topD)
 
 
 
 #---  Community Labeling ---#
 
     def community_labeling(cd_tracing, cd_tracing_size, cd_topD):
-
-
-        #1. topD = higest degree node in a community (that is not overlapping)
-        #2. topD_associ dict:
-        #   if only one column
-        #       -> assign column
-        #   else
-        #       if all prev_topD's in columns equal
-        #           look in previous dict
-        #           if prev_entry is one of the columns
-        #               take entry
-        #           else
-        #               get all nodes with degree of current community
-        #               sort by degree desc
-        #               for node in list
-        #                   if node in excatly one community
-        #                   -> assign column
-        # Limitation: nodes with same degree. might not be fair to just pull the first one, but at this stage it probably doesnt matter anymore
 
         ### Create dict with all unique topD per window
         topD_dic = {}
@@ -253,7 +232,7 @@ if __name__ == '__main__':
 
             for topD in topD_dic['window_{0}'.format(i * 30)]:
 
-                if topD == 287592206:
+                if topD == 56690516:
                     print(1+1)
 
                 column_pos = np.where(cd_tracing[i, :] == topD)
@@ -287,17 +266,16 @@ if __name__ == '__main__':
                         prev_topD_communities_withColumn = []
                         for prev_topD in prev_topDs_withColumn:
                             communities = [(community, prev_topD[1]) for community in cd_topD['window_{0}'.format((i-1) * 30)] if prev_topD[0] in community[0]]
-                            prev_topD_communities_withColumn.append(communities)
-
-                        #community_candidates_withTopD = []
-
-                        #for community in community_candidates:
-                            #if topD in community[0][0][0]:
-                                #community_candidates_withTopD.append(community)
-
-                        #if len(community_candidates_withTopD) == 1:
-                            #column_pos = [community[0][1]]
-
+                            if len(communities) >= 2:
+                                for community in communities:
+                                    prev_topD_communities_withColumn.append(community)
+                            else:
+                                prev_topD_communities_withColumn.append(communities)
+                            # prev_topD_communities_withColumn =
+                            # [ [([[28548992319, 284829374], [(286192743, 9)]], 18)], [([[288104405, 287461654], [(288007617, 10)]], 22)] ]
+                            # [ [([[18754      , 280261300], [(279785951, 9)]], 115), ([[279785951, 278805366], [(279785951, 9)]], 115), ([[279785951, 49907, 359857, 277646092, 278123929, 278124396, 278805366, 277608328, 277636754], [(279785951, 9)]], 115), ([[279785951, 49907, 359857, 277646092, 278123929, 278124396, 278805366], [(279785951, 9)]], 115)], [([[18754, 50183, 113417, 189276, 360126, 55007658, 55327817, 55535358, 56567877, 276841737, 277256328, 279785951, 280021002, 280086124, 280110345, 280261300], [(279785951, 9)]], 117), ([[279785951, 12654, 49907, 359857, 55535386, 56690516, 277646092, 277719199, 278123929, 278124396, 278805366], [(279785951, 9)]], 117), ([[279785951, 49907, 359857, 277646092, 278123929, 278124396, 278805366, 277608328, 277636754], [(279785951, 9)]], 117), ([[279785951, 49907, 359857, 277646092, 278123929, 278124396, 278805366], [(279785951, 9)]], 117)], [([[18754, 50183, 113417, 189276, 360126, 55007658, 55327817, 55535358, 56567877, 276841737, 277256328, 279785951, 280021002, 280086124, 280110345, 280261300], [(279785951, 9)]], 121), ([[18754, 50183, 113417, 189276, 360126, 55007658, 55327817, 189501, 56573594, 278415848, 280050280], [(55007658, 8)]], 121)]]
+                            # [ [([[285489923, 286192743], [(286192743, 9)]], 18)  ], [([[288007617, 288007607], [(288007617, 10)]], 22)] ]
+                        #prev_topD_communities_withColumn = [item for sublist in prev_topD_communities_withColumn for item in sublist]
 
                         current_community = [community for community in cd_topD['window_{0}'.format(i * 30)] if topD in community[1][0]]
 
@@ -308,12 +286,14 @@ if __name__ == '__main__':
                             current_community_degree_list.append((patent, topicSim['window_{0}'.format(i * 30)].degree(patent)))
 
                         current_community_degree_list.sort(key=operator.itemgetter(1), reverse=True)
-                        #current_community_degree_list_sorted = current_community_degree_list[1:]         # we already checked for topD
 
                         for candidate in current_community_degree_list:
                             checklist_inMultipleCommunities = []
                             prev_topD_communities_withColumn_mod = [prev_community[0][0] for prev_community in prev_topD_communities_withColumn]
-
+                            for s in prev_topD_communities_withColumn:
+                                print(s)
+                                print(s[0])
+                                print(s[0][0])
                             community_helper_list = []
                             for community_helper in prev_topD_communities_withColumn_mod:
                                 if community_helper not in community_helper_list:
@@ -325,7 +305,6 @@ if __name__ == '__main__':
                                 if candidate[0] in prev_community[0]:
                                     checklist_inMultipleCommunities.append(prev_community)
                             if len(checklist_inMultipleCommunities) == 1:
-                                #if len(checklist_inMultipleCommunities) != 0:
                                 new_topD = checklist_inMultipleCommunities[0][1][0][0]
 
                                 column_pos = [prev_topD[1] for prev_topD in topD_associ['window_{0}'.format((i-1) * 30)] if prev_topD[0] == new_topD]
@@ -334,8 +313,8 @@ if __name__ == '__main__':
 
 
                 # CHECK IF PREVIOUS TOPDS ARE IDENTICAL. IF SO: TAKE THE SAME AS IN THE PREVIOUS DICT.
-                print(column_pos)
                 print(topD)
+                print(column_pos)
                 tuple_list.append((topD, int(column_pos[0])))
 
             topD_associ['window_{0}'.format(i * 30)] = tuple_list  # list of tuples (topk, community_id)
@@ -358,10 +337,17 @@ if __name__ == '__main__':
 
         return cd_labeled, topD_associ
 
-    lp_labeled, lp_topD_associ= community_labeling(lp_tracing, lp_tracing_size, lp_topD)
-    #gm_labeled, gm_topD_associ = community_labeling(gm_tracing, gm_tracing_size, gm_topD)
-    #kclique_labeled, kclique_topD_associ = community_labeling(kclique_tracing, kclique_tracing_size, kclique_topD)
-    #lais2_labeled, lais2_topD_associ = community_labeling(lais2_tracing, lais2_tracing_size, lais2_topD)
+    # Label Propagation #
+    #lp_labeled, lp_topD_associ= community_labeling(lp_tracing, lp_tracing_size, lp_topD)
+
+    # Greedy Modularity #
+    gm_labeled, gm_topD_associ = community_labeling(gm_tracing, gm_tracing_size, gm_topD)
+
+    # Kclique #
+    kclique_labeled, kclique_topD_associ = community_labeling(kclique_tracing, kclique_tracing_size, kclique_topD)
+
+    # Lais2 #
+    lais2_labeled, lais2_topD_associ = community_labeling(lais2_tracing, lais2_tracing_size, lais2_topD)
 
 
 
@@ -384,29 +370,38 @@ if __name__ == '__main__':
 
         return visual_array
 
-
+    # Label Propagation #
     lp_visual = visual_array(lp_tracing, lp_topD_associ)
 
-    print(lp_labeled['window_630'])
-    print(lp_topD['window_630'])
-    print(lp_topD_associ['window_630'], '\n')
+    # Greedy Modularity #
+    gm_visual = visual_array(gm_tracing, gm_topD_associ)
 
-    print(lp_labeled['window_660'])
-    print(lp_topD['window_660'])
-    print(lp_topD_associ['window_660'], '\n')
+    # Kclique #
+    kclique_visual = visual_array(kclique_tracing, kclique_topD_associ)
 
+    # Lais2 #
+    lais2_visual = visual_array(lais2_tracing, lais2_topD_associ)
 
-    print(lp_labeled['window_690'])
-    print(lp_topD['window_690'])
-    print(lp_topD_associ['window_690'], '\n')
-
-
-    print(1+1)
 #--- Saving ---#
 
-    #filename = 'windows_lp_communities'
-    #outfile = open(filename, 'wb')
-    #pk.dump(lp_labeled, outfile)
-    #outfile.close()
+    filename = 'lp_labeled'
+    outfile = open(filename, 'wb')
+    pk.dump(lp_labeled, outfile)
+    outfile.close()
+
+    filename = 'gm_labeled'
+    outfile = open(filename, 'wb')
+    pk.dump(gm_labeled, outfile)
+    outfile.close()
+
+    filename = 'kclique_labeled'
+    outfile = open(filename, 'wb')
+    pk.dump(kclique_labeled, outfile)
+    outfile.close()
+
+    filename = 'lais2_labeled'
+    outfile = open(filename, 'wb')
+    pk.dump(lais2_labeled, outfile)
+    outfile.close()
 
 
