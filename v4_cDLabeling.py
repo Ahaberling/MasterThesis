@@ -91,6 +91,9 @@ if __name__ == '__main__':
     lais2_topD = identify_topD(lais2_clean)
 
 
+    # FOR OVERLAPPING: CHECK IF THERE IS A WINDOW WHERE ONE TOPD IDENTIFIES TWO COMMUNITIES. IF SO: LET ONE COMMUNITY BE IDENTIFIED BY
+    # THE SECOND HIGEST DEGREE THAT IS ONLY IN ONE COMMUNITY!
+
 #---  Community Tracing ---#
 
     ### Identify max number of possible community id's ###
@@ -237,50 +240,52 @@ if __name__ == '__main__':
 
                 column_pos = np.where(cd_tracing[i, :] == topD)
 
-                # if topD is present in more then one column of a row:
+                # if topD is present in more then 1 column of a row:
                 if len(column_pos[0]) != 1:
 
-                    # in which communities is topD present?
-                    community_candidate_list = []
-                    for community in cd_topD['window_{0}'.format(i * 30)]:
-                        if topD in community[0]:
-                            community_candidate_list.append(community)
-                    # how do I link the communities to the columns?
+                    prev_topD_candidates = []
 
-
-                    if len(community_candidate_list) == 1:
-
-                    #if it is more then one:
-                    #   for each community:
-                    #       check if topD in community
-                    #   if topD in == 1 community:
-                    #       take this community
-                    #   else:
-                    #       get degrees of all patents in current community
-                    #       sort by degree
-                    #       c = 0
-                    #       for each patent:
-                    #           if patent in == 1 community:
-                    #               take this community
-                    #               break
-                    #               c = c + 1
-                    #       if c == len(each patent):
-                    #           take biggest community
-
-
-
-
-                    # check communities for all columns
-                    # take the community (column) that had topD in it before
-                    # if both had topD, or none -> take bigger one
-
-                    label_candidates = []
                     for column in column_pos[0]:
-                        label_candidates.append((column, cd_tracing_size[i - 1, column]))
+                        prev_topD_candidates.append((cd_tracing[i-1,column], column))
 
-                    label_candidates.sort(key=operator.itemgetter(1), reverse=True)
+                    community_candidates = []
+                    for prev_topD in prev_topD_candidates:
+                        communities = [(community, prev_topD[1]) for community in cd_topD['window_{0}'.format((i-1) * 30)] if prev_topD[0] in community[0]]
+                        community_candidates.append(communities)
 
-                    column_pos = [label_candidates[0][0]]
+                    community_candidates_withTopD = []
+
+                    for community in community_candidates:
+                        print(community[0][0][0])
+                        if topD in community[0][0][0]:
+                            community_candidates_withTopD.append(community)
+
+                    if len(community_candidates_withTopD) == 1:
+                        print(community[0][1])
+                        column_pos = [community[0][1]]
+
+                    else:
+                        print(1+1)
+                        current_community = [community for community in cd_topD['window_{0}'.format(i * 30)] if topD in community[1][0]]
+
+                        #Assumption. if topD is identifier for a community, the it is the identifier for only that community and not for multiple
+
+                        next_topD_candidates = []
+                        print(current_community[0][0])
+                        for patent in current_community[0][0]:
+                            next_topD_candidates.append((patent, topicSim['window_{0}'.format(i * 30)].degree(patent)))
+
+                        next_topD_candidates.sort(key=operator.itemgetter(1), reverse=True)
+                        next_topD_candidates = next_topD_candidates[1:]         # we already checked for topD
+
+                        for candidate in next_topD_candidates:
+                            for community in community_candidates:
+                                if candidate[0] in community[0][0]:
+                                    column_pos = community[1]
+                                    break
+
+
+                # CHECK IF PREVIOUS TOPDS ARE IDENTICAL. IF SO: TAKE THE SAME AS IN THE PREVIOUS DICT.
 
                 tuple_list.append((topD, int(column_pos[0])))
 
