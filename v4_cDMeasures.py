@@ -125,22 +125,19 @@ if __name__ == '__main__':
     lp_recombinations = find_recombinations(lp_all_unique_ids, lp_labeled)
     #gm_recombinations = find_recombinations(gm_all_unique_ids, gm_labeled)
 
-    #print(lp_recombinations)
+
+    ### Recombination Threshold ###
 
 
-    ### Recombination Threshold  ###
+    def recombination_count(cd_recombinations):
 
-
-
-
-    def recombination_threshold(cd_all_unique_ids, cd_recombinations):
+        recombination_count = {}
 
         for window_id, window in cd_recombinations.items():
+            recombination_types_plusCount = []
 
             if len(window) != 0:
 
-                window_duplicate = window
-                number_patents = len(cd_all_unique_ids[window_id])
                 recombination_types = []
 
                 for recombination in window:
@@ -151,19 +148,33 @@ if __name__ == '__main__':
 
                 recombination_types_unique, index, count = np.unique(recombination_types, axis=0, return_counts=True,
                                                                      return_index=True)
-
                 zipped_lists = zip(index, count)
                 sorted_pairs = sorted(zipped_lists)
 
                 tuples = zip(*sorted_pairs)
                 index_sorted, count_sorted = [list(tuple) for tuple in tuples]
 
-                recombination_types_plusCount = []
+
                 for i in range(len(recombination_types_unique)):
                     recombination_types_plusCount.append((recombination_types[i], count_sorted[i]))
 
+            recombination_count[window_id] = recombination_types_plusCount
+
+        return recombination_count
+
+    lp_recombination_count = recombination_count(lp_recombinations)
+    #gm_recombination_count = recombination_count(gm_recombinations)
+
+    ###  ###
+    def recombination_threshold(cd_recombinations, cd_recombination_count):
+
+        for window_id, window in cd_recombinations.items():
+
+            for recombination in window:
+
 
         return
+
         # a dict like cd_recombination_dic, but with an additional entry per recombination list. the additional entry indicates if a threshold was meet
 
     '''    
