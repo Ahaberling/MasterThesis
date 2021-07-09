@@ -82,6 +82,9 @@ if __name__ == '__main__':
 
         for i in range(len(cd_all_unique_ids)-1):
 
+            #if i * 30 == 450:
+                #print(1+1)
+
             t = set(cd_all_unique_ids['window_{0}'.format(i * 30)])
             t_plus1 = set(cd_all_unique_ids['window_{0}'.format((i+1) * 30)])
             new_patents = t_plus1.difference(t)
@@ -125,19 +128,26 @@ if __name__ == '__main__':
     lp_recombinations = find_recombinations(lp_all_unique_ids, lp_labeled)
     #gm_recombinations = find_recombinations(gm_all_unique_ids, gm_labeled)
 
+    # Problem:  [286551500, ((288550404, [24]), (287503390, [25])), 2, 1, 1, 1]
+
+    #print(lp_recombinations['window_450'])
 
     ### Recombination Threshold ###
 
 
-    def recombination_count(cd_recombinations):
+    def recombination_threshold(cd_recombinations, threshold):
 
-        recombination_count = {}
+        recombination_threshold = {}
 
         for window_id, window in cd_recombinations.items():
             recombination_types_plusCount = []
 
+            if window_id == 'window_450':
+                print(1+1)
+
             if len(window) != 0:
 
+                total_number_patents = len(topicSim[window_id].nodes())
                 recombination_types = []
 
                 for recombination in window:
@@ -146,36 +156,89 @@ if __name__ == '__main__':
 
                     recombination_types.append((community_id1, community_id2))
 
-                recombination_types_unique, index, count = np.unique(recombination_types, axis=0, return_counts=True,
-                                                                     return_index=True)
+                recombination_types_unique, index, count = np.unique(recombination_types, axis=0, return_counts=True, return_index=True)
+                print(recombination_types_unique)
+                print(index)
+                print(count)
+                '''
                 zipped_lists = zip(index, count)
                 sorted_pairs = sorted(zipped_lists)
 
                 tuples = zip(*sorted_pairs)
                 index_sorted, count_sorted = [list(tuple) for tuple in tuples]
+                '''
 
+                #fraction_sorted = count_sorted / total_number_patents
+                #fraction_sorted = [x / total_number_patents for x in count_sorted]
+                print(count)
+                print(total_number_patents)
+                fraction = [x / total_number_patents for x in count]
+                print(fraction)
+
+                #threshold_sorted = []
+                threshold = []
+
+                for i in range(len(fraction)):
+                    threshold_meet = 0      # default
+                    if fraction[i] >= threshold:
+                        threshold_meet = 1
+
+                    threshold.append(threshold_meet)
 
                 for i in range(len(recombination_types_unique)):
-                    recombination_types_plusCount.append((recombination_types[i], count_sorted[i]))
+                    recombination_types_plusCount.append(((recombination_types_unique[i]), count[i], threshold[i])) #, fraction[i]))
+                    print(recombination_types_plusCount)
 
-            recombination_count[window_id] = recombination_types_plusCount
+            recombination_threshold[window_id] = recombination_types_plusCount
 
-        return recombination_count
+        return recombination_threshold
 
-    lp_recombination_count = recombination_count(lp_recombinations)
-    #gm_recombination_count = recombination_count(gm_recombinations)
+    lp_recombination_threshold = recombination_threshold(lp_recombinations, 0.005)
+    #gm_recombination_threshold = recombination_threshold(gm_recombinations, 0.05)
+
+    #print(lp_recombination_count)      #((839, 811), 1, 0)
+
+    print(lp_recombination_threshold['window_450']) # here it got ((24, 25), 2, 1) and ((24, 25), 1, 1) in window 450. why? I only want it once, correcly count
 
     ###  ###
-    def recombination_threshold(cd_recombinations, cd_recombination_count):
+    def enrich_recombinations_dic_with_thresholds(cd_recombinations, cd_recombination_threshold):
+
+        recombinations_dic_with_thresholds = {}
 
         for window_id, window in cd_recombinations.items():
 
+            new_window = []
             for recombination in window:
 
+                if recombination[1][0][1][0] == 24:
+                    if recombination[1][1][1][0] == 25:
+                        #print(1+1)
+                        1+1
 
-        return
+                community_id1 = recombination[1][0][1][0]
+                community_id2 = recombination[1][1][1][0]
+
+                for recombination_threshold in cd_recombination_threshold[window_id]:
+                    if recombination_threshold[0] == (community_id1, community_id2):
+
+                        count = recombination_threshold[1]
+                        threshold = recombination_threshold[2]
+
+                        recombination.append(count)
+                        recombination.append(threshold)
+                        if len(recombination) >= 5:
+                            print(1+1)
+
+                        #print(recombination)
+
+                new_window.append(recombination)
+            recombinations_dic_with_thresholds[window_id] = new_window
+
+        return recombinations_dic_with_thresholds
 
         # a dict like cd_recombination_dic, but with an additional entry per recombination list. the additional entry indicates if a threshold was meet
+
+    lp_recombinations_enriched = enrich_recombinations_dic_with_thresholds(lp_recombinations, lp_recombination_threshold)
 
     '''    
 
