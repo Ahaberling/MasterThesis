@@ -232,7 +232,7 @@ if __name__ == '__main__':
 
             for topD in topD_dic['window_{0}'.format(i * 30)]:
 
-                if topD == 56690516:
+                if topD == 290444528:
                     print(1+1)
 
                 column_pos = np.where(cd_tracing[i, :] == topD)
@@ -259,16 +259,29 @@ if __name__ == '__main__':
 
                     else:
                         prev_topDs_withColumn = []
+                        multi_community_edgeCase = []
 
                         for column in column_pos[0]:
                             prev_topDs_withColumn.append((cd_tracing[i-1,column], column))
 
                         prev_topD_communities_withColumn = []
+                        # prev_topD_communities_withColumn =  [ [([[285489923, 284829374], [(286192743, 9)]], 18)]                                                      ]
+                        # prev_topD_communities_withColumn =  [ [([[285489923, 284829374], [(286192743, 9)]], 18)], [([[288007617, 287035391], [(288007617, 10)]], 22)] ]
                         for prev_topD in prev_topDs_withColumn:
                             communities = [(community, prev_topD[1]) for community in cd_topD['window_{0}'.format((i-1) * 30)] if prev_topD[0] in community[0]]
+                            #     communities =  [ ([[285489923, 284829374], [(286192743, 9)]], 18)                                                    ]
+
                             if len(communities) >= 2:
+                                print(1+1)
+                                # communities = [ ([[283400389, 284398911], [(283400389, 13)]], 30), ([[282911021, 284080045], [(282911021, 11)]], 30) ]
                                 for community in communities:
-                                    prev_topD_communities_withColumn.append(community)
+                                    print(community)
+                                    prev_topD_communities_withColumn.append([community])
+                                    # from: [ [([[283400389, 284398911], [(283400389, 13)]], 27)], [([[283400389, 284398911], [(283400389, 13)]], 29)]                                                                                                       ]
+                                    # to:   [ [([[283400389, 284398911], [(283400389, 13)]], 27)], [([[283400389, 284398911], [(283400389, 13)]], 29)],  ([[283400389, 284398911], [(283400389, 13)]], 30)                                                    ]
+                                    # new:  [ [([[283400389, 284398911], [(283400389, 13)]], 27)], [([[283400389, 284398911], [(283400389, 13)]], 29)], [([[283400389, 284398911], [(283400389, 13)]], 30)]                                                  ]
+
+                                    #       [ [([[287547470, 290076304], [(290076304,  6)]],  4)], [([[290444528, 289175898], [(290076304,  6)]],  4)], [([[287547470, 290076304], [(290076304,  6)]],  7)], , , , , , ,  ]
                             else:
                                 prev_topD_communities_withColumn.append(communities)
                             # prev_topD_communities_withColumn =
@@ -290,27 +303,54 @@ if __name__ == '__main__':
                         for candidate in current_community_degree_list:
                             checklist_inMultipleCommunities = []
                             prev_topD_communities_withColumn_mod = [prev_community[0][0] for prev_community in prev_topD_communities_withColumn]
-                            for s in prev_topD_communities_withColumn:
-                                print(s)
-                                print(s[0])
-                                print(s[0][0])
+
                             community_helper_list = []
                             for community_helper in prev_topD_communities_withColumn_mod:
-                                if community_helper not in community_helper_list:
-                                    community_helper_list.append(community_helper)
+                                # prev_topD_communities_withColumn_mod = [ [{289337379, 286963357}, [(290444528, 6)]], [{289337379, 286963357}, [(290444528, 6)]]                ]
+                                #                                        [ [[287547470, 290076304], [(290076304, 6)]], [[290444528, 289175898], [(290076304, 6)]], , , , , , , , ]
 
+                                if community_helper not in community_helper_list:
+                                    # community_helper =       [{289337379, 286963357}, [(290444528, 6)]]
+                                    #                          [[287547470, 290076304], [(290076304, 6)]]
+
+                                    community_helper_list.append(community_helper)
+                                    # community_helper_list = [ [{289337379, 286963357}, [(290444528, 6)]]                                             ]
+                                    #                         [ [[287547470, 290076304], [(290076304, 6)]]                                             ]
+                                    #                         [ [[287547470, 290076304], [(290076304, 6)]], [[290444528, 289175898], [(290076304, 6)]] ]
                             prev_topD_communities_withColumn_unique = community_helper_list
 
                             for prev_community in prev_topD_communities_withColumn_unique:
-                                if candidate[0] in prev_community[0]:
+                                # prev_topD_communities_withColumn_unique = [ [{289337379, 286963357}, [(290444528, 6)]]                                                                                          ]
+                                # prev_community =                            [{289337379, 286963357}, [(290444528, 6)]]
+                                # prev_topD_communities_withColumn_unique = [ [[287547470, 290076304], [(290076304, 6)]], [[290444528, 289175898], [(290076304, 6)]],, [[289337379, 289175898], [(288291314, 5)]] ]
+                                #                                             [[287547470, 290076304], [(290076304, 6)]]
+                                if candidate[0] in prev_community[0]:       # (290444528, 5)
                                     checklist_inMultipleCommunities.append(prev_community)
+                                    # checklist_inMultipleCommunities = [[{289337379, 286963357}, [(290444528, 6)]]]
+                                    #                                   [[[290444528, 289175898], [(290076304, 6)]], [[289337379, 289175898], [(288291314, 5)]]]
                             if len(checklist_inMultipleCommunities) == 1:
+
                                 new_topD = checklist_inMultipleCommunities[0][1][0][0]
 
                                 column_pos = [prev_topD[1] for prev_topD in topD_associ['window_{0}'.format((i-1) * 30)] if prev_topD[0] == new_topD]
 
                                 break
+                            elif len(checklist_inMultipleCommunities) >= 2:
+                                multi_community_edgeCase.append(checklist_inMultipleCommunities)
 
+
+                        if len(column_pos[0]) != 1:
+                            print(1 + 1)
+                            multi_community_edgeCase = [item for sublist in multi_community_edgeCase for item in sublist]
+                            print(multi_community_edgeCase)
+
+
+                            most_common =
+                            print(most_common)
+
+                            new_topD = multi_community_edgeCase[0][0][1][0][0]
+
+                            column_pos = [prev_topD[1] for prev_topD in topD_associ['window_{0}'.format((i - 1) * 30)] if prev_topD[0] == new_topD]
 
                 # CHECK IF PREVIOUS TOPDS ARE IDENTICAL. IF SO: TAKE THE SAME AS IN THE PREVIOUS DICT.
                 print(topD)
@@ -341,10 +381,10 @@ if __name__ == '__main__':
     #lp_labeled, lp_topD_associ= community_labeling(lp_tracing, lp_tracing_size, lp_topD)
 
     # Greedy Modularity #
-    gm_labeled, gm_topD_associ = community_labeling(gm_tracing, gm_tracing_size, gm_topD)
+    #gm_labeled, gm_topD_associ = community_labeling(gm_tracing, gm_tracing_size, gm_topD)
 
     # Kclique #
-    kclique_labeled, kclique_topD_associ = community_labeling(kclique_tracing, kclique_tracing_size, kclique_topD)
+    #kclique_labeled, kclique_topD_associ = community_labeling(kclique_tracing, kclique_tracing_size, kclique_topD)
 
     # Lais2 #
     lais2_labeled, lais2_topD_associ = community_labeling(lais2_tracing, lais2_tracing_size, lais2_topD)
@@ -371,13 +411,13 @@ if __name__ == '__main__':
         return visual_array
 
     # Label Propagation #
-    lp_visual = visual_array(lp_tracing, lp_topD_associ)
+    #lp_visual = visual_array(lp_tracing, lp_topD_associ)
 
     # Greedy Modularity #
-    gm_visual = visual_array(gm_tracing, gm_topD_associ)
+    #gm_visual = visual_array(gm_tracing, gm_topD_associ)
 
     # Kclique #
-    kclique_visual = visual_array(kclique_tracing, kclique_topD_associ)
+    #kclique_visual = visual_array(kclique_tracing, kclique_topD_associ)
 
     # Lais2 #
     lais2_visual = visual_array(lais2_tracing, lais2_topD_associ)
@@ -386,22 +426,22 @@ if __name__ == '__main__':
 
     filename = 'lp_labeled'
     outfile = open(filename, 'wb')
-    pk.dump(lp_labeled, outfile)
+    #pk.dump(lp_labeled, outfile)
     outfile.close()
 
     filename = 'gm_labeled'
     outfile = open(filename, 'wb')
-    pk.dump(gm_labeled, outfile)
+    #pk.dump(gm_labeled, outfile)
     outfile.close()
 
     filename = 'kclique_labeled'
     outfile = open(filename, 'wb')
-    pk.dump(kclique_labeled, outfile)
+    #pk.dump(kclique_labeled, outfile)
     outfile.close()
 
     filename = 'lais2_labeled'
     outfile = open(filename, 'wb')
-    pk.dump(lais2_labeled, outfile)
+    #pk.dump(lais2_labeled, outfile)
     outfile.close()
 
-
+    print(1+1)
