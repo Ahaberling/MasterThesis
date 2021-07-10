@@ -83,6 +83,11 @@ if __name__ == '__main__':
 
                 # sort and only take top D (here D = 1)
                 topD_candidate.sort(key=operator.itemgetter(1), reverse=True)
+
+                if len(topD) == 0:
+                    #1. take the higest degree node of the community in general
+                    #2. in a step somewhere below, inbetween: if two communities have the same topD, merge them
+
                 topD = topD_candidate[0:1]                              # If multiple, just take one (This can be optimized as well)
                 topD_window.append(topD)
 
