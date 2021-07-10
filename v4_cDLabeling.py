@@ -64,15 +64,9 @@ if __name__ == '__main__':
 
                 if len(community_counter) >= 2:
                     multi_community_patents.append(node)
-            print(multi_community_patents)
-            print(i)
 
             for community in cd_window:
                 topD_candidate = []
-                print(i, i)
-                if community == [288766563, 290076304, 290106123, 291465230]:
-                    print(1+1)
-                    print(i, i, i)
 
                 for patent in community:
 
@@ -81,13 +75,15 @@ if __name__ == '__main__':
                         #1+1
                         topD_candidate.append((patent, topicSim['window_{0}'.format(i * 30)].degree(patent)))
 
+                if len(topD_candidate) == 0:
+
+                    for patent in community:
+
+                        # get all degrees of all nodes
+                        topD_candidate.append((patent, topicSim['window_{0}'.format(i * 30)].degree(patent)))
+
                 # sort and only take top D (here D = 1)
                 topD_candidate.sort(key=operator.itemgetter(1), reverse=True)
-
-                if len(topD) == 0:
-                    #1. take the higest degree node of the community in general
-                    #2. in a step somewhere below, inbetween: if two communities have the same topD, merge them
-
                 topD = topD_candidate[0:1]                              # If multiple, just take one (This can be optimized as well)
                 topD_window.append(topD)
 
@@ -106,20 +102,59 @@ if __name__ == '__main__':
 
 
     # label propagation #
-    #lp_topD = identify_topD(lp_clean)
+    lp_topD = identify_topD(lp_clean)
 
     # greedy_modularity #
-    #gm_topD = identify_topD(gm_clean)
+    gm_topD = identify_topD(gm_clean)
 
     # kclique #
-    #kclique_topD = identify_topD(kclique_clean)
+    kclique_topD = identify_topD(kclique_clean)
 
     # lais2 #
     lais2_topD = identify_topD(lais2_clean)
 
 
-    # FOR OVERLAPPING: CHECK IF THERE IS A WINDOW WHERE ONE TOPD IDENTIFIES TWO COMMUNITIES. IF SO: LET ONE COMMUNITY BE IDENTIFIED BY
-    # THE SECOND HIGEST DEGREE THAT IS ONLY IN ONE COMMUNITY!
+# --- Mainly for Lais2: merge communities with same topd ---#
+
+# lais2 contains communities for which all patents are part of other communities as well.
+# Limitation: This can only be resonably be handled for now by merging these communities
+# with the community the highest degree node is part of as well.
+# this can be handled a lot better in future works
+
+    print(lais2_topD)
+
+    def merging_completly_overlapping_communities(cd_topD):
+        merged_dic = {}
+
+        for window_id, window in cd_topD.items():
+            all_topD = []
+            for community in window:
+                all_topD.append(community[1][0][0])
+
+            community_unique, community_unique_index, community_unique_count = np.unique(all_topD, return_index=True, return_count=True)
+
+            # keep only the one with count >= 2
+            # look for all these communities in the window and replace them by one over all community
+
+            '''
+            print(community_unique)
+            print(community_unique_index)
+            print(community_unique_count)
+            
+            zipped_lists = zip(community_unique_index, community_unique_count, community_unique)
+            sorted_pairs = sorted(zipped_lists)
+
+            tuples = zip(*sorted_pairs)
+            index_sorted, count_sorted, unique_sorted = [list(tuple) for tuple in tuples]
+            print(unique_sorted)
+            print(index_sorted)
+            print(count_sorted)
+            '''
+
+        return merged_dic
+
+    lais2_topD = merging_completly_overlapping_communities(lais2_topD)
+
 
 #---  Community Tracing ---#
 
@@ -133,13 +168,13 @@ if __name__ == '__main__':
 
 
     # label propagation #
-    #lp_max_number_community = max_number_community(lp_topD)
+    lp_max_number_community = max_number_community(lp_topD)
 
     # greedy_modularity #
-    #gm_max_number_community = max_number_community(gm_topD)
+    gm_max_number_community = max_number_community(gm_topD)
 
     # kclique #
-    #kclique_max_number_community = max_number_community(kclique_topD)
+    kclique_max_number_community = max_number_community(kclique_topD)
 
     # lais2 #
     lais2_max_number_community = max_number_community(lais2_topD)
@@ -201,14 +236,6 @@ if __name__ == '__main__':
             # Part2: Create new communitiy entries if tracing did not create them #
             for community in current_window:
 
-                print(community)            # [{288766563, 290106123, 291465230, 290076304, 289730801, 290720988}, [(291465230, 4)]]
-                print(community[1])         # [(291465230, 4)]
-                print(community[1][0])      # (291465230, 4)
-                print(community[1][0][0])   # 291465230
-
-                # [[288766563, 290076304, 290106123, 291465230], []]
-                # []
-
                 community_identifier = community[1][0][0]
 
                 if community_identifier not in community_tracing_array[row]:
@@ -236,13 +263,13 @@ if __name__ == '__main__':
 
 
     # label propagation #
-    #lp_tracing, lp_tracing_size = tracing_array(lp_max_number_community, lp_topD)
+    lp_tracing, lp_tracing_size = tracing_array(lp_max_number_community, lp_topD)
 
     # greedy_modularity #
-    #gm_tracing, gm_tracing_size = tracing_array(gm_max_number_community, gm_topD)
+    gm_tracing, gm_tracing_size = tracing_array(gm_max_number_community, gm_topD)
 
     # kclique #
-    #kclique_tracing, kclique_tracing_size = tracing_array(kclique_max_number_community, kclique_topD)
+    kclique_tracing, kclique_tracing_size = tracing_array(kclique_max_number_community, kclique_topD)
 
     # lais2 #
     lais2_tracing, lais2_tracing_size = tracing_array(lais2_max_number_community, lais2_topD)
@@ -390,13 +417,13 @@ if __name__ == '__main__':
         return cd_labeled, topD_associ
 
     # Label Propagation #
-    #lp_labeled, lp_topD_associ= community_labeling(lp_tracing, lp_tracing_size, lp_topD)
+    lp_labeled, lp_topD_associ= community_labeling(lp_tracing, lp_tracing_size, lp_topD)
 
     # Greedy Modularity #
-    #gm_labeled, gm_topD_associ = community_labeling(gm_tracing, gm_tracing_size, gm_topD)
+    gm_labeled, gm_topD_associ = community_labeling(gm_tracing, gm_tracing_size, gm_topD)
 
     # Kclique #
-    #kclique_labeled, kclique_topD_associ = community_labeling(kclique_tracing, kclique_tracing_size, kclique_topD)
+    kclique_labeled, kclique_topD_associ = community_labeling(kclique_tracing, kclique_tracing_size, kclique_topD)
 
     # Lais2 #
     lais2_labeled, lais2_topD_associ = community_labeling(lais2_tracing, lais2_tracing_size, lais2_topD)
@@ -423,13 +450,13 @@ if __name__ == '__main__':
         return visual_array
 
     # Label Propagation #
-    #lp_visual = visual_array(lp_tracing, lp_topD_associ)
+    lp_visual = visual_array(lp_tracing, lp_topD_associ)
 
     # Greedy Modularity #
-    #gm_visual = visual_array(gm_tracing, gm_topD_associ)
+    gm_visual = visual_array(gm_tracing, gm_topD_associ)
 
     # Kclique #
-    #kclique_visual = visual_array(kclique_tracing, kclique_topD_associ)
+    kclique_visual = visual_array(kclique_tracing, kclique_topD_associ)
 
     # Lais2 #
     lais2_visual = visual_array(lais2_tracing, lais2_topD_associ)
