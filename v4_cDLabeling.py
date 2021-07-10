@@ -131,7 +131,19 @@ if __name__ == '__main__':
             for community in window:
                 all_topD.append(community[1][0][0])
 
-            community_unique, community_unique_index, community_unique_count = np.unique(all_topD, return_index=True, return_count=True)
+            communites_unique, communites_unique_index, communities_unique_count = np.unique(all_topD, return_index=True, return_count=True)
+
+            communites_non_unique = communites_unique[communities_unique_count >= 2]
+
+            for community_non_unique in communites_non_unique:
+                non_unique_pos = np.where(window == community_non_unique)
+
+                tobeMerged = community[non_unique_pos]
+
+                normal_communities = [n for community in nums if n not in exclude]
+
+
+
 
             # keep only the one with count >= 2
             # look for all these communities in the window and replace them by one over all community
