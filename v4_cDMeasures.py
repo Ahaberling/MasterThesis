@@ -98,6 +98,7 @@ if __name__ == '__main__':
 
         return cd_recombination_dic
 
+
     def find_recombinations_overlapping(cd_labeled):
         cd_recombination_dic = {}
 
@@ -106,40 +107,34 @@ if __name__ == '__main__':
 
             for patent in topicSim[window_id].nodes():
 
-                patent_list = []
+                recombinations = []
                 for community in window:
-
-
                     if patent in community[0]:
-                        patent_list.append((patent, community[1]))
+                        community_id = community[1]
+                        recombinations.append([patent, community_id])
 
-                if len(patent_list) >= 2:
-                    community_ids = [community[1][0] for community in cd_labeled[window_id]]
+                if len(recombinations) >= 2:
 
+                    community_id_list = []
+                    for tuple in recombinations:
 
-                    if len(community_ids) != len(np.unique(community_ids)):
+                        community_id_list.append(tuple[1][0])
 
-                        print(window_id)
-                        print(cd_labeled[window_id])
-                        print(community_ids)
-                    recombination_list.append(patent_list)      # these community ids are often identical- Shoulnd I want community ides to be unique per window????
+                    recombination_list.append((recombinations[0][0], community_id_list))
 
             cd_recombination_dic[window_id] = recombination_list
 
         return cd_recombination_dic
 
-    # window_4470, window_4500, window_4530
     lp_recombinations = find_recombinations_crisp(lp_labeled)
     gm_recombinations = find_recombinations_crisp(gm_labeled)
 
     kclique_recombinations = find_recombinations_overlapping(kclique_labeled)
     lais2_recombinations = find_recombinations_overlapping(lais2_labeled)
-    #print(kclique_recombinations)
-    #print(lp_recombinations)
-    #print(gm_recombinations)
 
-    #print(lp_recombinations['window_450'])
 
+
+# check if all cd_labeled are label unique in its windows!
 
     ### Recombination Threshold ###
 
