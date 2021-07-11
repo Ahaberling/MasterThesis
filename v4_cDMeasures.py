@@ -119,6 +119,7 @@ if __name__ == '__main__':
                     for tuple in recombinations:
 
                         community_id_list.append(tuple[1][0])
+                        # work here
 
                     recombination_list.append((recombinations[0][0], community_id_list))
 
