@@ -312,13 +312,18 @@ if __name__ == '__main__':
         topD_dic = {}
 
         for row in range(len(cd_tracing)):
+
             topD_dic['window_{0}'.format(row * 30)] = np.unique(cd_tracing[row, :])[1:]
 
         ### Create dict that associates a topD identifier with a stable community id (column number) for each window ###
         topD_associ = {}
 
         for i in range(len(topD_dic)):
+            if i * 30 == 4470:
+                print(1+1)
+
             tuple_list = []
+            #                             (412413192, 337)  (412862058, 338)  (413103388, 328)  (416974172, 330)  (418775075, 339)  (419259320, 330)
 
             for topD in topD_dic['window_{0}'.format(i * 30)]:
 
@@ -389,11 +394,24 @@ if __name__ == '__main__':
 
                             if len(checklist_inMultipleCommunities) == 1:
 
+                                #print(checklist_inMultipleCommunities)
+                                #print(checklist_inMultipleCommunities[0])
+                                #print(checklist_inMultipleCommunities[0][1])
+                                #print(checklist_inMultipleCommunities[0][1][0])
+                                #print(checklist_inMultipleCommunities[0][1][0][0])
+
                                 new_topD = checklist_inMultipleCommunities[0][1][0][0]
 
+                                #if new_topD not in topD_dic['window_{0}'.format((i+1) * 30)]:
+
                                 column_pos = [prev_topD[1] for prev_topD in topD_associ['window_{0}'.format((i-1) * 30)] if prev_topD[0] == new_topD]
+                                print(new_topD)
+                                print(topD_dic['window_{0}'.format((i + 1) * 30)])
+                                print(column_pos)
+
 
                                 break
+
                             elif len(checklist_inMultipleCommunities) >= 2:
                                 multi_community_edgeCase.append(checklist_inMultipleCommunities)
 
@@ -418,6 +436,12 @@ if __name__ == '__main__':
 
                                 multi_community_edgeCase_count.sort(key=operator.itemgetter(1), reverse=True)
 
+                                #print(multi_community_edgeCase_count)
+                                #print(multi_community_edgeCase_count[0])
+                                #print(multi_community_edgeCase_count[0][0])
+                                #print(multi_community_edgeCase_count[0][0][1])
+                                #print(multi_community_edgeCase_count[0][0][1][0])
+                                #print(multi_community_edgeCase_count[0][0][1][0][0])
                                 new_topD = multi_community_edgeCase_count[0][0][1][0][0]
 
                                 column_pos = [prev_topD[1] for prev_topD in topD_associ['window_{0}'.format((i - 1) * 30)] if prev_topD[0] == new_topD]
@@ -445,14 +469,14 @@ if __name__ == '__main__':
         return cd_labeled, topD_associ
 
     # Label Propagation #
-    lp_labeled, lp_topD_associ= community_labeling(lp_tracing, lp_tracing_size, lp_topD)
+    #lp_labeled, lp_topD_associ= community_labeling(lp_tracing, lp_tracing_size, lp_topD)
 
     # Greedy Modularity #
-    gm_labeled, gm_topD_associ = community_labeling(gm_tracing, gm_tracing_size, gm_topD)
+    #gm_labeled, gm_topD_associ = community_labeling(gm_tracing, gm_tracing_size, gm_topD)
 
     # Kclique #
-    kclique_labeled, kclique_topD_associ = community_labeling(kclique_tracing, kclique_tracing_size, kclique_topD)
-
+    #kclique_labeled, kclique_topD_associ = community_labeling(kclique_tracing, kclique_tracing_size, kclique_topD)
+    #print(1+1)
     # Lais2 #
     lais2_labeled, lais2_topD_associ = community_labeling(lais2_tracing, lais2_tracing_size, lais2_topD)
 

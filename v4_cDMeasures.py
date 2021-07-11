@@ -127,7 +127,7 @@ if __name__ == '__main__':
 
         return cd_recombination_dic
 
-
+    # window_4470, window_4500, window_4530
     lp_recombinations = find_recombinations_crisp(lp_labeled)
     gm_recombinations = find_recombinations_crisp(gm_labeled)
 
