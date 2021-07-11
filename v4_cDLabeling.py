@@ -121,20 +121,20 @@ if __name__ == '__main__':
 # with the community the highest degree node is part of as well.
 # this can be handled a lot better in future works
 
-    #print(lais2_topD)
 
     def merging_completly_overlapping_communities(cd_topD):
         merged_dic = {}
 
         for window_id, window in cd_topD.items():
+
             new_window = []
             all_topD = []
             for community in window:
                 all_topD.append(community[1][0][0])
 
             communites_unique, communites_unique_index, communities_unique_count = np.unique(all_topD, return_index=True, return_counts=True)
-            if max(communities_unique_count) >= 2:
-                print(1+1)
+            #if max(communities_unique_count) >= 2:
+                #print(1+1)
 
             communites_non_unique = communites_unique[communities_unique_count >= 2]
             communites_unique_exclusive = communites_unique[communities_unique_count == 1]
@@ -148,14 +148,18 @@ if __name__ == '__main__':
                 for pos in non_unique_pos[0]:
                     toBeMerged.append(window[pos])
 
-                merged_community = toBeMerged[0]
+                toBeMerged_len = [(community, len(community[0])) for community in toBeMerged]
+                toBeMerged_len.sort(key=operator.itemgetter(1), reverse=True)
+                toBeMerged_sort = [community[0] for community in toBeMerged_len]
+                merged_community = toBeMerged_sort[0]
 
-                for community in toBeMerged[1:]:
+                for community in toBeMerged_sort[1:]:
                     for patent in community[0]:
                         if patent not in merged_community[0]:
-                            print(patent)
                             merged_community[0].append(patent)
 
+                            # [[282911021, 283400389, 283460432, 283731668, 283988244, 284174115, 284201343, 284255419, 285349637, 285854177, 286019050, 286710232, 286800270], [(285349637, 13)]]
+                            # 286068579
                 merged_communities.append(merged_community)
 
             normal_communities = []
@@ -171,17 +175,14 @@ if __name__ == '__main__':
             if len(merged_communities) != 0:
                 new_window.append(merged_communities)
 
-                print(window)
-                print(new_window)
 
-            merged_dic[window_id] = new_window
+            merged_dic[window_id] = new_window[0]
 
         return merged_dic
 
+
     lais2_topD = merging_completly_overlapping_communities(lais2_topD)
 
-# is lais2_topD the same format as before?
-# are there any communities merged, that are not strikt subsets of bigger communities?
 
 #---  Community Tracing ---#
 
@@ -492,22 +493,22 @@ if __name__ == '__main__':
 
     filename = 'lp_labeled'
     outfile = open(filename, 'wb')
-    #pk.dump(lp_labeled, outfile)
+    pk.dump(lp_labeled, outfile)
     outfile.close()
 
     filename = 'gm_labeled'
     outfile = open(filename, 'wb')
-    #pk.dump(gm_labeled, outfile)
+    pk.dump(gm_labeled, outfile)
     outfile.close()
 
     filename = 'kclique_labeled'
     outfile = open(filename, 'wb')
-    #pk.dump(kclique_labeled, outfile)
+    pk.dump(kclique_labeled, outfile)
     outfile.close()
 
     filename = 'lais2_labeled'
     outfile = open(filename, 'wb')
-    #pk.dump(lais2_labeled, outfile)
+    pk.dump(lais2_labeled, outfile)
     outfile.close()
 
 

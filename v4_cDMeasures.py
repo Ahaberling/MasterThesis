@@ -114,8 +114,13 @@ if __name__ == '__main__':
                         patent_list.append((patent, community[1]))
 
                 if len(patent_list) >= 2:
-                    print(window_id)
-                    print(cd_labeled[window_id])
+                    community_ids = [community[1][0] for community in cd_labeled[window_id]]
+
+                    if len(community_ids) != len(np.unique(community_ids)):
+
+                        print(window_id)
+                        print(cd_labeled[window_id])
+                        print(community_ids)
                     recombination_list.append(patent_list)      # these community ids are often identical- Shoulnd I want community ides to be unique per window????
 
             cd_recombination_dic[window_id] = recombination_list
@@ -127,9 +132,8 @@ if __name__ == '__main__':
     gm_recombinations = find_recombinations_crisp(gm_labeled)
 
     kclique_recombinations = find_recombinations_overlapping(kclique_labeled)
-    print(kclique_recombinations)
     lais2_recombinations = find_recombinations_overlapping(lais2_labeled)
-
+    print(kclique_recombinations)
     #print(lp_recombinations)
     #print(gm_recombinations)
 
