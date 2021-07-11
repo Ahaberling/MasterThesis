@@ -121,52 +121,67 @@ if __name__ == '__main__':
 # with the community the highest degree node is part of as well.
 # this can be handled a lot better in future works
 
-    print(lais2_topD)
+    #print(lais2_topD)
 
     def merging_completly_overlapping_communities(cd_topD):
         merged_dic = {}
 
         for window_id, window in cd_topD.items():
+            new_window = []
             all_topD = []
             for community in window:
                 all_topD.append(community[1][0][0])
 
-            communites_unique, communites_unique_index, communities_unique_count = np.unique(all_topD, return_index=True, return_count=True)
+            communites_unique, communites_unique_index, communities_unique_count = np.unique(all_topD, return_index=True, return_counts=True)
+            if max(communities_unique_count) >= 2:
+                print(1+1)
 
             communites_non_unique = communites_unique[communities_unique_count >= 2]
+            communites_unique_exclusive = communites_unique[communities_unique_count == 1]
 
+            merged_communities = []
             for community_non_unique in communites_non_unique:
-                non_unique_pos = np.where(window == community_non_unique)
 
-                tobeMerged = community[non_unique_pos]
+                non_unique_pos = np.where(all_topD == community_non_unique)
 
-                normal_communities = [n for community in nums if n not in exclude]
+                toBeMerged = []
+                for pos in non_unique_pos[0]:
+                    toBeMerged.append(window[pos])
 
+                merged_community = toBeMerged[0]
 
+                for community in toBeMerged[1:]:
+                    for patent in community[0]:
+                        if patent not in merged_community[0]:
+                            print(patent)
+                            merged_community[0].append(patent)
 
+                merged_communities.append(merged_community)
 
-            # keep only the one with count >= 2
-            # look for all these communities in the window and replace them by one over all community
+            normal_communities = []
 
-            '''
-            print(community_unique)
-            print(community_unique_index)
-            print(community_unique_count)
-            
-            zipped_lists = zip(community_unique_index, community_unique_count, community_unique)
-            sorted_pairs = sorted(zipped_lists)
+            for community_unique in communites_unique_exclusive:
 
-            tuples = zip(*sorted_pairs)
-            index_sorted, count_sorted, unique_sorted = [list(tuple) for tuple in tuples]
-            print(unique_sorted)
-            print(index_sorted)
-            print(count_sorted)
-            '''
+                unique_pos = np.where(all_topD == community_unique)
+
+                normal_communities.append(window[unique_pos[0][0]])
+
+            new_window.append(normal_communities)
+
+            if len(merged_communities) != 0:
+                new_window.append(merged_communities)
+
+                print(window)
+                print(new_window)
+
+            merged_dic[window_id] = new_window
 
         return merged_dic
 
     lais2_topD = merging_completly_overlapping_communities(lais2_topD)
 
+# is lais2_topD the same format as before?
+# are there any communities merged, that are not strikt subsets of bigger communities?
 
 #---  Community Tracing ---#
 
