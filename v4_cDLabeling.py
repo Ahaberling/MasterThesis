@@ -319,8 +319,8 @@ if __name__ == '__main__':
         topD_associ = {}
 
         for i in range(len(topD_dic)):
-            if i * 30 == 4470:
-                print(1+1)
+            #if i * 30 == 4470:
+                #print(1+1)
 
             tuple_list = []
             #                             (412413192, 337)  (412862058, 338)  (413103388, 328)  (416974172, 330)  (418775075, 339)  (419259320, 330)
@@ -359,7 +359,8 @@ if __name__ == '__main__':
                         prev_topD_communities_withColumn = []
 
                         for prev_topD in prev_topDs_withColumn:
-                            communities = [(community, prev_topD[1]) for community in cd_topD['window_{0}'.format((i-1) * 30)] if prev_topD[0] in community[0]]
+                            #communities = [(community, prev_topD[1]) for community in cd_topD['window_{0}'.format((i-1) * 30)] if prev_topD[0] in community[0]]
+                            communities = [(community, prev_topD[1]) for community in cd_topD['window_{0}'.format((i-1) * 30)] if prev_topD[0] == community[1][0][0]]
 
                             if len(communities) >= 2:
                                 for community in communities:
@@ -405,9 +406,9 @@ if __name__ == '__main__':
                                 #if new_topD not in topD_dic['window_{0}'.format((i+1) * 30)]:
 
                                 column_pos = [prev_topD[1] for prev_topD in topD_associ['window_{0}'.format((i-1) * 30)] if prev_topD[0] == new_topD]
-                                print(new_topD)
-                                print(topD_dic['window_{0}'.format((i + 1) * 30)])
-                                print(column_pos)
+                                #print(new_topD)
+                                #print(topD_dic['window_{0}'.format((i + 1) * 30)])
+                                #print(column_pos)
 
 
                                 break
@@ -469,13 +470,13 @@ if __name__ == '__main__':
         return cd_labeled, topD_associ
 
     # Label Propagation #
-    #lp_labeled, lp_topD_associ= community_labeling(lp_tracing, lp_tracing_size, lp_topD)
+    lp_labeled, lp_topD_associ= community_labeling(lp_tracing, lp_tracing_size, lp_topD)
 
     # Greedy Modularity #
-    #gm_labeled, gm_topD_associ = community_labeling(gm_tracing, gm_tracing_size, gm_topD)
+    gm_labeled, gm_topD_associ = community_labeling(gm_tracing, gm_tracing_size, gm_topD)
 
     # Kclique #
-    #kclique_labeled, kclique_topD_associ = community_labeling(kclique_tracing, kclique_tracing_size, kclique_topD)
+    kclique_labeled, kclique_topD_associ = community_labeling(kclique_tracing, kclique_tracing_size, kclique_topD)
     #print(1+1)
     # Lais2 #
     lais2_labeled, lais2_topD_associ = community_labeling(lais2_tracing, lais2_tracing_size, lais2_topD)

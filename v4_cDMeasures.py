@@ -116,6 +116,7 @@ if __name__ == '__main__':
                 if len(patent_list) >= 2:
                     community_ids = [community[1][0] for community in cd_labeled[window_id]]
 
+
                     if len(community_ids) != len(np.unique(community_ids)):
 
                         print(window_id)
@@ -133,7 +134,7 @@ if __name__ == '__main__':
 
     kclique_recombinations = find_recombinations_overlapping(kclique_labeled)
     lais2_recombinations = find_recombinations_overlapping(lais2_labeled)
-    print(kclique_recombinations)
+    #print(kclique_recombinations)
     #print(lp_recombinations)
     #print(gm_recombinations)
 
