@@ -47,6 +47,31 @@ if __name__ == '__main__':
         lais2_clean = pk.load(handle)
 
 
+#--- Make sure community ids are unique in each window ---#
+
+    def is_community_id_unique(cd_labeled):
+
+        for window_id, window in cd_labeled.items():
+
+            id_list = []
+            for community in window:
+
+                id_list.append(community[1][0])
+
+            if len(id_list) != len(np.unique(id_list)):
+                print('PROBLEM:')
+                print(id_list)
+                print(window_id)
+                print(window)
+
+        print('done')
+        return
+
+    is_community_id_unique(lp_labeled)
+    is_community_id_unique(gm_labeled)
+    is_community_id_unique(kclique_labeled)
+    is_community_id_unique(lais2_labeled)
+
 #--- Finding Recombination ---#
 
 
@@ -119,9 +144,21 @@ if __name__ == '__main__':
                     for tuple in recombinations:
 
                         community_id_list.append(tuple[1][0])
-                        # work here
 
-                    recombination_list.append((recombinations[0][0], community_id_list))
+                    community_id_list.sort()
+
+                    #if len(community_id_list) >= 3:
+                        #print(community_id_list)
+
+                    community_id_list_comb = list(itertools.combinations(community_id_list, r=2))
+
+                    for i in community_id_list_comb:
+                        recombination_list.append((recombinations[0][0], i))
+
+            helper = []
+            for j in recombination_list:
+                if j not in helper:
+                    helper.append(j)
 
             cd_recombination_dic[window_id] = recombination_list
 
@@ -140,7 +177,7 @@ if __name__ == '__main__':
     ### Recombination Threshold ###
 
 
-    def recombination_threshold(cd_recombinations, threshold_constant):
+    def recombination_threshold_crisp(cd_recombinations, threshold_constant):
 
         recombination_threshold = {}
 
@@ -205,14 +242,63 @@ if __name__ == '__main__':
 
         return recombination_threshold
 
-    lp_recombination_threshold = recombination_threshold(lp_recombinations, 0.005)
-    gm_recombination_threshold = recombination_threshold(gm_recombinations, 0.005)
+    def recombination_threshold_overlapping(cd_recombinations, threshold_constant):
+        recombination_threshold = {}
 
-    #print(lp_recombination_threshold)      #((839, 811), 1, 0)
-    #print(lp_recombination_threshold['window_450'])
+        for window_id, window in cd_recombinations.items():
+            recombination_types_plusCount = []
+
+           #if window_id == 'window_450':
+                #print(1+1)
+
+            if len(window) != 0:
+
+                total_number_patents = len(topicSim[window_id].nodes())
+                recombination_types = []
+
+                for recombination in window:
+
+                    if recombination[1][0] <= recombination[1][1]:          # probably not necessary anymore, because it was sorted in the pre function as well
+                        community_id1 = recombination[1][0]                      #
+                        community_id2 = recombination[1][1]
+                    else:
+                        community_id1 = recombination[1][1]
+                        community_id2 = recombination[1][0]
+
+                    recombination_types.append((community_id1, community_id2))
+
+                recombination_types_unique, index, count = np.unique(recombination_types, axis=0, return_counts=True, return_index=True)
+
+                fraction = [x / total_number_patents for x in count]
+
+                threshold_meet_list = []
+
+                for i in range(len(fraction)):
+                    threshold_meet = 0  # default
+                    if fraction[i] >= threshold_constant:
+                        threshold_meet = 1
+
+                    threshold_meet_list.append(threshold_meet)
+
+                for i in range(len(recombination_types_unique)):
+                    recombination_types_plusCount.append((tuple(recombination_types_unique[i]), count[i], threshold_meet_list[i]))  # , fraction[i]))
+                    # print(recombination_types_plusCount)
+
+            recombination_threshold[window_id] = recombination_types_plusCount
+
+        return recombination_threshold
+
+    lp_recombination_threshold = recombination_threshold_crisp(lp_recombinations, 0.005)
+    gm_recombination_threshold = recombination_threshold_crisp(gm_recombinations, 0.005)
+
+    kclique_recombination_threshold = recombination_threshold_overlapping(kclique_recombinations, 0.005)
+    lais2_recombination_threshold = recombination_threshold_overlapping(lais2_recombinations, 0.005)
+
+    print(kclique_recombination_threshold['window_4500'])      #((839, 811), 1, 0)
+    print(lais2_recombination_threshold['window_4500'])
 
     ###  ###
-    def enrich_recombinations_dic_with_thresholds(cd_recombinations, cd_recombination_threshold):
+    def enrich_recombinations_dic_with_thresholds_crips(cd_recombinations, cd_recombination_threshold):
 
         recombinations_dic_with_thresholds = {}
 
@@ -220,7 +306,7 @@ if __name__ == '__main__':
 
             new_window = []
             for recombination in window:
-
+                #print(recombination)
                 community_id1 = recombination[1][0][1][0]
                 community_id2 = recombination[1][1][1][0]
 
@@ -239,11 +325,44 @@ if __name__ == '__main__':
 
         return recombinations_dic_with_thresholds
 
+    def enrich_recombinations_dic_with_thresholds_overlapping(cd_recombinations, cd_recombination_threshold):
+        recombinations_dic_with_thresholds = {}
+
+        for window_id, window in cd_recombinations.items():
+
+            new_window = []
+            for recombination in window:
+                community_id1 = recombination[1][0]
+                community_id2 = recombination[1][1]
+
+                recombination_value = list(recombination)
+
+            for recombination_threshold in cd_recombination_threshold[window_id]:
+                if recombination_threshold[0] == (community_id1, community_id2):
+
+                    count = recombination_threshold[1]
+                    threshold = recombination_threshold[2]
+
+                    recombination_value.append(count)
+                    recombination_value.append(threshold)
+
+                new_window.append(recombination_value)
+                recombinations_dic_with_thresholds[window_id] = new_window
+
+        return recombinations_dic_with_thresholds
+
         # a dict like cd_recombination_dic, but with an additional entry per recombination list. the additional entry indicates if a threshold was meet
 
-    lp_recombinations_enriched = enrich_recombinations_dic_with_thresholds(lp_recombinations, lp_recombination_threshold)
+    lp_recombinations_enriched = enrich_recombinations_dic_with_thresholds_crips(lp_recombinations, lp_recombination_threshold)
+    gm_recombinations_enriched = enrich_recombinations_dic_with_thresholds_crips(gm_recombinations, gm_recombination_threshold)
 
-    #print(lp_recombinations_enriched['window_450'])
+    kclique_recombinations_enriched = enrich_recombinations_dic_with_thresholds_overlapping(kclique_recombinations, kclique_recombination_threshold)
+    lais2_recombinations_enriched = enrich_recombinations_dic_with_thresholds_overlapping(lais2_recombinations, lais2_recombination_threshold)
+
+    print(lp_recombinations_enriched['window_4500'])
+    print(gm_recombinations_enriched['window_4500'])
+    print(kclique_recombinations_enriched['window_4500'])
+    print(lais2_recombinations_enriched['window_4500'])
 
 
 
