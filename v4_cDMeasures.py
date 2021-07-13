@@ -294,8 +294,6 @@ if __name__ == '__main__':
     kclique_recombination_threshold = recombination_threshold_overlapping(kclique_recombinations, 0.005)
     lais2_recombination_threshold = recombination_threshold_overlapping(lais2_recombinations, 0.005)
 
-    print(kclique_recombination_threshold['window_4500'])      #((839, 811), 1, 0)
-    print(lais2_recombination_threshold['window_4500'])
 
     ###  ###
     def enrich_recombinations_dic_with_thresholds_crips(cd_recombinations, cd_recombination_threshold):
@@ -359,25 +357,29 @@ if __name__ == '__main__':
     kclique_recombinations_enriched = enrich_recombinations_dic_with_thresholds_overlapping(kclique_recombinations, kclique_recombination_threshold)
     lais2_recombinations_enriched = enrich_recombinations_dic_with_thresholds_overlapping(lais2_recombinations, lais2_recombination_threshold)
 
-    print(lp_recombinations_enriched['window_4500'])
-    print(gm_recombinations_enriched['window_4500'])
-    print(kclique_recombinations_enriched['window_4500'])
-    print(lais2_recombinations_enriched['window_4500'])
 
 
 
 
-#--- Constructing Diffusion Array ---#
+#--- Saving ---#
 
-    #1. Compute all recombinations present in data
-    #2. span np.arrays
-    #3. fill np array either with count or threshold
-    #4. present way to query it for long strings of 1
+    filename = 'lp_recombinations'
+    outfile = open(filename, 'wb')
+    pk.dump(lp_recombinations_enriched, outfile)
+    outfile.close()
 
+    filename = 'gm_recombinations'
+    outfile = open(filename, 'wb')
+    pk.dump(gm_recombinations_enriched, outfile)
+    outfile.close()
 
+    filename = 'kclique_recombinations'
+    outfile = open(filename, 'wb')
+    pk.dump(kclique_recombinations_enriched, outfile)
+    outfile.close()
 
+    filename = 'lais2_recombinations'
+    outfile = open(filename, 'wb')
+    pk.dump(lais2_recombinations_enriched, outfile)
+    outfile.close()
 
-#--- Recombination in Overlapping CD---#
-
-    #1. Make Recombination Dic
-    #2. Make diffusion patten array
