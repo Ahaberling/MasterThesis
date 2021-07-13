@@ -71,7 +71,7 @@ if __name__ == '__main__':
 
         column_length = max(community_ids_all)
 
-        cd_singleDiffusion = np.zeros((row_length, column_length), dtype=float)
+        cd_singleDiffusion = np.zeros((row_length, column_length), dtype=int)
 
         for i in range(len(cd_singleDiffusion)):
             for j in range(len(cd_singleDiffusion.T)):
@@ -88,17 +88,34 @@ if __name__ == '__main__':
 
     def recombination_diffusion(cd_recombinations):
 
+        row_length = len(cd_recombinations)
 
+        recombinations_dic = {}
+        recombinations_all = []
+        for window_id, window in cd_recombinations.items():
+            recombinations_window = []
+            for recombination in window:
+                community_id1 = recombination[1][0][1][0]
+                community_id2 = recombination[1][1][1][0]
+                recombinations_all.append((community_id1, community_id2))
+                recombinations_window.append((community_id1, community_id2))
+
+            recombinations_dic[window_id] = recombinations_window
+
+        column_length = len(np.unique(recombinations_all, axis=0))
+
+        cd_recombinationDiffusion_count = np.zeros((row_length, column_length), dtype=float)
+        cd_recombinationDiffusion_threshold = np.zeros((row_length, column_length), dtype=float)
 
         return
 
-    lp_recombinationDiffusion = single_diffusion(lp_recombinations)
-    gm_recombinationDiffusion = single_diffusion(gm_recombinations)
+    lp_recombinationDiffusion = recombination_diffusion(lp_recombinations)
+    #gm_recombinationDiffusion = recombination_diffusion(gm_recombinations)
 
-    kclique_recombinationDiffusion = single_diffusion(kclique_recombinations)
-    lais2_recombinationDiffusion = single_diffusion(lais2_recombinations)
+    #kclique_recombinationDiffusion = recombination_diffusion(kclique_recombinations)
+    #lais2_recombinationDiffusion = recombination_diffusion(lais2_recombinations)
 
-
+    #print(lp_recombinations)
 
 
 
