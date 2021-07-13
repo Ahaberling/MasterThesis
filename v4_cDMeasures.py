@@ -80,45 +80,46 @@ if __name__ == '__main__':
     def find_recombinations_crisp(cd_labeled):
         cd_recombination_dic = {}
 
-        for i in range(len(topicSim)-1):
-
-            t = set(topicSim['window_{0}'.format(i * 30)].nodes())
-            t_plus1 = set(topicSim['window_{0}'.format((i+1) * 30)].nodes())
-            new_patents = t_plus1.difference(t)
-
+        for i in range(len(topicSim)):
             window_list = []
 
-            for patent in new_patents:
-                neighbor_list = list(topicSim['window_{0}'.format((i+1) * 30)].neighbors(patent))
+            if i != 0:
+                t = set(topicSim['window_{0}'.format((i-1) * 30)].nodes())
+                t_plus1 = set(topicSim['window_{0}'.format(i * 30)].nodes())
+                new_patents = t_plus1.difference(t)
 
-                patent_list = []
+                for patent in new_patents:
+                    neighbor_list = list(topicSim['window_{0}'.format(i * 30)].neighbors(patent))
 
-                if len(neighbor_list) >=2:
+                    patent_list = []
 
-                    bridge_list = []
-                    already_found_community = []
+                    if len(neighbor_list) >=2:
 
-                    for neighbor in neighbor_list:
+                        bridge_list = []
+                        already_found_community = []
 
-                        for community in cd_labeled['window_{0}'.format((i+1) * 30)]:
+                        for neighbor in neighbor_list:
 
-                            #if set([neighbor]).issubset(community):
-                            if neighbor in community[0]:
-                                if community not in already_found_community:
-                                    bridge_list.append((neighbor, community[1]))
-                                    already_found_community.append(community)
+                            for community in cd_labeled['window_{0}'.format(i * 30)]:
 
-                    if len(bridge_list) >= 2:
-                        bridge_list.sort(key=operator.itemgetter(1))
-                        patent_list.append(bridge_list)
+                                #if set([neighbor]).issubset(community):
+                                if neighbor in community[0]:
+                                    if community not in already_found_community:
+                                        bridge_list.append((neighbor, community[1]))
+                                        already_found_community.append(community)
 
-                if len(patent_list) != 0:
-                    #window_list.append((patent, patent_list[0]))
-                    patent_list_comb = list(itertools.combinations(patent_list[0], r=2)) # sorting order is preserved here
-                    for comb in patent_list_comb:
-                        window_list.append([patent, comb])
+                        if len(bridge_list) >= 2:
+                            bridge_list.sort(key=operator.itemgetter(1))
+                            patent_list.append(bridge_list)
 
-            cd_recombination_dic['window_{0}'.format((i + 1) * 30)] = window_list # list of all patents that recombine  [[patent, [neighbor, neighbor]],...]
+                    if len(patent_list) != 0:
+                        #window_list.append((patent, patent_list[0]))
+                        patent_list_comb = list(itertools.combinations(patent_list[0], r=2)) # sorting order is preserved here
+                        for comb in patent_list_comb:
+                            window_list.append([patent, comb])
+
+            cd_recombination_dic['window_{0}'.format(i * 30)] = window_list # list of all patents that recombine  [[patent, [neighbor, neighbor]],...]
+
         #print(lp_recombination_dic)    # {'window_30': [], 'window_60': [], ...,  'window_300': [[287657442, [[287933459, 290076304]]], ...
 
         return cd_recombination_dic
@@ -169,7 +170,6 @@ if __name__ == '__main__':
 
     kclique_recombinations = find_recombinations_overlapping(kclique_labeled)
     lais2_recombinations = find_recombinations_overlapping(lais2_labeled)
-
 
 
 # check if all cd_labeled are label unique in its windows!
@@ -345,7 +345,7 @@ if __name__ == '__main__':
                     recombination_value.append(threshold)
 
                 new_window.append(recombination_value)
-                recombinations_dic_with_thresholds[window_id] = new_window
+            recombinations_dic_with_thresholds[window_id] = new_window
 
         return recombinations_dic_with_thresholds
 
@@ -354,10 +354,9 @@ if __name__ == '__main__':
     lp_recombinations_enriched = enrich_recombinations_dic_with_thresholds_crips(lp_recombinations, lp_recombination_threshold)
     gm_recombinations_enriched = enrich_recombinations_dic_with_thresholds_crips(gm_recombinations, gm_recombination_threshold)
 
+
     kclique_recombinations_enriched = enrich_recombinations_dic_with_thresholds_overlapping(kclique_recombinations, kclique_recombination_threshold)
     lais2_recombinations_enriched = enrich_recombinations_dic_with_thresholds_overlapping(lais2_recombinations, lais2_recombination_threshold)
-
-
 
 
 
