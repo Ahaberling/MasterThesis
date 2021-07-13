@@ -114,7 +114,7 @@ if __name__ == '__main__':
 
         recombinationDiffusion_count = np.zeros((row_length, column_length), dtype=float)
         recombinationDiffusion_fraction = np.zeros((row_length, column_length), dtype=float)
-        recombinationDiffusion_threshold = np.zeros((row_length, column_length), dtype=float)
+        #recombinationDiffusion_threshold = np.zeros((row_length, column_length), dtype=float)
 
         for i in range(len(recombinationDiffusion_count)):
             for j in range(len(recombinationDiffusion_count.T)):
@@ -175,22 +175,46 @@ if __name__ == '__main__':
     lais2_recombinationDiffusion_count, lais2_recombinationDiffusion_fraction, lais2_recombinationDiffusion_threshold = recombination_diffusion_overlapping(lais2_recombinations)
 
     np.set_printoptions(threshold=sys.maxsize)
-    #with np.set_printoptions(precision=2):
+    np.set_printoptions(precision=2)
     np.set_printoptions(suppress=True)
 
-    #print(lais2_recombinationDiffusion_count[0:99,0:24])
-    #print(lais2_recombinationDiffusion_fraction[0:99,0:24])
-    #print(lais2_recombinationDiffusion_threshold[0:99,0:24])
+    print(lp_recombinationDiffusion_count[0:99,0:24])
+    print(lp_recombinationDiffusion_fraction[0:99,0:24])
+    print(lp_recombinationDiffusion_threshold[0:99,0:24])
 
-    #print(np.size(lais2_recombinationDiffusion_count))
-    #print(sum(sum(lais2_recombinationDiffusion_count)))
-
-
+    print(np.size(lp_recombinationDiffusion_count))
+    print(sum(sum(lp_recombinationDiffusion_count)))
 
 
 
+# Diffusion is not working like this. The reason is that a recombination of B & C is lost if afterwards B megres with A
+# with A being the dominant community (giving both id A)
 
-#--- Recombination in Overlapping CD---#
+#How to solve this:
 
-    #1. Make Recombination Dic
-    #2. Make diffusion patten array
+    # 1. cleaning topD_dic
+    #
+    #   go through topD_dic.
+    #   if topD vanishes in t+1, but it's community id persists:
+    #       get all nodes of the community on t
+    #       get their life span
+    #       remove community id of every entry in topD_dic, once the life span is over
+
+    # 2. populating diffusion array:
+    #
+    #   x = all t
+    #   y = all recombinations (no change from what i have now)
+    #   for all columns:
+    #       for all rows:
+    #           big_community1 = community_list where tuple[0] is present (for this window)
+    #           big_community2 = community_list where tuple[1] is present (for this window)
+    #           overall_count = 0
+    #           for all recombinations:
+    #               if recombination[0] in big_community1:
+    #                   if recombination[1] in big_community2:
+    #                       overall_count = overall_count + 1
+    #                       break
+    #               elis: recombination[0] in big_community2:
+    #                   if recombination[1] in big_community1:
+    #                       overall_count = overall_count + 1
+    #                       break

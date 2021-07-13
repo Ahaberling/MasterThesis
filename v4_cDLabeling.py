@@ -310,22 +310,37 @@ if __name__ == '__main__':
 
         ### Create dict with all unique topD per window
         topD_dic = {}
+        topD_dic_unique = {}
 
         for row in range(len(cd_tracing)):
 
-            topD_dic['window_{0}'.format(row * 30)] = np.unique(cd_tracing[row, :])[1:]
+            topD_dic_unique['window_{0}'.format(row * 30)] = np.unique(cd_tracing[row, :])[1:]
+
+            # ---------#
+            # new approach #
+            topD_pos = {}
+            for i in range(len(cd_tracing[row, :])):
+                if cd_tracing[row,i] != 0:
+                    if cd_tracing[row,i] in topD_pos.keys():
+                        topD_pos[cd_tracing[row,i]].append(i)
+                    else:
+                        topD_pos[cd_tracing[row, i]] = [i]
+
+            print(topD_pos)
+            topD_dic['window_{0}'.format(row * 30)] = topD_pos
+            #---------#
 
         ### Create dict that associates a topD identifier with a stable community id (column number) for each window ###
         topD_associ = {}
 
-        for i in range(len(topD_dic)):
+        for i in range(len(topD_dic_unique)):
             #if i * 30 == 4470:
                 #print(1+1)
 
             tuple_list = []
             #                             (412413192, 337)  (412862058, 338)  (413103388, 328)  (416974172, 330)  (418775075, 339)  (419259320, 330)
 
-            for topD in topD_dic['window_{0}'.format(i * 30)]:
+            for topD in topD_dic_unique['window_{0}'.format(i * 30)]:
 
                 column_pos = np.where(cd_tracing[i, :] == topD)
 
@@ -467,19 +482,19 @@ if __name__ == '__main__':
 
             cd_labeled[window_id] = new_window
 
-        return cd_labeled, topD_associ
+        return cd_labeled, topD_associ, topD_dic
 
     # Label Propagation #
-    lp_labeled, lp_topD_associ= community_labeling(lp_tracing, lp_tracing_size, lp_topD)
+    lp_labeled, lp_topD_associ, lp_topD_dic = community_labeling(lp_tracing, lp_tracing_size, lp_topD)
 
     # Greedy Modularity #
-    gm_labeled, gm_topD_associ = community_labeling(gm_tracing, gm_tracing_size, gm_topD)
+    gm_labeled, gm_topD_associ, gm_topD_dic= community_labeling(gm_tracing, gm_tracing_size, gm_topD)
 
     # Kclique #
-    kclique_labeled, kclique_topD_associ = community_labeling(kclique_tracing, kclique_tracing_size, kclique_topD)
+    kclique_labeled, kclique_topD_associ, kclique_topD_dic = community_labeling(kclique_tracing, kclique_tracing_size, kclique_topD)
     #print(1+1)
     # Lais2 #
-    lais2_labeled, lais2_topD_associ = community_labeling(lais2_tracing, lais2_tracing_size, lais2_topD)
+    lais2_labeled, lais2_topD_associ, lais2_topD_dic = community_labeling(lais2_tracing, lais2_tracing_size, lais2_topD)
 
 
 
@@ -534,6 +549,27 @@ if __name__ == '__main__':
     filename = 'lais2_labeled'
     outfile = open(filename, 'wb')
     pk.dump(lais2_labeled, outfile)
+    outfile.close()
+
+
+    filename = 'lp_topD_dic'
+    outfile = open(filename, 'wb')
+    pk.dump(lp_topD_dic, outfile)
+    outfile.close()
+
+    filename = 'gm_topD_dic'
+    outfile = open(filename, 'wb')
+    pk.dump(gm_topD_dic, outfile)
+    outfile.close()
+
+    filename = 'kclique_topD_dic'
+    outfile = open(filename, 'wb')
+    pk.dump(kclique_topD_dic, outfile)
+    outfile.close()
+
+    filename = 'lais2_topD_dic'
+    outfile = open(filename, 'wb')
+    pk.dump(lais2_topD_dic, outfile)
     outfile.close()
 
 

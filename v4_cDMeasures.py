@@ -100,7 +100,7 @@ if __name__ == '__main__':
 
                         for neighbor in neighbor_list:
 
-                            for community in cd_labeled['window_{0}'.format(i * 30)]:
+                            for community in cd_labeled['window_{0}'.format((i-1) * 30)]:
 
                                 #if set([neighbor]).issubset(community):
                                 if neighbor in community[0]:
