@@ -326,8 +326,9 @@ if __name__ == '__main__':
                     else:
                         topD_pos[cd_tracing[row, i]] = [i]
 
-            print(topD_pos)
+            #print(topD_pos)
             topD_dic['window_{0}'.format(row * 30)] = topD_pos
+
             #---------#
 
         ### Create dict that associates a topD identifier with a stable community id (column number) for each window ###
@@ -529,6 +530,8 @@ if __name__ == '__main__':
     # Lais2 #
     lais2_visual = visual_array(lais2_tracing, lais2_topD_associ)
 
+
+
 #--- Saving ---#
 
     filename = 'lp_labeled'
@@ -570,6 +573,28 @@ if __name__ == '__main__':
     filename = 'lais2_topD_dic'
     outfile = open(filename, 'wb')
     pk.dump(lais2_topD_dic, outfile)
+    outfile.close()
+
+
+
+    filename = 'lp_topD'
+    outfile = open(filename, 'wb')
+    pk.dump(lp_topD, outfile)
+    outfile.close()
+
+    filename = 'gm_topD'
+    outfile = open(filename, 'wb')
+    pk.dump(gm_topD, outfile)
+    outfile.close()
+
+    filename = 'kclique_topD'
+    outfile = open(filename, 'wb')
+    pk.dump(kclique_topD, outfile)
+    outfile.close()
+
+    filename = 'lais2_topD'
+    outfile = open(filename, 'wb')
+    pk.dump(lais2_topD, outfile)
     outfile.close()
 
 

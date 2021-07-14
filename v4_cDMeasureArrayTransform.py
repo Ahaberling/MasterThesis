@@ -31,22 +31,110 @@ if __name__ == '__main__':
         lp_recombinations = pk.load(handle)
     with open('lp_labeled', 'rb') as handle:
         lp_labeled = pk.load(handle)
+    with open('lp_topD_dic', 'rb') as handle:
+        lp_topD_dic = pk.load(handle)
+    with open('lp_topD', 'rb') as handle:
+        lp_topD = pk.load(handle)
 
     with open('gm_recombinations', 'rb') as handle:
         gm_recombinations = pk.load(handle)
     with open('gm_labeled', 'rb') as handle:
         gm_labeled = pk.load(handle)
+    with open('gm_topD_dic', 'rb') as handle:
+        gm_topD_dic = pk.load(handle)
 
     with open('kclique_recombinations', 'rb') as handle:
         kclique_recombinations = pk.load(handle)
     with open('kclique_labeled', 'rb') as handle:
         kclique_labeled = pk.load(handle)
+    with open('kclique_topD_dic', 'rb') as handle:
+        kclique_topD_dic = pk.load(handle)
 
     with open('lais2_recombinations', 'rb') as handle:
         lais2_recombinations = pk.load(handle)
     with open('lais2_labeled', 'rb') as handle:
         lais2_labeled = pk.load(handle)
+    with open('lais2_topD_dic', 'rb') as handle:
+        lais2_topD_dic = pk.load(handle)
 
+
+# ---  cleaning topD_dic ---#
+
+
+    # 1. cleaning topD_dic
+    #
+    #   go through topD_dic.
+    #   if topD vanishes in t+1, but it's community id persists:
+    #       get all nodes of the community on t
+    #       get their life span
+    #       remove community id of every entry in topD_dic, once the life span is over
+
+
+    def cleaning_topD_dic(topD_dic, cd_topD):
+        merging_communities_dic = {}
+
+        for i in range(len(topD_dic.items())):
+
+            if i == 11:
+                print(1+1)
+
+            window_id = 'window_{0}'.format(i * 30)
+            window = topD_dic[window_id]
+
+            next_window_id = 'window_{0}'.format((i+1) * 30)
+            next_window = topD_dic[next_window_id]
+
+            swallowed_communities = []
+
+            if i != 0:
+
+                for topD in window.keys():
+
+                    if topD not in next_window.keys():
+                        print(window[topD])
+
+                        for community_id in window[topD]:
+
+                            next_window_values_flattend = [item for sublist in next_window.values() for item in sublist]
+
+                            if community_id in next_window_values_flattend:
+                                swallowed_communities.append([topD, community_id])
+
+
+                # get life time
+                # I want for every window a list of community_ids that are swallowd, and their death time
+                if len(swallowed_communities) != 0:
+                    for swallowed_community in swallowed_communities:
+                        if len(swallowed_community) != 0:
+                            for community in cd_topD[window_id]:
+
+                                if swallowed_community[0] == community[1][0][0]:
+                                    swallowed_community.append(community[0])
+                                    break
+                    print(swallowed_communities)
+
+                    for swallowed_community in swallowed_communities:
+                        community_death = False
+                        j = i
+
+                        while community_death == False:
+                            members = swallowed_community[2]
+                            for member in members:
+                                if member not in cd_topD['window_{0}'.format(j*30)]:
+                                    members.pop(member)
+                            j = j + 1
+                            if len(members) == 0:
+                                community_death = True
+
+                        swallowed_community.append(j)
+
+            merging_communities_dic[window_id] = swallowed_communities
+
+        return
+
+
+    lp_topD_dic_cleaned = cleaning_topD_dic(lp_topD_dic, lp_topD)
+    print(1+1)
 
 
 #--- Constructing Diffusion Array ---#
@@ -191,14 +279,6 @@ if __name__ == '__main__':
 # with A being the dominant community (giving both id A)
 
 #How to solve this:
-
-    # 1. cleaning topD_dic
-    #
-    #   go through topD_dic.
-    #   if topD vanishes in t+1, but it's community id persists:
-    #       get all nodes of the community on t
-    #       get their life span
-    #       remove community id of every entry in topD_dic, once the life span is over
 
     # 2. populating diffusion array:
     #
