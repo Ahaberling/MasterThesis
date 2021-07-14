@@ -114,6 +114,24 @@ if __name__ == '__main__':
                 for topD in window.keys():
 
                     if topD not in next_window.keys():
+
+                        next_community_lists = list(next_window.values())
+
+                        #print(next_community_lists)
+
+                        for community in next_community_lists:
+
+                            if set(window[topD]).issubset(set(community)):
+
+                                if len(set(community) - set(window[topD])) != 0:
+                                    swallowed_communities.append([topD, window[topD]])
+                                break
+                        '''
+                        if window[topD] in next_community_lists:
+                            pos = np.where(next_community_lists == window[topD])
+
+                            if len(next_community_lists[pos])
+
                         #print(window[topD])
 
                         window_values_flattend = [item for sublist in window.values() for item in sublist]
@@ -141,10 +159,10 @@ if __name__ == '__main__':
                                     #print(next_window_values_flattend)
 
                                     swallowed_communities.append([topD, community_id])
-
+                        '''
 
                 # get life time
-                # I want for every window a list of community_ids that are swallowd, and their death time
+                # I want for every window a list of community_ids that are swallowed, and their death time
                 if len(swallowed_communities) != 0:
                     for swallowed_community in swallowed_communities:
                         #if len(swallowed_community) != 0:
@@ -190,16 +208,21 @@ if __name__ == '__main__':
 
 
     lp_topD_dic_cleanIndex = cleaningIndex_topD_dic(lp_topD_dic, lp_topD)
-    print(lp_topD_dic['window_330'])
-    print(lp_topD_dic_cleanIndex['window_330'])
-    print()
-    print(lp_topD_dic['window_360'])
-    print(lp_topD_dic_cleanIndex['window_360'])
-    print()
-    print(lp_topD_dic['window_390'])
-    print(lp_topD_dic_cleanIndex['window_390'])
-    print(1+1)
 
+    print(lp_topD_dic['window_330'])
+    print(lp_topD_dic['window_360'])
+    print(lp_topD_dic_cleanIndex['window_330'])
+    '''
+    print()
+    print(lp_topD_dic['window_900'])
+    print(lp_topD_dic['window_930'])
+    print(lp_topD_dic_cleanIndex['window_900'])
+    print()
+    print(lp_topD_dic['window_3000'])
+    print(lp_topD_dic['window_3030'])
+    print(lp_topD_dic_cleanIndex['window_3000'])
+    print(1+1)
+    '''
     def cleaning_topD_dic(cd_topD_dic, cd_topD_dic_cleanIndex):
 
         #for i in range(len(cd_topD_dic)):
