@@ -68,6 +68,7 @@ if __name__ == '__main__':
     #       get all nodes of the community on t
     #       get their life span
     #       remove community id of every entry in topD_dic, once the life span is over
+
     '''
     print(lp_topD['window_5640'])
     x = [item for sublist in lp_topD['window_5640'] for item in sublist]
@@ -112,8 +113,8 @@ if __name__ == '__main__':
 
             if i != 0:
 
-                if i == 12:
-                    print(1+1)
+                #if i == 12:
+                    #print(1+1)
 
                 for topD in window.keys():
 
@@ -216,7 +217,7 @@ if __name__ == '__main__':
 
     lp_topD_dic_cleanIndex = cleaningIndex_topD_dic(lp_topD_dic, lp_topD)
 
-    '''    
+    '''
     print(lp_topD_dic['window_330'])
     print(lp_topD_dic['window_360'])
     print(lp_topD_dic_cleanIndex['window_330'])
@@ -257,7 +258,7 @@ if __name__ == '__main__':
                 #for j3 in range(last_point_before_swallowed, point_of_death+10):
                     #print(cd_topD_dic_clean['window_{0}'.format(j3 * 30)])
 
-                print(lp_topD_dic_clean['window_330'])
+                #print(cd_topD_dic_clean['window_330'])
 
         return cd_topD_dic_clean
 
@@ -267,24 +268,19 @@ if __name__ == '__main__':
     print(lp_topD_dic['window_360'])
     print(lp_topD_dic_cleanIndex['window_330'])
     print(lp_topD_dic_clean['window_330'])
+    print(lp_topD_dic_clean['window_360'])
+    print(lp_topD_dic_clean['window_600'])
+    print(lp_topD_dic_clean['window_630'])
+    print(lp_topD_dic_clean['window_660'])
     print()
-    print(lp_topD_dic['window_900'])
-    print(lp_topD_dic['window_930'])
-    print(lp_topD_dic_cleanIndex['window_900'])
-    print(lp_topD_dic_clean['window_900'])
-    print()
-    print(lp_topD_dic['window_3000'])
-    print(lp_topD_dic['window_3030'])
-    print(lp_topD_dic_cleanIndex['window_3000'])
-    print(lp_topD_dic_clean['window_3000'])
-    print(1 + 1)
+
 
 #--- Constructing Diffusion Array ---#
 
     #1. Compute all recombinations present in data
     #2. span np.arrays
     #3. fill np array either with count or threshold
-    #4. present way to query it for long strings of
+    #4. present way to query it for long strings of ones
 
     def single_diffusion(cd_labeled):
 
@@ -407,18 +403,22 @@ if __name__ == '__main__':
     np.set_printoptions(threshold=sys.maxsize)
     np.set_printoptions(precision=2)
     np.set_printoptions(suppress=True)
-
+    '''
     print(lp_recombinationDiffusion_count[0:99,0:24])
     print(lp_recombinationDiffusion_fraction[0:99,0:24])
     print(lp_recombinationDiffusion_threshold[0:99,0:24])
 
     print(np.size(lp_recombinationDiffusion_count))
     print(sum(sum(lp_recombinationDiffusion_count)))
-
+    '''
 
 
 # Diffusion is not working like this. The reason is that a recombination of B & C is lost if afterwards B megres with A
 # with A being the dominant community (giving both id A)
+
+#--- new diffusion approach ---#
+
+
 
 #How to solve this:
 
@@ -436,7 +436,63 @@ if __name__ == '__main__':
     #                   if recombination[1] in big_community2:
     #                       overall_count = overall_count + 1
     #                       break
-    #               elis: recombination[0] in big_community2:
+    #               elif: recombination[0] in big_community2:
     #                   if recombination[1] in big_community1:
     #                       overall_count = overall_count + 1
     #                       break
+
+    def single_diffusion_v2(cd_topD_dic_clean):
+        row_length = len(cd_topD_dic_clean)
+
+        all_ids = []
+        for window_id, window in cd_topD_dic_clean.items():
+
+            for community in window:
+
+                all_ids.append(window[community])
+        all_ids = [item for sublist in all_ids for item in sublist]
+
+
+        column_length = max(all_ids)
+
+
+        '''
+        only_id_dic = {}
+        community_ids_all = []
+        for window_id, window in cd_labeled.items():
+            community_ids_window = []
+            for community in window:
+                community_ids_window.append(community[1][0])
+                community_ids_all.append(community[1][0])
+
+            only_id_dic[window_id] = community_ids_window
+        
+        column_length = max(community_ids_all)
+        '''
+
+
+        singleDiffusion_array = np.zeros((row_length, column_length), dtype=int)
+
+        for i in range(len(singleDiffusion_array)):
+            for j in range(len(singleDiffusion_array.T)):
+
+                big_community1 =
+                big_community2 =
+                '''
+                if j in only_id_dic['window_{0}'.format(i * 30)]:
+                    singleDiffusion_array[i, j] = 1
+                '''
+
+        return singleDiffusion_array
+
+
+    lp_singleDiffusion_v2 = single_diffusion_v2(lp_topD_dic_clean)
+    #gm_singleDiffusion_v2 = single_diffusion_v2(gm_topD_dic_clean)
+
+    #kclique_singleDiffusion_v2 = single_diffusion_v2(kclique_topD_dic_clean)
+    #lais2_singleDiffusion_v2 = single_diffusion_v2(lais2_topD_dic_clean)
+
+    print(lp_singleDiffusion_v2)
+    #print(gm_singleDiffusion_v2)
+    #print(kclique_singleDiffusion_v2)
+    #print(lais2_singleDiffusion_v2)
