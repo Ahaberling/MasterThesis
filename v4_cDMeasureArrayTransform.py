@@ -476,8 +476,19 @@ if __name__ == '__main__':
         for i in range(len(singleDiffusion_array)):
             for j in range(len(singleDiffusion_array.T)):
 
-                big_community1 =
-                big_community2 =
+                window = cd_topD_dic_clean['window_{0}'.format(i*30)]
+                print(window)
+                print(window.values())
+                print(j)
+                if j in window.values():
+                    print('yay')
+                print('yay')
+
+
+                #window[j in ]
+
+                big_community1 = 1
+                big_community2 = 1
                 '''
                 if j in only_id_dic['window_{0}'.format(i * 30)]:
                     singleDiffusion_array[i, j] = 1
