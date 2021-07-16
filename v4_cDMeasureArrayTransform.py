@@ -508,6 +508,7 @@ if __name__ == '__main__':
 
         recombinations_all.sort()
         recombinations_all = np.unique(recombinations_all, axis=0)
+        print(recombinations_all)
         column_length = len(recombinations_all)
 
         recombinationDiffusion_count = np.zeros((row_length, column_length), dtype=float)
@@ -517,7 +518,8 @@ if __name__ == '__main__':
         for j in range(len(recombinationDiffusion_count.T)):
             for i in range(len(recombinationDiffusion_count)):
                 # window_300': [[286963357, ((289337379, [5]), (287698910, [8])), 1, 1]]
-                window = cd_recombinations['window_{0}'.format(i*30)]
+                window_community = cd_recombinations['window_{0}'.format(i*30)]
+                window_recomb = cd_recombinations['window_{0}'.format(i*30)]
                 print(window)
                 print(window.values())
                 print(list(window.values()))
@@ -531,8 +533,32 @@ if __name__ == '__main__':
 
                 overall_count = 0
 
-                big_community1 = 1
-                big_community2 = 1
+                community_id1 = recombinations_all[j][0]
+                community_id2 = recombinations_all[j][1]
+
+                for k in range(len(list(window_community.values()))):
+                    if community_id1 in list(window_community.values())[k]:
+                        big_community1 = list(window_community.values())[k]
+                        break
+
+                for k in range(len(list(window_community.values()))):
+                    if community_id2 in list(window_community.values())[k]:
+                        big_community2 = list(window_community.values())[k]
+                        break
+
+                for recombination in window_recomb:
+                    if recombination[1][0][1][0] in big_community1:
+                        if recombination[1][1][1][0] in big_community2:
+                            overall_count = overall_count + 1
+                            break
+                    elif recombination[1][0][1][0] in big_community2:
+                        if recombination[1][1][1][0] in big_community1:
+                            overall_count = overall_count + 1
+                            break
+
+                recombinationDiffusion_count[i,j] = overall_count
+
+                #for recombination in window_recomb:
 
                 #           big_community1 = community_list where tuple[0] is present (for this window)
                 #           big_community2 = community_list where tuple[1] is present (for this window)
