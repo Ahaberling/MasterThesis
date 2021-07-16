@@ -479,16 +479,41 @@ if __name__ == '__main__':
                 window = cd_topD_dic_clean['window_{0}'.format(i*30)]
                 print(window)
                 print(window.values())
+                print(list(window.values()))
                 print(j)
-                if j in window.values():
+
+
+                for k in range(len(list(window.values()))):
+                    if j in list(window.values())[k]:
+                        big_community = list(window.values())[k]
+                        break
+                print(big_community)
+
+                overall_count = 0
+
+                res1 = any(j in sublist for sublist in list(window.values()))
+                print(res1)
+
+
+
+
+
+
+                for i in range(len(list(window.values()))):
+                    if j in list(window.values())[i]:
+                        print('found')
+                        print(i, list(window.values())[i].index(j))
+                        break
+
+                if j in list(window.values()):
                     print('yay')
                 print('yay')
 
 
                 #window[j in ]
 
-                big_community1 = 1
-                big_community2 = 1
+                big_community = 1
+
                 '''
                 if j in only_id_dic['window_{0}'.format(i * 30)]:
                     singleDiffusion_array[i, j] = 1
