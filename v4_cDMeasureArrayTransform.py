@@ -303,6 +303,8 @@ if __name__ == '__main__':
         for i in range(len(singleDiffusion_array)):
             for j in range(len(singleDiffusion_array.T)):
                 if j in only_id_dic['window_{0}'.format(i * 30)]:
+                    #print(j)
+                    #print(only_id_dic['window_{0}'.format(i * 30)])
                     singleDiffusion_array[i,j] = 1
 
         return singleDiffusion_array
@@ -452,24 +454,7 @@ if __name__ == '__main__':
                 all_ids.append(window[community])
         all_ids = [item for sublist in all_ids for item in sublist]
 
-
         column_length = max(all_ids)
-
-
-        '''
-        only_id_dic = {}
-        community_ids_all = []
-        for window_id, window in cd_labeled.items():
-            community_ids_window = []
-            for community in window:
-                community_ids_window.append(community[1][0])
-                community_ids_all.append(community[1][0])
-
-            only_id_dic[window_id] = community_ids_window
-        
-        column_length = max(community_ids_all)
-        '''
-
 
         singleDiffusion_array = np.zeros((row_length, column_length), dtype=int)
 
@@ -477,47 +462,24 @@ if __name__ == '__main__':
             for j in range(len(singleDiffusion_array.T)):
 
                 window = cd_topD_dic_clean['window_{0}'.format(i*30)]
-                print(window)
-                print(window.values())
-                print(list(window.values()))
-                print(j)
+                #print(window)
+                #print(window.values())
+                #print(list(window.values()))
+                #print(j)
 
+                if any(j in sublist for sublist in list(window.values())) == True:
+                    singleDiffusion_array[i, j] = 1
 
                 for k in range(len(list(window.values()))):
                     if j in list(window.values())[k]:
                         big_community = list(window.values())[k]
                         break
-                print(big_community)
+                #print(big_community)
 
                 overall_count = 0
 
-                res1 = any(j in sublist for sublist in list(window.values()))
-                print(res1)
-
-
-
-
-
-
-                for i in range(len(list(window.values()))):
-                    if j in list(window.values())[i]:
-                        print('found')
-                        print(i, list(window.values())[i].index(j))
-                        break
-
-                if j in list(window.values()):
-                    print('yay')
-                print('yay')
-
-
-                #window[j in ]
-
                 big_community = 1
 
-                '''
-                if j in only_id_dic['window_{0}'.format(i * 30)]:
-                    singleDiffusion_array[i, j] = 1
-                '''
 
         return singleDiffusion_array
 
@@ -527,6 +489,78 @@ if __name__ == '__main__':
 
     #kclique_singleDiffusion_v2 = single_diffusion_v2(kclique_topD_dic_clean)
     #lais2_singleDiffusion_v2 = single_diffusion_v2(lais2_topD_dic_clean)
+
+    def recombination_diffusion_crip_v2(cd_topD_dic_clean, cd_recombinations):
+        row_length = len(cd_recombinations)
+
+        recombinations_dic = {}
+        recombinations_all = []
+        for window_id, window in cd_recombinations.items():
+            recombinations_window = []
+            for recombination in window:
+                community_id1 = recombination[1][0][1][0]
+                community_id2 = recombination[1][1][1][0]
+                recombinations_all.append((community_id1, community_id2))
+                recombinations_window.append((community_id1, community_id2))
+
+            recombinations_dic[window_id] = recombinations_window
+        #print(recombinations_dic)
+
+        recombinations_all.sort()
+        recombinations_all = np.unique(recombinations_all, axis=0)
+        column_length = len(recombinations_all)
+
+        recombinationDiffusion_count = np.zeros((row_length, column_length), dtype=float)
+        recombinationDiffusion_fraction = np.zeros((row_length, column_length), dtype=float)
+
+
+        for j in range(len(recombinationDiffusion_count.T)):
+            for i in range(len(recombinationDiffusion_count)):
+                # window_300': [[286963357, ((289337379, [5]), (287698910, [8])), 1, 1]]
+                window = cd_recombinations['window_{0}'.format(i*30)]
+                print(window)
+                print(window.values())
+                print(list(window.values()))
+                print(j)
+
+                for k in range(len(list(window.values()))):
+                    if j in list(window.values())[k]:
+                        big_community = list(window.values())[k]
+                        break
+                print(big_community)
+
+                overall_count = 0
+
+                big_community1 = 1
+                big_community2 = 1
+
+                #           big_community1 = community_list where tuple[0] is present (for this window)
+                #           big_community2 = community_list where tuple[1] is present (for this window)
+                #           overall_count = 0
+                #           for all recombinations:
+                #               if recombination[0] in big_community1:
+                #                   if recombination[1] in big_community2:
+                #                       overall_count = overall_count + 1
+                #                       break
+                #               elif: recombination[0] in big_community2:
+                #                   if recombination[1] in big_community1:
+                #                       overall_count = overall_count + 1
+                #                       break
+
+
+
+
+
+        return recombinationDiffusion_count, recombinationDiffusion_fraction
+
+    print(lp_recombinations)
+    print(lp_recombinations)
+
+    lp_recombination_diffusion_crip_v2 = recombination_diffusion_crip_v2(lp_topD_dic_clean, lp_recombinations)
+    #gm_recombination_diffusion_crip_v2 = recombination_diffusion_crip_v2(gm_topD_dic_clean)
+
+    #kclique_recombination_diffusion_overlapping_v2 = recombination_diffusion_overlapping_v2(kclique_topD_dic_clean)
+    #lais2_recombination_diffusion_overlapping_v2 = recombination_diffusion_overlapping_v2(lais2_topD_dic_clean)
 
     print(lp_singleDiffusion_v2)
     #print(gm_singleDiffusion_v2)
