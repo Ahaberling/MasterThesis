@@ -105,8 +105,10 @@ if __name__ == '__main__':
 
         for i in range(len(topD_dic)-1):
 
-            #if i == 11:
-                #print(1+1)
+            if i == 25:
+                print(1+1)
+            if i == 185:
+                print(1+1)
 
             window_id = 'window_{0}'.format(i * 30)
             window = topD_dic[window_id]
@@ -197,6 +199,8 @@ if __name__ == '__main__':
                                 #print(all_id_in_next_window)
                                 all_id_in_next_window = [item for sublist in all_id_in_next_window for item in sublist]
                                 #print(all_id_in_next_window)
+
+                                # todo: CHECK FOR ALL WITHIN A WINDOW (IF ALL DISAPPEAR)
                                 if members[-1] not in all_id_in_next_window:
                                     #print(members)
                                     members.pop()
@@ -220,8 +224,21 @@ if __name__ == '__main__':
         return merging_communities_dic
 
 
-    lp_topD_dic_cleanIndex = cleaningIndex_topD_dic(lp_topD_dic, lp_topD)
+    #lp_topD_dic_cleanIndex = cleaningIndex_topD_dic(lp_topD_dic, lp_topD)
     gm_topD_dic_cleanIndex = cleaningIndex_topD_dic(gm_topD_dic, gm_topD)
+    '''
+    #print(lp_topD_dic)
+    print(gm_topD_dic['window_750'])
+    print(gm_topD_dic['window_780'])
+    print(gm_topD['window_750'])
+    print(gm_topD_dic_cleanIndex['window_750'])
+
+    print(gm_topD_dic['window_1140'])
+    print(gm_topD_dic['window_1170'])
+    print(gm_topD['window_1140'])
+    print(gm_topD_dic_cleanIndex['window_1140'])
+    '''
+
 
     kclique_topD_dic_cleanIndex = cleaningIndex_topD_dic(kclique_topD_dic, kclique_topD)
     lais2_topD_dic_cleanIndex = cleaningIndex_topD_dic(lais2_topD_dic, lais2_topD)
@@ -279,7 +296,18 @@ if __name__ == '__main__':
 
         return cd_topD_dic_clean
 
-    lp_topD_dic_clean = cleaning_topD_dic(lp_topD_dic, lp_topD_dic_cleanIndex)
+    #lp_topD_dic_clean = cleaning_topD_dic(lp_topD_dic, lp_topD_dic_cleanIndex)
+
+    print(gm_topD_dic['window_750'])
+    print(gm_topD_dic['window_780'])
+    #print(gm_topD['window_750'])
+    print(gm_topD_dic_cleanIndex['window_750'])
+
+    print(gm_topD_dic['window_1140'])
+    print(gm_topD_dic['window_1170'])
+    #print(gm_topD['window_1140'])
+    print(gm_topD_dic_cleanIndex['window_1140'])
+
     gm_topD_dic_clean = cleaning_topD_dic(gm_topD_dic, gm_topD_dic_cleanIndex)
 
 
