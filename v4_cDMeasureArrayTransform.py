@@ -42,6 +42,8 @@ if __name__ == '__main__':
         gm_labeled = pk.load(handle)
     with open('gm_topD_dic', 'rb') as handle:
         gm_topD_dic = pk.load(handle)
+    with open('gm_topD', 'rb') as handle:
+        gm_topD = pk.load(handle)
 
     with open('kclique_recombinations', 'rb') as handle:
         kclique_recombinations = pk.load(handle)
@@ -49,6 +51,8 @@ if __name__ == '__main__':
         kclique_labeled = pk.load(handle)
     with open('kclique_topD_dic', 'rb') as handle:
         kclique_topD_dic = pk.load(handle)
+    with open('kclique_topD', 'rb') as handle:
+        kclique_topD = pk.load(handle)
 
     with open('lais2_recombinations', 'rb') as handle:
         lais2_recombinations = pk.load(handle)
@@ -56,7 +60,8 @@ if __name__ == '__main__':
         lais2_labeled = pk.load(handle)
     with open('lais2_topD_dic', 'rb') as handle:
         lais2_topD_dic = pk.load(handle)
-
+    with open('lais2_topD', 'rb') as handle:
+        lais2_topD = pk.load(handle)
 
 # ---  cleaning topD_dic ---#
 
@@ -216,8 +221,19 @@ if __name__ == '__main__':
 
 
     lp_topD_dic_cleanIndex = cleaningIndex_topD_dic(lp_topD_dic, lp_topD)
-    #gm_topD_dic_cleanIndex = cleaningIndex_topD_dic(gm_topD_dic, gm_topD)
+    gm_topD_dic_cleanIndex = cleaningIndex_topD_dic(gm_topD_dic, gm_topD)
 
+    kclique_topD_dic_cleanIndex = cleaningIndex_topD_dic(kclique_topD_dic, kclique_topD)
+    lais2_topD_dic_cleanIndex = cleaningIndex_topD_dic(lais2_topD_dic, lais2_topD)
+    '''
+    print(lp_topD['window_900'])
+    print(kclique_topD['window_900'])
+
+    print(lp_topD_dic['window_900'])
+    print(kclique_topD_dic['window_900'])
+
+    print(kclique_topD['window_900'])
+    '''
     '''
     print(lp_topD_dic['window_330'])
     print(lp_topD_dic['window_360'])
@@ -264,6 +280,19 @@ if __name__ == '__main__':
         return cd_topD_dic_clean
 
     lp_topD_dic_clean = cleaning_topD_dic(lp_topD_dic, lp_topD_dic_cleanIndex)
+    gm_topD_dic_clean = cleaning_topD_dic(gm_topD_dic, gm_topD_dic_cleanIndex)
+
+
+    kclique_topD_dic_clean = cleaning_topD_dic(kclique_topD_dic, kclique_topD_dic_cleanIndex)
+    lais2_topD_dic_clean = cleaning_topD_dic(lais2_topD_dic, lais2_topD_dic_cleanIndex)
+
+    '''
+    print(lp_topD_dic_clean['window_900'])
+    print(gm_topD_dic_clean['window_900'])
+    print(kclique_topD_dic_clean['window_900'])
+    print(lais2_topD_dic_clean['window_900'])
+    print(lais2_topD_dic_clean['window_900'])
+    '''
     '''
     print(lp_topD_dic['window_330'])
     print(lp_topD_dic['window_360'])
@@ -512,24 +541,26 @@ if __name__ == '__main__':
                 recombinations_window.append((community_id1, community_id2))
 
             recombinations_dic[window_id] = recombinations_window
-        #print(recombinations_dic)
+        print(recombinations_dic)
 
-        #print(len(recombinations_all))
+        print(len(recombinations_all))
         recombinations_all.sort()
-        #print(recombinations_all)
+        print(recombinations_all)
         recombinations_all = np.unique(recombinations_all, axis=0)
-        #print(recombinations_all)
+        print(recombinations_all)
+
         recombinations_all_tuple = []
         for recombination in recombinations_all:
             recombinations_all_tuple.append(tuple(recombination))
-        recombinations_all = recombinations_all_tuple
-        #print(len(recombinations_all))
 
-        #print(recombinations_all)
+        recombinations_all = recombinations_all_tuple
+        print(len(recombinations_all))
+
+        print(recombinations_all)
         column_length = len(recombinations_all)
 
-        recombinationDiffusion_count = np.zeros((row_length, column_length), dtype=int)
-        #recombinationDiffusion_count = np.full((row_length, column_length), 9999999, dtype=int)
+        #recombinationDiffusion_count = np.zeros((row_length, column_length), dtype=int)
+        recombinationDiffusion_count = np.full((row_length, column_length), 9999999, dtype=int)
         recombinationDiffusion_fraction = np.zeros((row_length, column_length), dtype=float)
         recombinationDiffusion_threshold = np.zeros((row_length, column_length), dtype=float)
 
@@ -545,22 +576,22 @@ if __name__ == '__main__':
 
                 # count how often a recombination appears in a window
                 # Recombinations are identified over community id. These community id's are dominant.
-                #print(recombinations_all[j])
-                #print(recombinations_dic['window_{0}'.format(i*30)])
+                print(recombinations_all[j])
+                print(recombinations_dic['window_{0}'.format(i*30)])
                 recombination_count = recombinations_dic['window_{0}'.format(i*30)].count(recombinations_all[j])
-                #print(recombination_count)
+                print(recombination_count)
 
                 if recombination_count != 0 :
                 # this count has to be placed in all columns that are the same recombination under different community ids
                 #(e.g. because of a community merge where the dominant id overwrite the original one used in the prior recombination
 
-                    #print(list(window_topD_dic.values()))
+                    print(list(window_topD_dic.values()))
                     for k in range(len(list(window_topD_dic.values()))):
-                        #print(recombinations_all[j][0])
-                        #print(list(window_topD_dic.values())[k])
+                        print(recombinations_all[j][0])
+                        print(list(window_topD_dic.values())[k])
                         if recombinations_all[j][0] in list(window_topD_dic.values())[k]:
                             big_community1 = list(window_topD_dic.values())[k]
-                            #print(big_community1)
+                            print(big_community1)
                             break
 
                     list(window_topD_dic.values())
@@ -593,8 +624,6 @@ if __name__ == '__main__':
                                 #print(h)
                                 weak_recombination_list.append(h)
 
-                    #if big_community1 != False:
-                        #if big_community2 != False:
 
                     for weak_recombination_pos in weak_recombination_list:
                         #print(weak_recombination_pos)
@@ -674,13 +703,14 @@ if __name__ == '__main__':
             #print(recombinationDiffusion_fraction[n,:])
 
         recombinationDiffusion_threshold = np.where(recombinationDiffusion_fraction < 0.005, 0, 1)
+        print(1+1)
 
 
         return recombinationDiffusion_count, recombinationDiffusion_fraction, recombinationDiffusion_threshold
 
 
-    print(kclique_recombinations)
-    print(kclique_recombinations)
+    #print(kclique_recombinations)
+    #print(kclique_recombinations)
 
     def recombination_diffusion_overlapping_v2(cd_topD_dic_clean, cd_recombinations):
         row_length = len(cd_recombinations)
@@ -698,7 +728,7 @@ if __name__ == '__main__':
             recombinations_dic[window_id] = recombinations_window
         # print(recombinations_dic)
 
-        # print(len(recombinations_all))
+        print(len(recombinations_all))
         recombinations_all.sort()
         # print(recombinations_all)
         recombinations_all = np.unique(recombinations_all, axis=0)
@@ -707,15 +737,15 @@ if __name__ == '__main__':
         for recombination in recombinations_all:
             recombinations_all_tuple.append(tuple(recombination))
         recombinations_all = recombinations_all_tuple
-        # print(len(recombinations_all))
+        print(len(recombinations_all))
 
         # print(recombinations_all)
         column_length = len(recombinations_all)
 
-        recombinationDiffusion_count = np.zeros((row_length, column_length), dtype=int)
-        # recombinationDiffusion_count = np.full((row_length, column_length), 9999999, dtype=int)
+        #recombinationDiffusion_count = np.zeros((row_length, column_length), dtype=int)
+        recombinationDiffusion_count = np.full((row_length, column_length), 9999999, dtype=int)
         recombinationDiffusion_fraction = np.zeros((row_length, column_length), dtype=float)
-        recombinationDiffusion_threshold = np.zeros((row_length, column_length), dtype=float)
+        #recombinationDiffusion_threshold = np.zeros((row_length, column_length), dtype=float)
 
         pbar = tqdm.tqdm(total=len(recombinationDiffusion_count))
         for i in range(len(recombinationDiffusion_count)):
@@ -737,53 +767,52 @@ if __name__ == '__main__':
                     # this count has to be placed in all columns that are the same recombination under different community ids
                     # (e.g. because of a community merge where the dominant id overwrite the original one used in the prior recombination
 
-                    # print(list(window_topD_dic.values()))
+                    print(list(window_topD_dic.values()))
                     for k in range(len(list(window_topD_dic.values()))):
-                        # print(recombinations_all[j][0])
-                        # print(list(window_topD_dic.values())[k])
+                        print(recombinations_all[j][0])
+                        print(list(window_topD_dic.values())[k])
                         if recombinations_all[j][0] in list(window_topD_dic.values())[k]:
                             big_community1 = list(window_topD_dic.values())[k]
-                            # print(big_community1)
+                            print(big_community1)
                             break
 
-                    list(window_topD_dic.values())
+                    print(list(window_topD_dic.values()))
                     for k in range(len(list(window_topD_dic.values()))):
-                        # print(recombinations_all[j][1])
-                        # print(list(window_topD_dic.values())[k])
+                        print(recombinations_all[j][1])
+                        print(list(window_topD_dic.values())[k])
                         if recombinations_all[j][1] in list(window_topD_dic.values())[k]:
                             big_community2 = list(window_topD_dic.values())[k]
-                            # print(big_community2)
+                            print(big_community2)
                             break
 
                     # find all j's where the count has to be written in as well
 
+                    # 'weak' not fitting anymore
                     weak_recombination_list = []
-                    # print(recombinations_all)
+                    print(recombinations_all)
                     for h in range(len(recombinations_all)):
-                        # print(recombinations_all[h][0])
-                        # print(big_community1)
-                        # print(big_community2)
+                        print(recombinations_all[h][0])
+                        print(big_community1)
+                        print(big_community2)
                         if recombinations_all[h][0] in big_community1:
-                            # print(recombinations_all[h][1])
-                            # print(big_community2)
+                            print(recombinations_all[h][1])
+                            print(big_community2)
                             if recombinations_all[h][1] in big_community2:
-                                # print(h)
+                                print(h)
                                 weak_recombination_list.append(h)
                         elif recombinations_all[h][0] in big_community2:
-                            # print(recombinations_all[h][1])
-                            # print(big_community1)
+                            print(recombinations_all[h][1])
+                            print(big_community1)
                             if recombinations_all[h][1] in big_community1:
-                                # print(h)
+                                print(h)
                                 weak_recombination_list.append(h)
 
-                    # if big_community1 != False:
-                    # if big_community2 != False:
 
                     for weak_recombination_pos in weak_recombination_list:
-                        # print(weak_recombination_pos)
-                        # print(recombination_count)
+                        print(weak_recombination_pos)
+                        print(recombination_count)
                         recombinationDiffusion_count[i, weak_recombination_pos] = recombination_count
-                        # print(recombinationDiffusion_count[i, weak_recombination_pos])
+                        print(recombinationDiffusion_count[i, weak_recombination_pos])
 
 
             pbar.update(1)
@@ -793,24 +822,31 @@ if __name__ == '__main__':
             # if n == 50:
             # print(1+1)
             all_nodes_window = len(topicSim['window_{0}'.format(n * 30)].nodes())
-            # print(all_nodes_window)
-            # print(recombinationDiffusion_count[n,:])
+            print(all_nodes_window)
+            print(recombinationDiffusion_count[n,:])
             recombinationDiffusion_fraction[n, :] = recombinationDiffusion_count[n, :] / all_nodes_window
-            # print(recombinationDiffusion_fraction[n,:])
+            print(recombinationDiffusion_fraction[n,:])
 
         recombinationDiffusion_threshold = np.where(recombinationDiffusion_fraction < 0.005, 0, 1)
+
+        print(1+1)
 
         return recombinationDiffusion_count, recombinationDiffusion_fraction, recombinationDiffusion_threshold
 
     #print(lp_recombinations)
     #print(lp_recombinations)
 
-    lp_recombination_diffusion_crip_count_v2, lp_recombination_diffusion_crip_fraction_v2, lp_recombination_diffusion_crip_threshold_v2 = recombination_diffusion_crip_v2(lp_topD_dic_clean, lp_recombinations)
+    #lp_recombination_diffusion_crip_count_v2, lp_recombination_diffusion_crip_fraction_v2, lp_recombination_diffusion_crip_threshold_v2 = recombination_diffusion_crip_v2(lp_topD_dic_clean, lp_recombinations)
+    print(1 + 1)
+    gm_recombination_diffusion_crip_count_v2, gm_recombination_diffusion_crip_fraction_v2, gm_recombination_diffusion_crip_threshold_v2 = recombination_diffusion_crip_v2(gm_topD_dic_clean, gm_recombinations)
+    print(1+1)
     #print(lp_recombination_diffusion_crip_v2)
     #print(lp_recombination_diffusion_crip_v2[0:99,0:25])
+    '''
     print(lp_recombination_diffusion_crip_count_v2[40:50,25:50])
     print(lp_recombination_diffusion_crip_fraction_v2[40:50,25:50])
     print(lp_recombination_diffusion_crip_threshold_v2[40:50,25:50])
+    '''
     #print(lp_recombination_diffusion_crip_v2[0:99,50:75])
     #print(lp_recombination_diffusion_crip_v2[0:99,75:100])
 
@@ -824,7 +860,16 @@ if __name__ == '__main__':
     #gm_recombination_diffusion_crip_v2 = recombination_diffusion_crip_v2(gm_topD_dic_clean)
 
     #kclique_recombination_diffusion_overlapping_v2 = recombination_diffusion_overlapping_v2(kclique_topD_dic_clean)
+    #print(kclique_topD_dic_clean)
+    #print(kclique_recombinations)
+
     kclique_recombination_diffusion_overlapping_count_v2, kclique_recombination_diffusion_overlapping_fraction_v2, kclique_recombination_diffusion_overlapping_threshold_v2 = recombination_diffusion_overlapping_v2(kclique_topD_dic_clean, kclique_recombinations)
+    lais2_recombination_diffusion_overlapping_count_v2, lais2_recombination_diffusion_overlapping_fraction_v2, lais2_recombination_diffusion_overlapping_threshold_v2 = recombination_diffusion_overlapping_v2(lais2_topD_dic_clean, lais2_recombinations)
+
+
+    #print(kclique_recombination_diffusion_overlapping_count_v2[0:49, 25:50])
+    #print(kclique_recombination_diffusion_overlapping_fraction_v2[0:49, 25:50])
+    #print(kclique_recombination_diffusion_overlapping_threshold_v2[0:49, 25:50])
 
 #lais2_recombination_diffusion_overlapping_v2 = recombination_diffusion_overlapping_v2(lais2_topD_dic_clean)
 
