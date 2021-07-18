@@ -216,7 +216,7 @@ if __name__ == '__main__':
 
 
     lp_topD_dic_cleanIndex = cleaningIndex_topD_dic(lp_topD_dic, lp_topD)
-    gm_topD_dic_cleanIndex = cleaningIndex_topD_dic(gm_topD_dic, gm_topD)
+    #gm_topD_dic_cleanIndex = cleaningIndex_topD_dic(gm_topD_dic, gm_topD)
 
     '''
     print(lp_topD_dic['window_330'])
@@ -679,6 +679,9 @@ if __name__ == '__main__':
         return recombinationDiffusion_count, recombinationDiffusion_fraction, recombinationDiffusion_threshold
 
 
+    print(kclique_recombinations)
+    print(kclique_recombinations)
+
     def recombination_diffusion_overlapping_v2(cd_topD_dic_clean, cd_recombinations):
         row_length = len(cd_recombinations)
 
@@ -687,8 +690,8 @@ if __name__ == '__main__':
         for window_id, window in cd_recombinations.items():
             recombinations_window = []
             for recombination in window:
-                community_id1 = recombination[1][0][1][0]
-                community_id2 = recombination[1][1][1][0]
+                community_id1 = recombination[1][0]
+                community_id2 = recombination[1][1]
                 recombinations_all.append((community_id1, community_id2))
                 recombinations_window.append((community_id1, community_id2))
 
