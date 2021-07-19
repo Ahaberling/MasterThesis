@@ -192,30 +192,23 @@ if __name__ == '__main__':
 
                         while community_death == False:                    # [288465877, 287698910, 286963357, 289531190]
 
+                            all_id_in_next_window = [item for sublist in cd_topD['window_{0}'.format((j + 1) * 30)] for item in sublist]
+                            all_id_in_next_window = [item for sublist in all_id_in_next_window for item in sublist]
 
-                            if len(members) != 0:
-                                #print(cd_topD['window_{0}'.format(j*30)])
-                                all_id_in_next_window = [item for sublist in cd_topD['window_{0}'.format((j+1)*30)] for item in sublist]
-                                #print(all_id_in_next_window)
-                                all_id_in_next_window = [item for sublist in all_id_in_next_window for item in sublist]
-                                #print(all_id_in_next_window)
+                            # todo: CHECK FOR ALL WITHIN A WINDOW (IF ALL DISAPPEAR)
+                            missing_members = []
+                            for member in members:
+                                if member not in all_id_in_next_window:
+                                    missing_members.append(member)
+                            if len(missing_members) >= len(members):
+                                community_death = True
 
-                                # todo: CHECK FOR ALL WITHIN A WINDOW (IF ALL DISAPPEAR)
-                                if members[-1] not in all_id_in_next_window:
-                                    #print(members)
-                                    members.pop()
-                                    #print(members)
-                                else:
-                                    j = j + 1
+                            else:
+                                j = j + 1
 
                                 if j == 188:
                                     community_death = True
 
-                            if len(members) == 0:
-                                community_death = True
-                        #print(j - i)
-                        #if (j - i) >= 13:
-                            #print('problem')
                         swallowed_community.append(i)   # i = last point before merge
                         swallowed_community.append(j)   # j = point of death (first row were not alive)
 
@@ -223,6 +216,21 @@ if __name__ == '__main__':
 
         return merging_communities_dic
 
+    '''
+    if len(members) != 0:
+        #print(cd_topD['window_{0}'.format(j*30)])
+        all_id_in_next_window = [item for sublist in cd_topD['window_{0}'.format((j+1)*30)] for item in sublist]
+        #print(all_id_in_next_window)
+        all_id_in_next_window = [item for sublist in all_id_in_next_window for item in sublist]
+        #print(all_id_in_next_window)
+    '''
+
+    '''
+    if members[-1] not in all_id_in_next_window:
+        #print(members)
+        members.pop()
+        #print(members)
+    '''
 
     #lp_topD_dic_cleanIndex = cleaningIndex_topD_dic(lp_topD_dic, lp_topD)
     gm_topD_dic_cleanIndex = cleaningIndex_topD_dic(gm_topD_dic, gm_topD)
