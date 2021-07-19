@@ -196,6 +196,7 @@ if __name__ == '__main__':
                             all_id_in_next_window = [item for sublist in all_id_in_next_window for item in sublist]
 
                             # todo: CHECK FOR ALL WITHIN A WINDOW (IF ALL DISAPPEAR)
+                            # 237 in window 185 is not in swallowed?
                             missing_members = []
                             for member in members:
                                 if member not in all_id_in_next_window:
@@ -248,8 +249,8 @@ if __name__ == '__main__':
     '''
 
 
-    kclique_topD_dic_cleanIndex = cleaningIndex_topD_dic(kclique_topD_dic, kclique_topD)
-    lais2_topD_dic_cleanIndex = cleaningIndex_topD_dic(lais2_topD_dic, lais2_topD)
+    #kclique_topD_dic_cleanIndex = cleaningIndex_topD_dic(kclique_topD_dic, kclique_topD)
+    #lais2_topD_dic_cleanIndex = cleaningIndex_topD_dic(lais2_topD_dic, lais2_topD)
     '''
     print(lp_topD['window_900'])
     print(kclique_topD['window_900'])
@@ -273,10 +274,10 @@ if __name__ == '__main__':
     print(lp_topD_dic_cleanIndex['window_3000'])
     print(1+1)
     '''
-
+    import copy
 
     def cleaning_topD_dic(cd_topD_dic, cd_topD_dic_cleanIndex):
-        cd_topD_dic_clean = cd_topD_dic
+        cd_topD_dic_clean = copy.deepcopy(cd_topD_dic)
 
         for i in range(len(cd_topD_dic_cleanIndex)):
             window_id = 'window_{0}'.format(i * 30)
@@ -316,19 +317,63 @@ if __name__ == '__main__':
     #print(gm_topD['window_1140'])
     print(gm_topD_dic_cleanIndex['window_1140'])
 
+    print(gm_topD_dic['window_5580'])
+    print(1+1)
+
     gm_topD_dic_clean = cleaning_topD_dic(gm_topD_dic, gm_topD_dic_cleanIndex)
 
+    print(gm_topD_dic['window_5580'])
+    print(1 + 1)
 
-    kclique_topD_dic_clean = cleaning_topD_dic(kclique_topD_dic, kclique_topD_dic_cleanIndex)
-    lais2_topD_dic_clean = cleaning_topD_dic(lais2_topD_dic, lais2_topD_dic_cleanIndex)
+    #kclique_topD_dic_clean = cleaning_topD_dic(kclique_topD_dic, kclique_topD_dic_cleanIndex)
+    #lais2_topD_dic_clean = cleaning_topD_dic(lais2_topD_dic, lais2_topD_dic_cleanIndex)
 
-    '''
-    print(lp_topD_dic_clean['window_900'])
+
+    #print(lp_topD_dic_clean['window_900'])
     print(gm_topD_dic_clean['window_900'])
-    print(kclique_topD_dic_clean['window_900'])
-    print(lais2_topD_dic_clean['window_900'])
-    print(lais2_topD_dic_clean['window_900'])
-    '''
+    print(gm_topD_dic_cleanIndex['window_900'])
+    print(gm_topD_dic['window_900'])
+    print(gm_topD_dic_clean['window_930'])
+    print(gm_topD_dic_cleanIndex['window_930'])
+    print(gm_topD_dic['window_930'])
+    print(gm_topD_dic_clean['window_960'])
+    print(gm_topD_dic_cleanIndex['window_960'])
+    print(gm_topD_dic['window_960'])
+    print(gm_topD_dic_clean['window_990'])
+    print(gm_topD_dic_cleanIndex['window_990'])
+    print(gm_topD_dic['window_990'])
+    print(gm_topD_dic_clean['window_1020'])
+    print(gm_topD_dic_cleanIndex['window_1020'])
+    print(gm_topD_dic['window_1020'])
+    print(gm_topD_dic_clean['window_1050'])
+    print(gm_topD_dic_cleanIndex['window_1050'])
+    print(gm_topD_dic['window_1050'])
+    print(gm_topD_dic_clean['window_1080'])
+    print(gm_topD_dic_cleanIndex['window_1080'])
+    print(gm_topD_dic['window_1080'])
+
+    print(gm_topD_dic_clean['window_3000'])
+    print(gm_topD_dic_cleanIndex['window_3000'])
+    print(gm_topD_dic['window_3000'])
+    print(gm_topD_dic_clean['window_5520'])
+    print(gm_topD_dic_cleanIndex['window_5520'])
+    print(gm_topD_dic['window_5520'])
+    print(gm_topD_dic_clean['window_5550'])
+    print(gm_topD_dic_cleanIndex['window_5550'])
+    print(gm_topD_dic['window_5550'])
+    print(gm_topD_dic_clean['window_5580'])
+    print(gm_topD_dic_cleanIndex['window_5580'])
+    print(gm_topD_dic['window_5580'])
+    #{478453563: [237, 265], 473499249: [250], 475026489: [254], 473888952: [257], 479239876: [260], 477295573: [262], 474788261: [264], 474194377: [267], 480124065: [269], 484372722: [270], 482715712: [272], 480555963: [277], 472826618: [278], 473501239: [280], 482965959: [281], 471146413: [284], 484370728: [286], 473498062: [287], 481585530: [288], 482714365: [289], 484118903: [290], 475494815: [291]}
+    print(gm_topD_dic_clean['window_5610'])
+    print(gm_topD_dic_cleanIndex['window_5610'])
+    print(gm_topD_dic['window_5610'])
+
+
+    #print(kclique_topD_dic_clean['window_900'])
+    #print(lais2_topD_dic_clean['window_900'])
+    #print(lais2_topD_dic_clean['window_900'])
+
     '''
     print(lp_topD_dic['window_330'])
     print(lp_topD_dic['window_360'])
