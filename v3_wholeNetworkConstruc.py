@@ -289,7 +289,7 @@ if __name__ == '__main__':
 
         return projected_weight #, len(list_of_poducts)  # return the resultung weight and the number of shared neighbors
 
-    #topicOccu_g = nx.algorithms.bipartite.generic_weighted_projected_graph(bipart, top_nodes, weight_function = test_weight)
+    topicOccu_g = nx.algorithms.bipartite.generic_weighted_projected_graph(bipart, top_nodes, weight_function = test_weight)
     topicSim_g = nx.algorithms.bipartite.generic_weighted_projected_graph(bipart, bottom_nodes, weight_function = test_weight)
 
     #print(topicSim_g.edges.data('weight'))
