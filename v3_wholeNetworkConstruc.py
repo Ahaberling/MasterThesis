@@ -24,11 +24,13 @@ if __name__ == '__main__':
     topics = topics.to_numpy()
     parent = parent.to_numpy()
 
+    print(np.mean((4,6)))
 
 
 #--- Plain citation network - Preparing data structure for networkx ---#
     print('\n#--- Plain citation network - Preparing data structure for networkx ---#\n')
 
+    print(patent_lda_ipc[0])
 
     ### Plain citation nodes ###
 

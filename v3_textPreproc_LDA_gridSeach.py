@@ -21,6 +21,8 @@ if __name__ == '__main__':
     import nltk
     import spacy
     import re
+
+    # pip install gensim==3.8.3
     import gensim.corpora as corpora
     import gensim.models as models
     import gensim.utils as utils
@@ -37,7 +39,7 @@ if __name__ == '__main__':
     print('\n#--- Initialization ---#\n')
 
     # Specify whether you want to simply preform LDA, or a grid_search for optimal LDA hyperparameters
-    final_model_gensim = True
+    final_model_gensim = False
     final_model_mallet = True
     grid_search = False
 
@@ -125,7 +127,7 @@ if __name__ == '__main__':
 
     ### New Array, including space for preprocessed abstracts ###
 
-    patent_cleanAbs = np.empty((np.shape(patent)[0],np.shape(patent)[1]+1), dtype = object)
+    patent_cleanAbs = np.empty((np.shape(patent)[0], np.shape(patent)[1]+1), dtype = object)
     patent_cleanAbs[:,:-1] = patent
 
 
@@ -256,13 +258,24 @@ if __name__ == '__main__':
     ### Build LDA model - Gensim ###
     if final_model_gensim == True:
 
-        lda_gensim = models.LdaMulticore(corpus=corpus,
+        #lda_gensim = models.LdaMulticore(corpus=corpus,
+        lda_gensim = models.LdaModel(corpus=corpus,
                                         id2word=id2word,
                                         num_topics=325,         # adjust num_topics, alpha and eta with regard to grid search results
-                                        random_state=100,
-                                        chunksize=100,
+                                        random_state=123,
+                                        #chunksize=100,
                                         passes=10,
+                                        alpha='auto',
+                                        eta='auto',
                                         per_word_topics=True)
+
+    # plain                 passes=10           passes=20               passes=10 + no topics
+    # -8.62154494606457     -7.233880798919008  -6.9446708245485835     -7.931440389780358
+    # 0.2763968453915299    0.30734818195201263 0.3139476238900447      0.3386636130532321
+
+    #                       alpha,eta='auto'    alpha,eta='auto'
+    #                       -11.273654236990879 -11.137248612925143
+    #                       0.3386636130532321  0.34062441108851377
 
 
     ### Compute Perplexity - Gensim ###
@@ -309,8 +322,9 @@ if __name__ == '__main__':
     ### Build Mallet LDA model ###
 
         mallet_path = r'C:/mallet/bin/mallet' # update if necessary
-
-        lda_mallet = models.wrappers.LdaMallet(mallet_path, corpus=corpus, num_topics=325, id2word=id2word)
+        '''
+        lda_mallet = models.wrappers.LdaMallet(mallet_path, corpus=corpus, num_topics=325, id2word=id2word, random_seed=123)
+        # 0.4530598854343954
 
     ### Compute Perplexity - Gensim ###
 
@@ -324,10 +338,73 @@ if __name__ == '__main__':
 
         coherence_model_lda_mallet = models.CoherenceModel(model=lda_mallet, texts=data_lemmatized, dictionary=id2word, coherence='c_v')
         coherence_ldamallet = coherence_model_lda_mallet.get_coherence()
-        print('Coherence Score (c_v) of final LDA (Mallet): ', coherence_ldamallet)             # 0.45689701111307507
+        for i in range(10):
+            print('Coherence Score (c_v) of final LDA (Mallet): ', coherence_ldamallet)             # 0.45689701111307507
         # the higher the better from 0.3 to 0.7 or 0.8.
         # source: https://stackoverflow.com/questions/54762690/what-is-the-meaning-of-coherence-score-0-4-is-it-good-or-bad
 
+        lda_mallet = models.wrappers.LdaMallet(mallet_path, corpus=corpus, num_topics=325, id2word=id2word, alpha=65 ,random_seed=123)
+        coherence_model_lda_mallet = models.CoherenceModel(model=lda_mallet, texts=data_lemmatized, dictionary=id2word, coherence='c_v')
+        coherence_ldamallet = coherence_model_lda_mallet.get_coherence()
+        for i in range(10):
+            print('Coherence Score (c_v) of final LDA (Mallet): ', coherence_ldamallet)  # 0.4756256448838956
+        '''
+        lda_mallet = models.wrappers.LdaMallet(mallet_path,
+                                               corpus=corpus,
+                                               num_topics=325,
+                                               id2word=id2word,
+                                               #alpha=
+                                               optimize_interval=1000,
+                                               #iterations=10,
+                                               random_seed=123)
+
+
+    # plain                 no topics               iterations=10           optimize_interval=1
+    # 0.4530598854343954    0.37365560343398985     0.31727626116792185     0.3722214392230059
+
+    #                                                                       optimize_interval=10
+    #                                                                       0.37720230356805884
+
+    #                                                                       optimize_interval=100
+    #                                                                       0.40265562816232037
+
+    #                                                                       optimize_interval=1000
+    #                                                                       0.4530598854343954 (same as plain)
+
+
+
+        coherence_model_lda_mallet = models.CoherenceModel(model=lda_mallet, texts=data_lemmatized, dictionary=id2word, coherence='c_v')
+        coherence_ldamallet = coherence_model_lda_mallet.get_coherence()
+        for i in range(10):
+            print('Coherence Score (c_v) of final LDA (Mallet): ', coherence_ldamallet)     # 0.3722214392230059  # 1
+                                                                                            # 0.37720230356805884 # 10
+                                                                                            # 0.40265562816232037 # 100
+
+    #Dirichlet hyperparameter alpha: Document-Topic Density
+    #Dirichlet hyperparameter beta: Word-Topic Density
+
+    # https://stats.stackexchange.com/questions/37405/natural-interpretation-for-lda-hyperparameters/37444#37444
+    # https://people.cs.umass.edu/~wallach/talks/priors.pdf
+
+    #I want to use the model with the best complexity
+    #   For this I want to use ldaMallet in the gridsearch
+    #       For this I need to know, why I cant set the beta parameter
+    #           Can get the parameters of gensim lda?
+    #                  If so, can I ship the mallet to gensim and read the parameters?
+    #           What does optimize_interval do?
+    #           Try alpha and beta as auto
+
+
+    # why is there no beta?
+    #   https://stackoverflow.com/questions/61870826/why-can-i-not-choose-a-beta-parameter-when-conducting-lda-with-mallet
+    #   https://dragonfly.hypotheses.org/1051
+
+    #           Can the model optimize itself? Also with regard to the number of topics?
+    #Ask Jonathan about all that
+
+
+    #           What is the difference in coherence scores? Which should I use? # https://towardsdatascience.com/evaluate-topic-model-in-python-latent-dirichlet-allocation-lda-7d57484bb5d0
+    #               I will most likely stick with c_v
 
     ### Save Document-Topic affiliation - Mallet ###
 
@@ -372,7 +449,101 @@ if __name__ == '__main__':
 
     if grid_search == True:
 
+        mallet_path = r'C:/mallet/bin/mallet' # update if necessary
+
+        lda_mallet = models.wrappers.LdaMallet(mallet_path, corpus=corpus, num_topics=325, id2word=id2word)
+
+        coherence_model_lda_mallet = models.CoherenceModel(model=lda_mallet, texts=data_lemmatized, dictionary=id2word, coherence='c_v')
+        coherence_ldamallet = coherence_model_lda_mallet.get_coherence()
+        print('Coherence Score (c_v) of final LDA (Mallet): ', coherence_ldamallet)             # 0.45689701111307507
+
         # supporting function
+        def compute_coherence_values(corpus, dictionary, k, a, b):
+            lda_model = models.LdaModel(corpus=corpus,
+                                            id2word=dictionary,
+                                            num_topics=k,
+                                            random_state=123,
+                                            #chunksize=100,
+                                            passes=10,
+                                            alpha=a,
+                                            eta=b)
+
+
+            coherence_model_lda = models.CoherenceModel(model=lda_model, texts=data_lemmatized, dictionary=id2word,
+                                                        coherence='c_v')
+
+            return coherence_model_lda.get_coherence()
+
+
+        # Initiallizing Grid search
+
+        grid = {}
+        grid['Validation_Set'] = {}
+
+        # Topics range
+        min_topics = 20
+        max_topics = 420
+        step_size = 20
+        topics_range = range(min_topics, max_topics, step_size)
+
+        # Alpha parameter
+        alpha = list(np.arange(0.01, 1, 0.3))
+        alpha.append('symmetric')
+        alpha.append('asymmetric')
+        alpha.append('auto')
+
+        # Beta parameter
+        beta = list(np.arange(0.01, 1, 0.3))
+        beta.append('symmetric')
+        alpha.append('auto')
+
+        # Validation sets
+        num_of_docs = len(corpus)
+        corpus_sets = [ #utils.ClippedCorpus(corpus, num_of_docs*0.25),
+                        #utils.ClippedCorpus(corpus, num_of_docs*0.5),
+                        #utils.ClippedCorpus(corpus, int(num_of_docs * 0.75)),
+                        corpus
+                      ]
+        corpus_title = [#'75% Corpus',
+                         '100% Corpus'
+                       ]
+
+        model_results = {'Validation_Set': [],
+                         'Topics': [],
+                         'Alpha': [],
+                         'Beta': [],
+                         'Coherence': []
+                         }
+
+        pbar = tqdm.tqdm(total=882)  # adjust if hyperparameters change # 21*7*6*1
+
+        # iterate through validation corpuses
+        for i in range(len(corpus_sets)):
+            # iterate through number of topics
+            for k in topics_range:
+                # iterate through alpha values
+                for a in alpha:
+                    # iterare through beta values
+                    for b in beta:
+                        # get the coherence score for the given parameters
+                        cv = compute_coherence_values(corpus=corpus_sets[i], dictionary=id2word, k=k, a=a, b=b)
+
+                        # Save the model results
+                        model_results['Validation_Set'].append(corpus_title[i])
+                        model_results['Topics'].append(k)
+                        model_results['Alpha'].append(a)
+                        model_results['Beta'].append(b)
+                        model_results['Coherence'].append(cv)
+
+                        pbar.update(1)
+
+        # save result
+
+        pd.DataFrame(model_results).to_csv('lda_tuning_results.csv', index=False)
+        pbar.close()
+
+'''
+# supporting function
         def compute_coherence_values(corpus, dictionary, k, a, b):
             lda_model = models.LdaMulticore(corpus=corpus,
                                             id2word=dictionary,
@@ -416,6 +587,7 @@ if __name__ == '__main__':
             utils.ClippedCorpus(corpus, int(num_of_docs * 0.75)),
             corpus]
         corpus_title = ['75% Corpus', '100% Corpus']
+
         model_results = {'Validation_Set': [],
                          'Topics': [],
                          'Alpha': [],
@@ -452,3 +624,5 @@ if __name__ == '__main__':
 
         pd.DataFrame(model_results).to_csv('lda_tuning_results.csv', index=False)
         pbar.close()
+
+'''
