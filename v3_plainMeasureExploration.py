@@ -55,10 +55,10 @@ if __name__ == '__main__':
     import scipy.signal as signal
 
 
-    preproc_bool = False
-    pattern_bool = False
+    preproc_bool = True
+    pattern_bool = True
     measures_bool = True
-    imputation_bool = False
+    imputation_bool = True
 
 
 #--- Initialization --#
@@ -196,6 +196,7 @@ if __name__ == '__main__':
         outfile = open(filename, 'wb')
         pk.dump(window90by1_topics_pairs, outfile)
         outfile.close()
+
 
         filename = 'window90by1_ipcs_triples'
         outfile = open(filename, 'wb')
