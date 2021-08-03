@@ -115,7 +115,7 @@ if __name__ == '__main__':
     ### Removing non-english patents ###
 
     removal_list_all = []
-    removal_list_all.append(check_list_ger)
+    removal_list_all.append(check_list_ger)     #extend?
     removal_list_all.append(check_list_fr)
     removal_list_all = [item for sublist in removal_list_all for item in sublist]
 
@@ -151,7 +151,6 @@ if __name__ == '__main__':
 
     semi_preprocessed = vectorize(patent[:,6])
 
-
     ### Apply tokenization ###
 
     tokenized_abst = []
@@ -164,10 +163,10 @@ if __name__ == '__main__':
     ###  Build bigram and trigram models ###
 
     bigram = models.Phrases(tokenized_abst, min_count=5, threshold=100)         # higher threshold fewer phrases.
-    trigram = models.Phrases(bigram[tokenized_abst], threshold=100)
+    #trigram = models.Phrases(bigram[tokenized_abst], threshold=100)
 
     bigram_mod = models.phrases.Phraser(bigram)
-    trigram_mod = models.phrases.Phraser(trigram)
+    #trigram_mod = models.phrases.Phraser(trigram)
 
     #print(trigram_mod[bigram_mod[tokenized_abst[0]]])                          # Accessing grams
 
@@ -176,6 +175,7 @@ if __name__ == '__main__':
 
     ### Define Stopwords ###
 
+    #stop_words = ['robot']
     stop_words = nltk.corpus.stopwords.words('english')
     stop_words.extend(['from', 'subject', 're', 'edu', 'use'])
 
@@ -190,14 +190,33 @@ if __name__ == '__main__':
                  'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii',
                  'robot'])
 
-    # more stopwords: end, specific, , central, machine, method, work, determine, system, vertical, longitudinal, state, outer, variable, include, parameter, number, main, information, make, function, object, device,
-    # present, model, mode, action, workpiece, relative, position, define, multiple, reference, angle, angular, include, time, application, device, plurality, part, type, feature, set, couple, structure
-    # describe, item, also, pre, invention, present, relate, respective, operative, represent, task, extra, double, subject, common, form, manner, thereof, directly, general, exist, previously
-    # sequentially, prepare, kind, input, output, minimum, maximum, base, basic, properly, does, not, therefor, entire, additionally, approach, independent, advance, independently, operatively, operable, becomes, possible,
-    # thereto, expect, indirectly, remain,
-    # maybe stopwords: move, receive, adapt, configure, program, robotic (check if always present in extended dataset as well), axis, preform, movable, create, parallel, give, separate, design,
-    # identification, identify, joint
-    # qf, zmp, llld
+
+    # hc/mc/lc/vlc = high/middle/low/very low confidence
+    # when using extended dataset, check if 'robot' is also present in every patent abstract
+    # adapt if it is clear that the dataset only includes real robot things and not also pure robot programs
+
+    hc_filter = ['also', 'does', 'not', 'therefor', 'thereto', 'additionally', 'thereof', 'minimum', 'maximum', 'multiple',
+                 'pre', 'robot', 'robotic', 'robotically', 'robotize', 'kind', 'extra', 'double', 'manner', 'general', 'previously', 'exist', 'respective',
+                 'end', 'central', 'indirectly', 'expect', 'include', 'main', 'relate', 'type', 'couple', 'plurality', 'common',
+                 'properly', 'entire', 'possible', 'be', 'multi' ]
+    mc_filter = ['input', 'output', 'base', 'basic', 'directly', 'time', 'item', 'work', 'number', 'information',
+                 'make', 'set', 'sequentially', 'subject', 'object', 'define', 'reference', 'give', 'feature', 'determine',
+                 'workpiece', 'action', 'mode', 'function', 'relative', 'reference', 'application', 'describe', 'invention',
+                 'present', 'represent', 'task', 'form', 'approach', 'independent', 'independently', 'advance', 'becomes',
+                 'preform', 'parallel', ]
+    lc_filter = ['machine', 'method', 'model', 'part', 'system', 'variable', 'parameter', 'structure', 'device', 'state',
+                 'outer', 'device', 'present', 'remain', 'program']
+    vlc_filter = ['angle', 'angular', 'vertical', 'longitudinal', 'axis', 'position', 'operative', 'operatively', 'prepare',
+                  'operable', 'move', 'receive', 'adapt', 'configure', 'movable', 'create', 'separate', 'design',
+                  'identification', 'identify', 'joint', 'qf', 'zmp', 'llld', 'ik', ]
+
+    stop_words.extend(hc_filter)
+    stop_words.extend(mc_filter)
+
+    #print(stop_words)
+
+
+
     # todo: maybe try lemmatization only with noun or other subsamples
 
     #todo: adapt when the data sample to be used for all analyses is decided
@@ -212,8 +231,8 @@ if __name__ == '__main__':
     def make_bigrams(texts):
         return [bigram_mod[doc] for doc in texts]
 
-    def make_trigrams(texts):
-        return [trigram_mod[bigram_mod[doc]] for doc in texts]
+    #def make_trigrams(texts):
+    #    return [trigram_mod[bigram_mod[doc]] for doc in texts]
 
     def lemmatization(texts, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV']):
         texts_out = []
@@ -223,10 +242,9 @@ if __name__ == '__main__':
         return texts_out
 
 
-    ### Apply functions ###
 
-    # Remove Stop Words
-    data_words_nostops = remove_stopwords(tokenized_abst)
+    ### Apply functions ###
+    data_words_nostops = [remove_stopwords(abstract) for abstract in tokenized_abst]
 
     # Form Bigrams
     data_words_bigrams = make_bigrams(data_words_nostops)
@@ -236,6 +254,12 @@ if __name__ == '__main__':
 
     # Do lemmatization keeping only noun, adj, vb, adv
     data_lemmatized = lemmatization(data_words_bigrams, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV'])
+
+    # Lemma cleaning
+    data_lemmatized = [remove_stopwords(abstract) for abstract in data_lemmatized]
+
+    # Remove Stop Words again
+    #data_lemmatized = remove_stopwords(data_lemmatized)
 
     #todo check if bigrams (and everything else) at right place. Do we want 'an_independent_claim' and '
     # also_included' to be tokens? (Assuming they are not cleaned by lemmatization)
@@ -354,7 +378,7 @@ if __name__ == '__main__':
                                                num_topics=325,
                                                id2word=id2word,
                                                #alpha=
-                                               optimize_interval=1000,
+                                               #optimize_interval=1000,
                                                #iterations=10,
                                                random_seed=123)
 
@@ -451,28 +475,40 @@ if __name__ == '__main__':
 
         mallet_path = r'C:/mallet/bin/mallet' # update if necessary
 
-        lda_mallet = models.wrappers.LdaMallet(mallet_path, corpus=corpus, num_topics=325, id2word=id2word)
-
-        coherence_model_lda_mallet = models.CoherenceModel(model=lda_mallet, texts=data_lemmatized, dictionary=id2word, coherence='c_v')
-        coherence_ldamallet = coherence_model_lda_mallet.get_coherence()
-        print('Coherence Score (c_v) of final LDA (Mallet): ', coherence_ldamallet)             # 0.45689701111307507
-
         # supporting function
-        def compute_coherence_values(corpus, dictionary, k, a, b):
-            lda_model = models.LdaModel(corpus=corpus,
-                                            id2word=dictionary,
-                                            num_topics=k,
-                                            random_state=123,
-                                            #chunksize=100,
-                                            passes=10,
-                                            alpha=a,
-                                            eta=b)
-
+        def compute_coherence_values_gensim(corpus, dictionary, k, a, b):
+            #lda_model = models.LdaModel(corpus=corpus,
+            lda_model = models.LdaMulticore(corpus=corpus,
+                                        id2word=dictionary,
+                                        random_state=123,
+                                        num_topics=k,
+                                        alpha=a,
+                                        eta=b,
+                                        passes=10,
+                                        #chunksize=100,
+                                        )
 
             coherence_model_lda = models.CoherenceModel(model=lda_model, texts=data_lemmatized, dictionary=id2word,
                                                         coherence='c_v')
 
             return coherence_model_lda.get_coherence()
+
+        def compute_coherence_values_mallet(corpus, dictionary, k, a, b):
+
+            lda_mallet = models.wrappers.LdaMallet(mallet_path,
+                                                   corpus=corpus,
+                                                   id2word=id2word,
+                                                   random_seed=123,
+                                                   num_topics=k,
+                                                   alpha=a,
+                                                   #optimize_interval=1000,
+                                                   #iterations=10,
+                                                   )
+
+            coherence_model_lda_mallet = models.CoherenceModel(model=lda_mallet, texts=data_lemmatized,
+                                                               dictionary=id2word, coherence='c_v')
+
+            return coherence_model_lda_mallet.get_coherence()
 
 
         # Initiallizing Grid search
@@ -480,9 +516,9 @@ if __name__ == '__main__':
         grid = {}
         grid['Validation_Set'] = {}
 
-        # Topics range
-        min_topics = 20
-        max_topics = 420
+        # Topics range      #1      #2      #3
+        min_topics = 20     #20     #260    #360
+        max_topics = 420    #260    #360    #420
         step_size = 20
         topics_range = range(min_topics, max_topics, step_size)
 
@@ -505,7 +541,7 @@ if __name__ == '__main__':
                         corpus
                       ]
         corpus_title = [#'75% Corpus',
-                         '100% Corpus'
+                         '100% Mallet_Corpus'
                        ]
 
         model_results = {'Validation_Set': [],
@@ -514,6 +550,8 @@ if __name__ == '__main__':
                          'Beta': [],
                          'Coherence': []
                          }
+
+
 
         pbar = tqdm.tqdm(total=882)  # adjust if hyperparameters change # 21*7*6*1
 
@@ -526,7 +564,8 @@ if __name__ == '__main__':
                     # iterare through beta values
                     for b in beta:
                         # get the coherence score for the given parameters
-                        cv = compute_coherence_values(corpus=corpus_sets[i], dictionary=id2word, k=k, a=a, b=b)
+                        #cv = compute_coherence_values_gensim(corpus=corpus_sets[i], dictionary=id2word, k=k, a=a, b=b)
+                        cv = compute_coherence_values_mallet(corpus=corpus_sets[i], dictionary=id2word, k=k, a=a, b=b)
 
                         # Save the model results
                         model_results['Validation_Set'].append(corpus_title[i])
@@ -539,7 +578,7 @@ if __name__ == '__main__':
 
         # save result
 
-        pd.DataFrame(model_results).to_csv('lda_tuning_results.csv', index=False)
+        pd.DataFrame(model_results).to_csv('lda_tuning_results_Mallet.csv', index=False)
         pbar.close()
 
 '''
