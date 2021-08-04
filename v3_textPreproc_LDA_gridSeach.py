@@ -487,20 +487,22 @@ if __name__ == '__main__':
 
             return coherence_model_lda.get_coherence()
 
-        def compute_coherence_values_mallet(corpus, dictionary, num_topics): #, a, b):
+        def compute_coherence_values_mallet(corpus, dictionary, num_topics, a, op): #, it): #, b):
 
             lda_mallet = models.wrappers.LdaMallet(mallet_path,
                                                    corpus=corpus,
                                                    id2word=dictionary,
                                                    random_seed=123,
                                                    num_topics=num_topics,
-                                                   #alpha=a,
-                                                   #optimize_interval=1000,
-                                                   #iterations=10,
+                                                   alpha=a,
+                                                   optimize_interval=op,
+                                                   #iterations=it,
                                                    )
 
+            #print('im called')
+
             coherence_model_lda_mallet = models.CoherenceModel(model=lda_mallet, texts=data_lemmatized,
-                                                               dictionary=id2word, coherence='c_v')
+                                                               dictionary=dictionary, coherence='c_v')
 
             return coherence_model_lda_mallet.get_coherence()
 
@@ -512,20 +514,24 @@ if __name__ == '__main__':
 
         # Topics range      #1      #2      #3
         min_topics = 20     #20     #200    #300
-        max_topics = 40    #200    #300    #420
+        max_topics = 100    #200    #300    #420
         step_size = 20
         topics_range = range(min_topics, max_topics, step_size)
 
         # Alpha parameter
-        alpha = list(np.arange(0.01, 1, 0.3))
-        alpha.append('symmetric')
-        alpha.append('asymmetric')
-        alpha.append('auto')
+        alpha = list(np.arange(0.01, 0.31, 0.05))
+        #alpha.append('symmetric')
+        #alpha.append('asymmetric')
+        #alpha.append('auto')
 
         # Beta parameter
         beta = list(np.arange(0.01, 1, 0.3))
         beta.append('symmetric')
         alpha.append('auto')
+
+        optimize_interval = list(np.arange(1, 2001, 200))
+
+        #iterations = list(np.arange(1, 1001, 100))
 
         # Validation sets
         num_of_docs = len(corpus)
@@ -541,41 +547,48 @@ if __name__ == '__main__':
         model_results = {'Validation_Set': [],
                          'Topics': [],
                          'Alpha': [],
-                         'Beta': [],
+                         'optimize_interval': [],
+                         #'iterations': [],
+                         #'Beta': [],
                          'Coherence': []
                          }
 
+        #Typical value of alpha which is used in practice is 50/T where T is number of topics and value of
+        # beta is 0.1 or 200/W , where W is number of words in vocabulary.
 
-
-        pbar = tqdm.tqdm(total=360)  # adjust if hyperparameters change # 21*7*6*1
+        pbar = tqdm.tqdm(total=280)  # adjust if hyperparameters change # 21*7*6*1
         #c = 0
         # iterate through validation corpuses
         for i in range(len(corpus_sets)):
             # iterate through number of topics
             for k in topics_range:
                 # iterate through alpha values
-                ##for a in alpha:
+                for a in alpha:
                     # iterare through beta values
-                    ##for b in beta:
-                        # get the coherence score for the given parameters
-                        #cv = compute_coherence_values_gensim(corpus=corpus_sets[i], dictionary=id2word, k=k, a=a, b=b)
+                    #for b in beta:
+                    for op in optimize_interval:
+                        #for it in iterations:
+                            # get the coherence score for the given parameters
+                            #cv = compute_coherence_values_gensim(corpus=corpus_sets[i], dictionary=id2word, k=k, a=a, b=b)
 
-                        cv = compute_coherence_values_mallet(corpus=corpus_sets[i], dictionary=id2word, num_topics=k) #, a=a, b=b)
+                            cv = compute_coherence_values_mallet(corpus=corpus_sets[i], dictionary=id2word, num_topics=k, a=a, op=op) #, it=it) #, b=b)
+    
+                            # Save the model results
+                            model_results['Validation_Set'].append(corpus_title[i])
+                            model_results['Topics'].append(k)
+                            model_results['Alpha'].append(a)
+                            model_results['optimize_interval'].append(op)
+                            #model_results['iterations'].append(it)
+                            #model_results['Beta'].append(b)
+                            model_results['Coherence'].append(cv)
 
-                        # Save the model results
-                        model_results['Validation_Set'].append(corpus_title[i])
-                        model_results['Topics'].append(k)
-                        #model_results['Alpha'].append(a)
-                        #model_results['Beta'].append(b)
-                        model_results['Coherence'].append(cv)
-
-                        #c = c + 1
-                        pbar.update(1)
+                            #c = c + 1
+                            pbar.update(1)
 
         # save result
         #print(c)
 
-        pd.DataFrame(model_results).to_csv('lda_tuning_results_MalletTest.csv', index=False)
+        pd.DataFrame(model_results).to_csv('lda_tuning_results_Mallet_T_A_OP_20-100.csv', index=False)
         pbar.close()
 
 '''
