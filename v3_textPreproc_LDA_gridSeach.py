@@ -572,7 +572,7 @@ if __name__ == '__main__':
                             #cv = compute_coherence_values_gensim(corpus=corpus_sets[i], dictionary=id2word, k=k, a=a, b=b)
 
                             cv = compute_coherence_values_mallet(corpus=corpus_sets[i], dictionary=id2word, num_topics=k, a=a, op=op) #, it=it) #, b=b)
-    
+                            
                             # Save the model results
                             model_results['Validation_Set'].append(corpus_title[i])
                             model_results['Topics'].append(k)
