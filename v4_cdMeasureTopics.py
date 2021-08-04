@@ -139,4 +139,10 @@ if __name__ == '__main__':
 
         community_topicDist_dic[window_id] = window_list
 
+    # 1. create dic with: each window, list of tuple with (communityID, highest topic)
 
+    # 2. go through pattern array.
+    #   for each entry == 1, find what patent recombines.
+    #   same in a seperate structure
+    #   delete recombinations that are no recombinations (189, 189)
+    #   create new pattern array
