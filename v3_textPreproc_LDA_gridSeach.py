@@ -529,7 +529,7 @@ if __name__ == '__main__':
         beta.append('symmetric')
         alpha.append('auto')
 
-        optimize_interval = list(np.arange(1, 2001, 200))
+        optimize_interval = list(np.arange(100, 2100, 200))
 
         #iterations = list(np.arange(1, 1001, 100))
 
