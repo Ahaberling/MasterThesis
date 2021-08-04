@@ -487,14 +487,14 @@ if __name__ == '__main__':
 
             return coherence_model_lda.get_coherence()
 
-        def compute_coherence_values_mallet(corpus, dictionary, k, a, b):
+        def compute_coherence_values_mallet(corpus, dictionary, num_topics): #, a, b):
 
             lda_mallet = models.wrappers.LdaMallet(mallet_path,
                                                    corpus=corpus,
-                                                   id2word=id2word,
+                                                   id2word=dictionary,
                                                    random_seed=123,
-                                                   num_topics=k,
-                                                   alpha=a,
+                                                   num_topics=num_topics,
+                                                   #alpha=a,
                                                    #optimize_interval=1000,
                                                    #iterations=10,
                                                    )
@@ -511,8 +511,8 @@ if __name__ == '__main__':
         grid['Validation_Set'] = {}
 
         # Topics range      #1      #2      #3
-        min_topics = 20     #20     #260    #360
-        max_topics = 260    #260    #360    #420
+        min_topics = 20     #20     #200    #300
+        max_topics = 40    #200    #300    #420
         step_size = 20
         topics_range = range(min_topics, max_topics, step_size)
 
@@ -547,26 +547,26 @@ if __name__ == '__main__':
 
 
 
-        pbar = tqdm.tqdm(total=480)  # adjust if hyperparameters change # 21*7*6*1
+        pbar = tqdm.tqdm(total=360)  # adjust if hyperparameters change # 21*7*6*1
         #c = 0
         # iterate through validation corpuses
         for i in range(len(corpus_sets)):
             # iterate through number of topics
             for k in topics_range:
                 # iterate through alpha values
-                for a in alpha:
+                ##for a in alpha:
                     # iterare through beta values
-                    for b in beta:
+                    ##for b in beta:
                         # get the coherence score for the given parameters
                         #cv = compute_coherence_values_gensim(corpus=corpus_sets[i], dictionary=id2word, k=k, a=a, b=b)
 
-                        cv = compute_coherence_values_mallet(corpus=corpus_sets[i], dictionary=id2word, k=k, a=a, b=b)
+                        cv = compute_coherence_values_mallet(corpus=corpus_sets[i], dictionary=id2word, num_topics=k) #, a=a, b=b)
 
                         # Save the model results
                         model_results['Validation_Set'].append(corpus_title[i])
                         model_results['Topics'].append(k)
-                        model_results['Alpha'].append(a)
-                        model_results['Beta'].append(b)
+                        #model_results['Alpha'].append(a)
+                        #model_results['Beta'].append(b)
                         model_results['Coherence'].append(cv)
 
                         #c = c + 1
@@ -575,7 +575,7 @@ if __name__ == '__main__':
         # save result
         #print(c)
 
-        pd.DataFrame(model_results).to_csv('lda_tuning_results_Mallet.csv', index=False)
+        pd.DataFrame(model_results).to_csv('lda_tuning_results_MalletTest.csv', index=False)
         pbar.close()
 
 '''
