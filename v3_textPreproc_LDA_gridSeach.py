@@ -22,6 +22,8 @@ if __name__ == '__main__':
     import spacy
     import re
 
+    import itertools
+
     # pip install gensim==3.8.3
     import gensim.corpora as corpora
     import gensim.models as models
@@ -40,8 +42,8 @@ if __name__ == '__main__':
 
     # Specify whether you want to simply preform LDA, or a grid_search for optimal LDA hyperparameters
     final_model_gensim = False
-    final_model_mallet = True
-    grid_search = False
+    final_model_mallet = False
+    grid_search = True
 
     os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
 
@@ -160,79 +162,55 @@ if __name__ == '__main__':
     #todo: find a way to properly vectorize this as well (low priority)
 
 
-    ###  Build bigram and trigram models ###
-
-    bigram = models.Phrases(tokenized_abst, min_count=5, threshold=100)         # higher threshold fewer phrases.
-    #trigram = models.Phrases(bigram[tokenized_abst], threshold=100)
-
-    bigram_mod = models.phrases.Phraser(bigram)
-    #trigram_mod = models.phrases.Phraser(trigram)
-
-    #print(trigram_mod[bigram_mod[tokenized_abst[0]]])                          # Accessing grams
-
-    #todo: fine tune models.Phrases
-
-
     ### Define Stopwords ###
-
-    #stop_words = ['robot']
-    stop_words = nltk.corpus.stopwords.words('english')
-    stop_words.extend(['from', 'subject', 're', 'edu', 'use'])
-
-    stop_words.extend(['from', 'subject', 're', 'edu', 'use', 'not', 'would', 'say', 'could', '_', 'be', 'know', 'good',
-                   'go', 'get', 'do', 'done', 'try', 'many', 'some', 'nice', 'thank', 'think', 'see', 'rather', 'easy',
-                   'easily', 'lot', 'lack', 'make', 'want', 'seem', 'run', 'need', 'even', 'right', 'line', 'even',
-                   'also', 'may', 'take', 'come'])
-
-    stop_words.extend(['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve',
-                 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth',
-                 'eleventh', 'twelfth',
-                 'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii',
-                 'robot'])
-
-
     # hc/mc/lc/vlc = high/middle/low/very low confidence
     # when using extended dataset, check if 'robot' is also present in every patent abstract
     # adapt if it is clear that the dataset only includes real robot things and not also pure robot programs
 
-    hc_filter = ['also', 'does', 'not', 'therefor', 'thereto', 'additionally', 'thereof', 'minimum', 'maximum', 'multiple',
-                 'pre', 'robot', 'robotic', 'robotically', 'robotize', 'kind', 'extra', 'double', 'manner', 'general', 'previously', 'exist', 'respective',
-                 'end', 'central', 'indirectly', 'expect', 'include', 'main', 'relate', 'type', 'couple', 'plurality', 'common',
-                 'properly', 'entire', 'possible', 'be', 'multi' ]
+    nltk_filter = nltk.corpus.stopwords.words('english')
+    for word in ['above', 'below', 'up', 'down', 'over', 'under', 'won']:
+        nltk_filter.remove(word)
+
+    numbers_filter = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven',
+                         'twelve','first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth',
+                         'tenth', 'eleventh', 'twelfth', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii',
+                         ]      # 'i' already listed in nltk_stopWords
+
+    hc_filter = ['also', 'therefor', 'thereto', 'additionally', 'thereof', 'minimum', 'maximum', 'multiple',
+                 'pre', 'kind', 'extra', 'double', 'manner', 'general',
+                 'previously', 'exist', 'respective', 'end', 'central', 'indirectly', 'expect', 'include', 'main', 'relate',
+                 'type', 'couple', 'plurality', 'common', 'properly', 'entire', 'possible', 'multi', 'would',
+                 'could', 'good', 'done', 'many', 'much', 'rather', 'right', 'even', 'may', 'some']
+
     mc_filter = ['input', 'output', 'base', 'basic', 'directly', 'time', 'item', 'work', 'number', 'information',
                  'make', 'set', 'sequentially', 'subject', 'object', 'define', 'reference', 'give', 'feature', 'determine',
                  'workpiece', 'action', 'mode', 'function', 'relative', 'reference', 'application', 'describe', 'invention',
-                 'present', 'represent', 'task', 'form', 'approach', 'independent', 'independently', 'advance', 'becomes',
-                 'preform', 'parallel', ]
+                 'represent', 'task', 'form', 'approach', 'independent', 'independently', 'advance', 'becomes',
+                 'preform', 'parallel', 'get', 'try', 'easily', 'use', 'know', 'think', 'want', 'seem', 'robotic',
+                 'robotically', 'robotize']
+
     lc_filter = ['machine', 'method', 'model', 'part', 'system', 'variable', 'parameter', 'structure', 'device', 'state',
                  'outer', 'device', 'present', 'remain', 'program']
+
     vlc_filter = ['angle', 'angular', 'vertical', 'longitudinal', 'axis', 'position', 'operative', 'operatively', 'prepare',
                   'operable', 'move', 'receive', 'adapt', 'configure', 'movable', 'create', 'separate', 'design',
                   'identification', 'identify', 'joint', 'qf', 'zmp', 'llld', 'ik', ]
 
-    stop_words.extend(hc_filter)
-    stop_words.extend(mc_filter)
+    filter = itertools.chain(nltk_filter, numbers_filter, hc_filter, mc_filter)
 
-    #print(stop_words)
-
-
-
-    # todo: maybe try lemmatization only with noun or other subsamples
-
-    #todo: adapt when the data sample to be used for all analyses is decided
 
 
     ### Define functions for stopwords, bigrams, trigrams and lemmatization ###
 
     def remove_stopwords(texts):
-        clean_text = [word for word in texts if word not in stop_words]
+        clean_text = [word for word in texts if word not in filter]
         return clean_text
 
     def make_bigrams(texts):
         return [bigram_mod[doc] for doc in texts]
 
     #def make_trigrams(texts):
-    #    return [trigram_mod[bigram_mod[doc]] for doc in texts]
+        #return [trigram_mod[bigram_mod[doc]] for doc in texts]
 
     def lemmatization(texts, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV']):
         texts_out = []
@@ -246,8 +224,24 @@ if __name__ == '__main__':
     ### Apply functions ###
     data_words_nostops = [remove_stopwords(abstract) for abstract in tokenized_abst]
 
+    ###  Build bigram and trigram models ###
+
+    bigram = models.Phrases(data_words_nostops, min_count=5, threshold=100)  # higher threshold fewer phrases.
+    #trigram = models.Phrases(bigram[tokenized_abst], threshold=100)
+
+    bigram_mod = models.phrases.Phraser(bigram)
+    #trigram_mod = models.phrases.Phraser(trigram)
+
+    # print(trigram_mod[bigram_mod[tokenized_abst[0]]])                          # Accessing grams
+
+    # todo: fine tune models.Phrases
+
+
     # Form Bigrams
     data_words_bigrams = make_bigrams(data_words_nostops)
+
+    # Form Trigrams
+    #data_words_trigrams = make_trigrams(data_words_bigrams)
 
     # Initialize spacy 'en' model, keeping only tagger component (for efficiency)
     nlp = spacy.load("en_core_web_sm", disable=['parser', 'ner'])
@@ -518,7 +512,7 @@ if __name__ == '__main__':
 
         # Topics range      #1      #2      #3
         min_topics = 20     #20     #260    #360
-        max_topics = 420    #260    #360    #420
+        max_topics = 260    #260    #360    #420
         step_size = 20
         topics_range = range(min_topics, max_topics, step_size)
 
@@ -553,8 +547,8 @@ if __name__ == '__main__':
 
 
 
-        pbar = tqdm.tqdm(total=882)  # adjust if hyperparameters change # 21*7*6*1
-
+        pbar = tqdm.tqdm(total=480)  # adjust if hyperparameters change # 21*7*6*1
+        #c = 0
         # iterate through validation corpuses
         for i in range(len(corpus_sets)):
             # iterate through number of topics
@@ -565,6 +559,7 @@ if __name__ == '__main__':
                     for b in beta:
                         # get the coherence score for the given parameters
                         #cv = compute_coherence_values_gensim(corpus=corpus_sets[i], dictionary=id2word, k=k, a=a, b=b)
+
                         cv = compute_coherence_values_mallet(corpus=corpus_sets[i], dictionary=id2word, k=k, a=a, b=b)
 
                         # Save the model results
@@ -574,9 +569,11 @@ if __name__ == '__main__':
                         model_results['Beta'].append(b)
                         model_results['Coherence'].append(cv)
 
+                        #c = c + 1
                         pbar.update(1)
 
         # save result
+        #print(c)
 
         pd.DataFrame(model_results).to_csv('lda_tuning_results_Mallet.csv', index=False)
         pbar.close()

@@ -988,3 +988,16 @@ if __name__ == '__main__':
     #print(gm_singleDiffusion_v2)
     #print(kclique_singleDiffusion_v2)
     #print(lais2_singleDiffusion_v2)
+
+
+    with open('lp_community_topicDist_dic', 'rb') as handle:
+        lp_community_topicDist_dic = pk.load(handle)
+
+    with open('lp_community_topTopic_dic', 'rb') as handle:
+        lp_community_topTopic_dic = pk.load(handle)
+
+    # 2. go through pattern array.
+    #   for each entry == 1, find what patent recombines.
+    #   same in a seperate structure
+    #   delete recombinations that are no recombinations (189, 189)
+    #   create new pattern array

@@ -86,7 +86,7 @@ if __name__ == '__main__':
     #print(column_unique)
     print(column_unique_length)
 
-    print(patent_lda_ipc[0])
+    #print(patent_lda_ipc[0])
 
     # get biggest community each window:
 
@@ -141,8 +141,38 @@ if __name__ == '__main__':
 
     # 1. create dic with: each window, list of tuple with (communityID, highest topic)
 
+    community_topTopic_dic = {}
+    confidence_list = []
+    for window_id, window in community_topicDist_dic.items():
+        community_list = []
+        for community in window:
+            topTopic = max(community[1])
+            topicSum = sum(community[1])
+            confidence = topTopic/topicSum
+
+            topTopic_index = community[1].index(max(community[1]))
+            community_list.append([community[0], topTopic_index, round(confidence, 2)])
+
+            confidence_list.append(confidence)
+
+
+        community_topTopic_dic[window_id] = community_list
+    print(community_topTopic_dic)
+
+    print(sum(confidence_list)/len(confidence_list))
+
     # 2. go through pattern array.
     #   for each entry == 1, find what patent recombines.
     #   same in a seperate structure
     #   delete recombinations that are no recombinations (189, 189)
     #   create new pattern array
+
+    filename = 'lp_community_topicDist_dic'
+    outfile = open(filename, 'wb')
+    pk.dump(community_topicDist_dic, outfile)
+    outfile.close()
+
+    filename = 'lp_community_topTopic_dic'
+    outfile = open(filename, 'wb')
+    pk.dump(community_topTopic_dic, outfile)
+    outfile.close()
