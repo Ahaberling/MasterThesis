@@ -37,13 +37,33 @@ if __name__ == '__main__':
 
 
 
+    import inspect
+    #src = inspect.getsource(models)
+    #print(src)
+    #src = inspect.getsource(models.wrappers)
+    #print(src)
+    src = inspect.getsource(models.wrappers.LdaMallet)
+    print(src)
+
+# https://www.socsci.uci.edu/~lpearl/courses/readings/SteyversGriffiths2007_ProbTopicModels.pdf 37.000 docs -> 300 topics
+
+
+# alpha = per-document-topic distribution. a high alpha indicates that each document is likely to contain a mixture of most topics.
+# a low alpha "says" that each document likely contains only a few of the topics
+# beta = per-topic-word distribution. High beta indicates that each topic contains a mixture of most of the words. low beta = mixture
+# of only a few words
+# theta = the topic distribution for a document
+# so theta_m probably for document m
+# z_mn is the topic for the nth word of document m
+# w_mn = word
+
 #--- Initialization ---#
     print('\n#--- Initialization ---#\n')
 
     # Specify whether you want to simply preform LDA, or a grid_search for optimal LDA hyperparameters
     final_model_gensim = False
-    final_model_mallet = False
-    grid_search = True
+    final_model_mallet = True
+    grid_search = False
 
     os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
 
@@ -180,13 +200,13 @@ if __name__ == '__main__':
                  'pre', 'kind', 'extra', 'double', 'manner', 'general',
                  'previously', 'exist', 'respective', 'end', 'central', 'indirectly', 'expect', 'include', 'main', 'relate',
                  'type', 'couple', 'plurality', 'common', 'properly', 'entire', 'possible', 'multi', 'would',
-                 'could', 'good', 'done', 'many', 'much', 'rather', 'right', 'even', 'may', 'some']
+                 'could', 'good', 'done', 'many', 'much', 'rather', 'right', 'even', 'may', 'some', 'preferably']
 
     mc_filter = ['input', 'output', 'base', 'basic', 'directly', 'time', 'item', 'work', 'number', 'information',
                  'make', 'set', 'sequentially', 'subject', 'object', 'define', 'reference', 'give', 'feature', 'determine',
                  'workpiece', 'action', 'mode', 'function', 'relative', 'reference', 'application', 'describe', 'invention',
                  'represent', 'task', 'form', 'approach', 'independent', 'independently', 'advance', 'becomes',
-                 'preform', 'parallel', 'get', 'try', 'easily', 'use', 'know', 'think', 'want', 'seem', 'robotic',
+                 'preform', 'parallel', 'get', 'try', 'easily', 'use', 'know', 'think', 'want', 'seem', 'robot', 'robotic',
                  'robotically', 'robotize']
 
     lc_filter = ['machine', 'method', 'model', 'part', 'system', 'variable', 'parameter', 'structure', 'device', 'state',
@@ -196,9 +216,11 @@ if __name__ == '__main__':
                   'operable', 'move', 'receive', 'adapt', 'configure', 'movable', 'create', 'separate', 'design',
                   'identification', 'identify', 'joint', 'qf', 'zmp', 'llld', 'ik', ]
 
-    filter = itertools.chain(nltk_filter, numbers_filter, hc_filter, mc_filter)
+    filter = list(itertools.chain(nltk_filter, numbers_filter, hc_filter, mc_filter))
 
 
+
+    # why is robotic still in there??
 
     ### Define functions for stopwords, bigrams, trigrams and lemmatization ###
 
@@ -367,13 +389,17 @@ if __name__ == '__main__':
         for i in range(10):
             print('Coherence Score (c_v) of final LDA (Mallet): ', coherence_ldamallet)  # 0.4756256448838956
         '''
+
+        #     def __init__(self, mallet_path, corpus=None, num_topics=100, alpha=50, id2word=None, workers=4, prefix=None,
+        #                  optimize_interval=0, iterations=1000, topic_threshold=0.0, random_seed=0):
+
         lda_mallet = models.wrappers.LdaMallet(mallet_path,
                                                corpus=corpus,
                                                num_topics=325,
                                                id2word=id2word,
-                                               #alpha=
-                                               #optimize_interval=1000,
-                                               #iterations=10,
+                                               alpha= 50,
+                                               optimize_interval=0,
+                                               iterations=1000,
                                                random_seed=123)
 
 
@@ -513,21 +539,21 @@ if __name__ == '__main__':
         grid['Validation_Set'] = {}
 
         # Topics range      #1      #2      #3
-        min_topics = 20     #20     #200    #300
-        max_topics = 100    #200    #300    #420
+        min_topics = 320     #20     #200    #300
+        max_topics = 420    #200    #300    #420
         step_size = 20
         topics_range = range(min_topics, max_topics, step_size)
 
         # Alpha parameter
-        alpha = list(np.arange(0.01, 0.31, 0.05))
+        alpha = list(np.arange(0.01, 0.31, 0.03))
         #alpha.append('symmetric')
         #alpha.append('asymmetric')
         #alpha.append('auto')
 
         # Beta parameter
-        beta = list(np.arange(0.01, 1, 0.3))
-        beta.append('symmetric')
-        alpha.append('auto')
+        #beta = list(np.arange(0.01, 1, 0.3))
+        #beta.append('symmetric')
+        #.append('auto')
 
         optimize_interval = list(np.arange(100, 2100, 200))
 
@@ -556,7 +582,7 @@ if __name__ == '__main__':
         #Typical value of alpha which is used in practice is 50/T where T is number of topics and value of
         # beta is 0.1 or 200/W , where W is number of words in vocabulary.
 
-        pbar = tqdm.tqdm(total=280)  # adjust if hyperparameters change # 21*7*6*1
+        pbar = tqdm.tqdm(total=500)  # adjust if hyperparameters change # 21*7*6*1
         #c = 0
         # iterate through validation corpuses
         for i in range(len(corpus_sets)):
@@ -588,8 +614,10 @@ if __name__ == '__main__':
         # save result
         #print(c)
 
-        pd.DataFrame(model_results).to_csv('lda_tuning_results_Mallet_T_A_OP_20-100.csv', index=False)
+        pd.DataFrame(model_results).to_csv('lda_tuning_results_Mallet_T_A_OP_320-420.csv', index=False)
         pbar.close()
+
+    #FileNotFoundError: [Errno 2] No such file or directory: '... _state.mallet.gz' -> updated smart-open from 3.0.0 to 5.1.0
 
 '''
 # supporting function
@@ -674,4 +702,27 @@ if __name__ == '__main__':
         pd.DataFrame(model_results).to_csv('lda_tuning_results.csv', index=False)
         pbar.close()
 
+'''
+
+'''
+For input string: "auto"
+Traceback (most recent call last):
+  File "C:\PycharmProjects\MasterThesis\v3_textPreproc_LDA_gridSeach.py", line 574, in <module>
+    cv = compute_coherence_values_mallet(corpus=corpus_sets[i], dictionary=id2word, num_topics=k, a=a, op=op) #, it=it) #, b=b)
+  File "C:\PycharmProjects\MasterThesis\v3_textPreproc_LDA_gridSeach.py", line 492, in compute_coherence_values_mallet
+    lda_mallet = models.wrappers.LdaMallet(mallet_path,
+  File "C:\PycharmProjects\thesis_venv\lib\site-packages\gensim\models\wrappers\ldamallet.py", line 131, in __init__
+    self.train(corpus)
+  File "C:\PycharmProjects\thesis_venv\lib\site-packages\gensim\models\wrappers\ldamallet.py", line 285, in train
+    self.word_topics = self.load_word_topics()
+  File "C:\PycharmProjects\thesis_venv\lib\site-packages\gensim\models\wrappers\ldamallet.py", line 343, in load_word_topics
+    with utils.open(self.fstate(), 'rb') as fin:
+  File "C:\PycharmProjects\thesis_venv\lib\site-packages\smart_open\smart_open_lib.py", line 222, in open
+    binary = _open_binary_stream(uri, binary_mode, transport_params)
+  File "C:\PycharmProjects\thesis_venv\lib\site-packages\smart_open\smart_open_lib.py", line 324, in _open_binary_stream
+    fobj = submodule.open_uri(uri, mode, transport_params)
+  File "C:ycharmProjects\thesis_venv\lib\site-packages\smart_open\local_file.py", line 34, in open_uri
+    fobj = io.open(parsed_uri['uri_path'], mode)
+FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Users\\UNIVER~1\\AppData\\Local\\Temp\\7d6563_state.mallet.gz'
+ 21%|██▏       | 60/280 [58:01<3:32:46, 58.03s/it]
 '''
