@@ -45,6 +45,12 @@ if __name__ == '__main__':
     src = inspect.getsource(models.wrappers.LdaMallet)
     print(src)
 
+# 1. how does lda work? I can follow the paper only past the generative process. how far more do i have to go into details?
+# 2. hyperparameters:
+#   why cant I pass beta? What is the default value for beta? How do I argue for just taking the default? Citing stackoverflow seems odd
+#   why is the alpha notation so ambiguous?
+
+
 # https://www.socsci.uci.edu/~lpearl/courses/readings/SteyversGriffiths2007_ProbTopicModels.pdf 37.000 docs -> 300 topics
 
 
@@ -356,7 +362,6 @@ if __name__ == '__main__':
 
         pd.DataFrame(topics_gensim).to_csv('patent_topics_gensim.csv', index=None)
 
-
     if final_model_mallet == True:
 
     ### Build Mallet LDA model ###
@@ -398,6 +403,7 @@ if __name__ == '__main__':
                                                num_topics=325,
                                                id2word=id2word,
                                                alpha= 50,
+                                               beta = 0.02,
                                                optimize_interval=0,
                                                iterations=1000,
                                                random_seed=123)
