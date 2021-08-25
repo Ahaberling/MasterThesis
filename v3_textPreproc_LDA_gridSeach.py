@@ -43,6 +43,7 @@ if __name__ == '__main__':
     #src = inspect.getsource(models.wrappers)
     #print(src)
     src = inspect.getsource(models.wrappers.LdaMallet)
+    src = inspect.getsource(models.CoherenceModel)
     print(src)
 
 # 1. how does lda work? I can follow the paper only past the generative process. how far more do i have to go into details?
@@ -73,6 +74,7 @@ if __name__ == '__main__':
 
     os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
 
+    # pat_publn_id, publn_auth, publn_nr, publn_date, publn_claims, publn_title, publn_abstract, nb_IPC
     patent_raw = pd.read_csv('cleaning_robot_EP_patents.csv', quotechar='"', skipinitialspace=True)
     patent_raw = patent_raw.to_numpy()
     # patent_raw = patent_raw.sample(100)
@@ -96,6 +98,57 @@ if __name__ == '__main__':
     #print(np.shape(patent_raw))            # (3844, 8)
 
 
+    def remove_foreign_patents(patents, language, count):
+
+        number_of_patents_removed = 0
+
+        if language == 'ger':
+            check_list_ger = []
+
+            for i in range(len(patents[:, 6])):
+                # German abstract check
+                regexp = re.compile(r'\sein')  # Assumption: there are no english words beginning with 'ein' worth considering
+                if regexp.search(patents[i, 6]):
+                    check_list_ger.append(i)
+
+            patents_clean = np.delete(patents, check_list_ger, 0)
+            number_of_patents_removed = len(check_list_ger)
+
+        elif language == 'fr':
+            check_list_fr = []
+
+            for i in range(len(patents[:, 6])):
+                # France abstract check
+                regexp = re.compile(r'\sune\s') # Assumption: the term 'une' is not used in english patent abstracts
+                if regexp.search(patents[i, 6]):
+                    check_list_fr.append(i)
+
+            patents_clean = np.delete(patents, check_list_fr, 0)
+            number_of_patents_removed = len(check_list_fr)
+
+        else:
+            raise Exception("Only german 'ger' and french 'fr' supported")
+
+        if count == True:
+            return patents_clean, number_of_patents_removed
+
+        elif count == False:
+            return patents_clean
+
+        else:
+            raise Exception("'Count' must be boolean")
+
+    def count_abstracts_with_word(patents, word):
+        check_list_word = []
+
+        for i in range(len(patents[:, 6])):
+            regexp = re.compile(word)
+            if regexp.search(patent_raw[i,6]):
+                check_list_word.append(i)
+
+        return word, len(check_list_word)
+
+    '''
     ### Check for patents in german or france and for patents containing the terms 'robot' and 'clean' ###
 
     check_list_ger = []
@@ -146,17 +199,31 @@ if __name__ == '__main__':
     removal_list_all.append(check_list_ger)     #extend?
     removal_list_all.append(check_list_fr)
     removal_list_all = [item for sublist in removal_list_all for item in sublist]
+    '''
 
+    print('Number of all patents: ', len(patent_raw))
+    patent_raw, number_removed_patents = remove_foreign_patents(patent_raw, language='ger', count=True)
+    print('Number of german patents removed: ', number_removed_patents)
+    patent_raw, number_removed_patents = remove_foreign_patents(patent_raw, language='fr', count=True)
+    print('Number of french patents removed: ', number_removed_patents)
+
+    term, number_abstracts_term = count_abstracts_with_word(patent_raw, word='clean')
+    print('Number abstracts containing', term, ': ', number_abstracts_term)
+    term, number_abstracts_term = count_abstracts_with_word(patent_raw, word='robot')
+    print('Number abstracts containing', term, ': ', number_abstracts_term)
+    '''
     patent = np.delete(patent_raw, removal_list_all, 0)
 
     print('Number of (non-english) patents removed: ', len(removal_list_all))            #   63/3844 patents removed
     print('Number of (english) patents remaining: ', len(patent))                        # 3781/3844 patents remaining
-
+    '''
 
     ### New Array, including space for preprocessed abstracts ###
 
-    patent_cleanAbs = np.empty((np.shape(patent)[0], np.shape(patent)[1]+1), dtype = object)
-    patent_cleanAbs[:,:-1] = patent
+    patent_wTopics = np.empty((np.shape(patent_raw)[0], np.shape(patent_raw)[1]+1), dtype = object)
+    patent_wTopics[:,:-1] = patent_raw
+
+
 
 
     ### Define functions for abstract cleaning ###
@@ -169,7 +236,7 @@ if __name__ == '__main__':
         text = text.lower()                             # Make all the strings lowercase and
         return text
 
-    def vectorize(x):
+    def vectorize_preprocessing(x):
         return np.vectorize(preprocessing)(x)
 
     # todo: check if properly vectorized
@@ -177,16 +244,11 @@ if __name__ == '__main__':
 
     ### Apply functions for abstract cleaning ###
 
-    semi_preprocessed = vectorize(patent[:,6])
+    abs_intermed_preproc = vectorize_preprocessing(patent_raw[:,6])
 
     ### Apply tokenization ###
 
-    tokenized_abst = []
-    for i in range(len(semi_preprocessed)):
-        tokenized_abst.append(nltk.word_tokenize(semi_preprocessed[i]))
-
-    #todo: find a way to properly vectorize this as well (low priority)
-
+    abst_tokenized = [nltk.word_tokenize(abstract) for abstract in abs_intermed_preproc]
 
     ### Define Stopwords ###
     # hc/mc/lc/vlc = high/middle/low/very low confidence
@@ -250,11 +312,11 @@ if __name__ == '__main__':
 
 
     ### Apply functions ###
-    data_words_nostops = [remove_stopwords(abstract) for abstract in tokenized_abst]
+    abst_nostops = [remove_stopwords(abstract) for abstract in abst_tokenized]
 
     ###  Build bigram and trigram models ###
 
-    bigram = models.Phrases(data_words_nostops, min_count=5, threshold=100)  # higher threshold fewer phrases.
+    bigram = models.Phrases(abst_nostops, min_count=5, threshold=100)  # higher threshold fewer phrases.
     #trigram = models.Phrases(bigram[tokenized_abst], threshold=100)
 
     bigram_mod = models.phrases.Phraser(bigram)
@@ -266,7 +328,7 @@ if __name__ == '__main__':
 
 
     # Form Bigrams
-    data_words_bigrams = make_bigrams(data_words_nostops)
+    abst_bigrams = make_bigrams(abst_nostops)
 
     # Form Trigrams
     #data_words_trigrams = make_trigrams(data_words_bigrams)
@@ -275,10 +337,10 @@ if __name__ == '__main__':
     nlp = spacy.load("en_core_web_sm", disable=['parser', 'ner'])
 
     # Do lemmatization keeping only noun, adj, vb, adv
-    data_lemmatized = lemmatization(data_words_bigrams, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV'])
+    abst_lemmatized = lemmatization(abst_bigrams, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV'])
 
     # Lemma cleaning
-    data_lemmatized = [remove_stopwords(abstract) for abstract in data_lemmatized]
+    abst_clean = [remove_stopwords(abstract) for abstract in abst_lemmatized]
 
     # Remove Stop Words again
     #data_lemmatized = remove_stopwords(data_lemmatized)
@@ -293,12 +355,12 @@ if __name__ == '__main__':
 
     ### Create Dictionary ###
 
-    id2word = corpora.Dictionary(data_lemmatized)
+    id2word = corpora.Dictionary(abst_clean)
 
 
     ### Create Corpus ###
 
-    corpus = [id2word.doc2bow(text) for text in data_lemmatized]
+    corpus = [id2word.doc2bow(text) for text in abst_clean]
 
 
     ### Build LDA model - Gensim ###
@@ -332,7 +394,7 @@ if __name__ == '__main__':
 
     ### Compute Coherence Score - Gensim ###
 
-        coherence_model_lda = models.CoherenceModel(model=lda_gensim, texts=data_lemmatized, dictionary=id2word, coherence='c_v')
+        coherence_model_lda = models.CoherenceModel(model=lda_gensim, texts=abst_clean, dictionary=id2word, coherence='c_v')
         coherence_lda = coherence_model_lda.get_coherence()
         print('Coherence Score (c_v) of final LDA (Gensim): ', coherence_lda)               # 0.3352192192227267
         # the higher the better from 0.3 to 0.7 or 0.8.
@@ -344,7 +406,7 @@ if __name__ == '__main__':
         doc_affili_gensim = lda_gensim.get_document_topics(corpus, minimum_probability=0.05, minimum_phi_value=None,
                                                           per_word_topics=False)
 
-        patent_topicDist_gensim = patent_cleanAbs
+        patent_topicDist_gensim = patent_wTopics
         patent_topicDist_gensim.T[8, :] = doc_affili_gensim
 
         pd.DataFrame(patent_topicDist_gensim).to_csv('patent_topicDist_gensim.csv', index=None)
@@ -402,16 +464,16 @@ if __name__ == '__main__':
                                                corpus=corpus,
                                                num_topics=325,
                                                id2word=id2word,
-                                               alpha= 50,
-                                               beta = 0.02,
-                                               optimize_interval=0,
-                                               iterations=1000,
+                                               #alpha= 50,
+                                               #beta = 0.02,
+                                               #optimize_interval=0,
+                                               #iterations=1000,
                                                random_seed=123)
 
 
     # plain                 no topics               iterations=10           optimize_interval=1
     # 0.4530598854343954    0.37365560343398985     0.31727626116792185     0.3722214392230059
-
+    # 0.47429113995964317
     #                                                                       optimize_interval=10
     #                                                                       0.37720230356805884
 
@@ -423,12 +485,17 @@ if __name__ == '__main__':
 
 
 
-        coherence_model_lda_mallet = models.CoherenceModel(model=lda_mallet, texts=data_lemmatized, dictionary=id2word, coherence='c_v')
+        coherence_model_lda_mallet = models.CoherenceModel(model=lda_mallet, texts=abst_clean, dictionary=id2word, coherence='c_v')
         coherence_ldamallet = coherence_model_lda_mallet.get_coherence()
         for i in range(10):
             print('Coherence Score (c_v) of final LDA (Mallet): ', coherence_ldamallet)     # 0.3722214392230059  # 1
                                                                                             # 0.37720230356805884 # 10
                                                                                             # 0.40265562816232037 # 100
+
+        coherence_model_lda_mallet = models.CoherenceModel(model=lda_mallet, texts=abst_clean, dictionary=id2word, coherence='c_uci')
+        coherence_ldamallet = coherence_model_lda_mallet.get_coherence()
+        for i in range(10):
+            print('Coherence Score (c_v) of final LDA (Mallet): ', coherence_ldamallet)
 
     #Dirichlet hyperparameter alpha: Document-Topic Density
     #Dirichlet hyperparameter beta: Word-Topic Density
@@ -463,7 +530,7 @@ if __name__ == '__main__':
         doc_affili_mallet = lda_mallet.read_doctopics(fname = lda_mallet.fdoctopics(), eps = 0.05, renorm = False)
         # ldamallet.load_document_topics() reports all topic affiliations. No threshold selectable
 
-        patent_topicDist_mallet = patent_cleanAbs
+        patent_topicDist_mallet = patent_wTopics
 
         c = 0
         for i in doc_affili_mallet:
@@ -514,26 +581,26 @@ if __name__ == '__main__':
                                         #chunksize=100,
                                         )
 
-            coherence_model_lda = models.CoherenceModel(model=lda_model, texts=data_lemmatized, dictionary=id2word,
+            coherence_model_lda = models.CoherenceModel(model=lda_model, texts=abst_clean, dictionary=id2word,
                                                         coherence='c_v')
 
             return coherence_model_lda.get_coherence()
 
-        def compute_coherence_values_mallet(corpus, dictionary, num_topics, a, op): #, it): #, b):
+        def compute_coherence_values_mallet(corpus, dictionary, num_topics): #, a, op): #, it): #, b):
 
             lda_mallet = models.wrappers.LdaMallet(mallet_path,
                                                    corpus=corpus,
                                                    id2word=dictionary,
                                                    random_seed=123,
                                                    num_topics=num_topics,
-                                                   alpha=a,
-                                                   optimize_interval=op,
+                                                   #alpha=a,
+                                                   #optimize_interval=op,
                                                    #iterations=it,
                                                    )
 
             #print('im called')
 
-            coherence_model_lda_mallet = models.CoherenceModel(model=lda_mallet, texts=data_lemmatized,
+            coherence_model_lda_mallet = models.CoherenceModel(model=lda_mallet, texts=abst_clean,
                                                                dictionary=dictionary, coherence='c_v')
 
             return coherence_model_lda_mallet.get_coherence()
@@ -541,17 +608,20 @@ if __name__ == '__main__':
 
         # Initiallizing Grid search
 
+        # because it is unfeasable to check all the topic files of 2k ldas, first only the topic number is iterated through with the
+        # default settings to arrive at a reasonable topic number (probably taking the one with the biggest increase in coherency)
+
         grid = {}
         grid['Validation_Set'] = {}
 
         # Topics range      #1      #2      #3
-        min_topics = 320     #20     #200    #300
-        max_topics = 420    #200    #300    #420
-        step_size = 20
+        min_topics = 10     #20     #200    #300
+        max_topics = 1000    #200   #300    #420
+        step_size = 10
         topics_range = range(min_topics, max_topics, step_size)
 
         # Alpha parameter
-        alpha = list(np.arange(0.01, 0.31, 0.03))
+        #alpha = list(np.arange(0.01, 0.31, 0.03))
         #alpha.append('symmetric')
         #alpha.append('asymmetric')
         #alpha.append('auto')
@@ -561,7 +631,7 @@ if __name__ == '__main__':
         #beta.append('symmetric')
         #.append('auto')
 
-        optimize_interval = list(np.arange(100, 2100, 200))
+        #optimize_interval = list(np.arange(100, 2100, 200))
 
         #iterations = list(np.arange(1, 1001, 100))
 
@@ -578,8 +648,8 @@ if __name__ == '__main__':
 
         model_results = {'Validation_Set': [],
                          'Topics': [],
-                         'Alpha': [],
-                         'optimize_interval': [],
+                         #'Alpha': [],
+                         #'optimize_interval': [],
                          #'iterations': [],
                          #'Beta': [],
                          'Coherence': []
@@ -595,21 +665,21 @@ if __name__ == '__main__':
             # iterate through number of topics
             for k in topics_range:
                 # iterate through alpha values
-                for a in alpha:
+                #for a in alpha:
                     # iterare through beta values
                     #for b in beta:
-                    for op in optimize_interval:
+                    #for op in optimize_interval:
                         #for it in iterations:
                             # get the coherence score for the given parameters
                             #cv = compute_coherence_values_gensim(corpus=corpus_sets[i], dictionary=id2word, k=k, a=a, b=b)
 
-                            cv = compute_coherence_values_mallet(corpus=corpus_sets[i], dictionary=id2word, num_topics=k, a=a, op=op) #, it=it) #, b=b)
+                            cv = compute_coherence_values_mallet(corpus=corpus_sets[i], dictionary=id2word, num_topics=k) #, a=a, op=op) #, it=it) #, b=b)
                             
                             # Save the model results
                             model_results['Validation_Set'].append(corpus_title[i])
                             model_results['Topics'].append(k)
-                            model_results['Alpha'].append(a)
-                            model_results['optimize_interval'].append(op)
+                            #model_results['Alpha'].append(a)
+                            #model_results['optimize_interval'].append(op)
                             #model_results['iterations'].append(it)
                             #model_results['Beta'].append(b)
                             model_results['Coherence'].append(cv)
@@ -620,7 +690,7 @@ if __name__ == '__main__':
         # save result
         #print(c)
 
-        pd.DataFrame(model_results).to_csv('lda_tuning_results_Mallet_T_A_OP_320-420.csv', index=False)
+        pd.DataFrame(model_results).to_csv('lda_tuning_results_Mallet_default-Topics.csv', index=False)
         pbar.close()
 
     #FileNotFoundError: [Errno 2] No such file or directory: '... _state.mallet.gz' -> updated smart-open from 3.0.0 to 5.1.0
