@@ -12,7 +12,7 @@ os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/C
 papers = pd.read_csv('cleaning_robot_EP_patents.csv', quotechar='"', skipinitialspace=True)
 grid_results = pd.read_csv('lda_tuning_results.csv', quotechar='"', skipinitialspace=True)
 # Print head
-topics_res = pd.read_csv('lda_tuning_results_Mallet_default-Topics.csv', quotechar='"', skipinitialspace=True)
+topics_res = pd.read_csv('lda_tuning_results_Mallet_default-Topics1000.csv', quotechar='"', skipinitialspace=True)
 
 grid_results = grid_results.to_numpy()
 topics_res = topics_res.to_numpy()
@@ -22,6 +22,7 @@ y = topics_res[:,2]
 
 fig, ax = plt.subplots()
 ax.plot(x, y)
+#ax.plot(300, 0.1)
 
 plt.show()
 plt.show()

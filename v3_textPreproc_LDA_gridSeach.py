@@ -69,7 +69,7 @@ if __name__ == '__main__':
 
     # Specify whether you want to simply preform LDA, or a grid_search for optimal LDA hyperparameters
     final_model_gensim = False
-    final_model_mallet = True
+    final_model_mallet = False
     grid_search = False
 
     os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
@@ -98,55 +98,8 @@ if __name__ == '__main__':
     #print(np.shape(patent_raw))            # (3844, 8)
 
 
-    def remove_foreign_patents(patents, language, count):
 
-        number_of_patents_removed = 0
 
-        if language == 'ger':
-            check_list_ger = []
-
-            for i in range(len(patents[:, 6])):
-                # German abstract check
-                regexp = re.compile(r'\sein')  # Assumption: there are no english words beginning with 'ein' worth considering
-                if regexp.search(patents[i, 6]):
-                    check_list_ger.append(i)
-
-            patents_clean = np.delete(patents, check_list_ger, 0)
-            number_of_patents_removed = len(check_list_ger)
-
-        elif language == 'fr':
-            check_list_fr = []
-
-            for i in range(len(patents[:, 6])):
-                # France abstract check
-                regexp = re.compile(r'\sune\s') # Assumption: the term 'une' is not used in english patent abstracts
-                if regexp.search(patents[i, 6]):
-                    check_list_fr.append(i)
-
-            patents_clean = np.delete(patents, check_list_fr, 0)
-            number_of_patents_removed = len(check_list_fr)
-
-        else:
-            raise Exception("Only german 'ger' and french 'fr' supported")
-
-        if count == True:
-            return patents_clean, number_of_patents_removed
-
-        elif count == False:
-            return patents_clean
-
-        else:
-            raise Exception("'Count' must be boolean")
-
-    def count_abstracts_with_word(patents, word):
-        check_list_word = []
-
-        for i in range(len(patents[:, 6])):
-            regexp = re.compile(word)
-            if regexp.search(patent_raw[i,6]):
-                check_list_word.append(i)
-
-        return word, len(check_list_word)
 
     '''
     ### Check for patents in german or france and for patents containing the terms 'robot' and 'clean' ###
@@ -201,16 +154,19 @@ if __name__ == '__main__':
     removal_list_all = [item for sublist in removal_list_all for item in sublist]
     '''
 
+    from utilities.my_text_utils import PatentCleaning
+
     print('Number of all patents: ', len(patent_raw))
-    patent_raw, number_removed_patents = remove_foreign_patents(patent_raw, language='ger', count=True)
+    patent_raw, number_removed_patents = PatentCleaning.remove_foreign_patents(patent_raw, language='ger', count=True)
     print('Number of german patents removed: ', number_removed_patents)
-    patent_raw, number_removed_patents = remove_foreign_patents(patent_raw, language='fr', count=True)
+    patent_raw, number_removed_patents = PatentCleaning.remove_foreign_patents(patent_raw, language='fr', count=True)
     print('Number of french patents removed: ', number_removed_patents)
 
-    term, number_abstracts_term = count_abstracts_with_word(patent_raw, word='clean')
+    term, number_abstracts_term = PatentCleaning.count_abstracts_with_word(patent_raw, word='clean')
     print('Number abstracts containing', term, ': ', number_abstracts_term)
-    term, number_abstracts_term = count_abstracts_with_word(patent_raw, word='robot')
+    term, number_abstracts_term = PatentCleaning.count_abstracts_with_word(patent_raw, word='robot')
     print('Number abstracts containing', term, ': ', number_abstracts_term)
+
     '''
     patent = np.delete(patent_raw, removal_list_all, 0)
 
@@ -658,7 +614,7 @@ if __name__ == '__main__':
         #Typical value of alpha which is used in practice is 50/T where T is number of topics and value of
         # beta is 0.1 or 200/W , where W is number of words in vocabulary.
 
-        pbar = tqdm.tqdm(total=500)  # adjust if hyperparameters change # 21*7*6*1
+        pbar = tqdm.tqdm(total=1000)  # adjust if hyperparameters change # 21*7*6*1
         #c = 0
         # iterate through validation corpuses
         for i in range(len(corpus_sets)):
@@ -690,7 +646,7 @@ if __name__ == '__main__':
         # save result
         #print(c)
 
-        pd.DataFrame(model_results).to_csv('lda_tuning_results_Mallet_default-Topics.csv', index=False)
+        pd.DataFrame(model_results).to_csv('lda_tuning_results_Mallet_default-Topics1000.csv', index=False)
         pbar.close()
 
     #FileNotFoundError: [Errno 2] No such file or directory: '... _state.mallet.gz' -> updated smart-open from 3.0.0 to 5.1.0
