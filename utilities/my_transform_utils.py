@@ -1,5 +1,6 @@
 import re
 import numpy as np
+import tqdm
 
 class Transf_misc:
 
@@ -60,7 +61,7 @@ class Transf_misc:
         return array_filled
 
     @staticmethod
-    def fill_with_IPC(array_toBeFilled, ipcs, max_noIPC):
+    def fill_with_IPC(array_toBeFilled, ipcs, max_numIPC):
         count_list = []
         count_l = 0
 
@@ -73,12 +74,115 @@ class Transf_misc:
 
                 # if patent_join[patent_join[:,0] == i[0],-(new_space_needed-count_l*3)] == None:
 
-                array_toBeFilled[array_toBeFilled[:, 0] == i[0], -(max_noIPC - count_l * 3)] = i[1]
-                array_toBeFilled[array_toBeFilled[:, 0] == i[0], -(max_noIPC - count_l * 3 - 1)] = i[2]
-                array_toBeFilled[array_toBeFilled[:, 0] == i[0], -(max_noIPC - count_l * 3 - 2)] = i[3]
+                array_toBeFilled[array_toBeFilled[:, 0] == i[0], -(max_numIPC - count_l * 3)] = i[1]
+                array_toBeFilled[array_toBeFilled[:, 0] == i[0], -(max_numIPC - count_l * 3 - 1)] = i[2]
+                array_toBeFilled[array_toBeFilled[:, 0] == i[0], -(max_numIPC - count_l * 3 - 2)] = i[3]
 
             count_list.append(i[0])
 
         array_filled = array_toBeFilled
 
         return array_filled
+
+class Transf_slidingWindow:
+
+    @staticmethod
+    def sliding_window_slizing(windowSize, slidingInterval, array_toBeSlized):
+
+        array_time = array_toBeSlized[:, 3].astype('datetime64')
+
+        array_time_unique = np.unique(array_time)  # 817
+        array_time_unique_filled = np.arange(np.min(array_time_unique), np.max(array_time_unique))  # 6027
+        array_time_unique_filled_windowSize = array_time_unique_filled[
+            array_time_unique_filled <= max(array_time_unique_filled) - windowSize]  # 5937
+
+        slidingWindow_dict = {}
+        len_window = []
+
+        c = 0
+        pbar = tqdm.tqdm(total=len(array_time_unique_filled_windowSize))
+
+        for i in array_time_unique_filled_windowSize:
+
+            if c % slidingInterval == 0:
+                lower_limit = i
+                upper_limit = i + windowSize
+
+                array_window = array_toBeSlized[(array_toBeSlized[:, 3].astype('datetime64') < upper_limit) & (
+                        array_toBeSlized[:, 3].astype('datetime64') >= lower_limit)]
+                len_window.append(len(array_window))
+
+                slidingWindow_dict['window_{0}'.format(c)] = array_window
+
+            c = c + 1
+            pbar.update(1)
+
+        pbar.close()
+
+        return slidingWindow_dict
+
+
+class Transf_network:
+
+    @staticmethod
+    def test_weight(G, u, v):
+
+        u_nbrs = set(G[u])      # Neighbors of Topic1 in set format for later intersection
+        v_nbrs = set(G[v])      # Neighbors of Topic2 in set format for later intersection
+        shared_nbrs = u_nbrs.intersection(v_nbrs)       # Shared neighbors of both topic nodes (intersection)
+
+        list_of_poducts = []
+        for i in shared_nbrs:
+
+            weight1 = list(G.edges[u,i].values())[0]
+            weight2 = list(G.edges[v,i].values())[0]
+
+            list_of_poducts.append(weight1 * weight2)
+
+        projected_weight = sum(list_of_poducts) / len(list_of_poducts)
+
+        return projected_weight
+
+    @staticmethod
+    def prepare_patentNodeAttr_Networkx(window, nodes, node_att_name):
+
+        node_att_dic_list = []
+
+        for i in range(len(window)):
+
+            dic_entry = dict(enumerate(
+                window[i]))  # Here each patent is converted into a dictionary. dictionary keys are still numbers:
+            # {0: 'EP', 1: nan, 2: '2007-10-10', ...} Note that the patent id is ommited, since it
+            # serves as key for the outer dictionary encapsulating these inner once.
+
+            for key, n_key in zip(dic_entry.copy().keys(),
+                                  node_att_name):  # Renaming the keys of the inner dictionary from numbers to actually names saved in node_plain_att
+                dic_entry[n_key] = dic_entry.pop(
+                    key)  # {'publn_auth': 'EP', 'publn_nr': nan, 'publn_date': '2009-06-17', ...}
+
+            node_att_dic_list.append(dic_entry)
+
+        nested_dic = dict(enumerate(
+            node_att_dic_list))  # Here the nested (outer) dictionary is created. Each key is still represented as a number, each value as another dictionary
+
+        for key, n_key in zip(nested_dic.copy().keys(),
+                              nodes):  # Here the key of the outer dictionary are renamed to the patent ids
+            nested_dic[n_key] = nested_dic.pop(key)
+
+        # print(len(window))
+
+        return nested_dic
+
+    @staticmethod
+    def prepare_topicNodes_Networkx(window, topic_position):
+        topics_inWindow = []
+
+        for patent in window:
+            topics_inWindow.append(patent[topic_position])
+
+        topics_inWindow = [item for sublist in topics_inWindow for item in sublist]
+        topics_inWindow = list(filter(lambda x: x == x, topics_inWindow))
+        topics_inWindow = np.unique(topics_inWindow)
+
+        topicNode_list = ['topic_{0}'.format(int(i)) for i in topics_inWindow]
+        return topicNode_list

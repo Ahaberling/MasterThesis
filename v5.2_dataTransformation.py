@@ -5,11 +5,12 @@ if __name__ == '__main__':
     print('\n#--- Import Libraries ---#\n')
 
     import os
-    import sys
+    import tqdm
 
     import numpy as np
     import pandas as pd
-
+    import pickle as pk
+    import networkx as nx
 
 
 #--- Initialization ---#
@@ -22,6 +23,12 @@ if __name__ == '__main__':
 
     patent_IPC = pd.read_csv('cleaning_robot_EP_patents_IPC.csv', quotechar='"', skipinitialspace=True)
     patent_IPC = patent_IPC.to_numpy()
+
+    topics = pd.read_csv('patent_topics_mallet.csv', quotechar='"', skipinitialspace=True)
+    topics = topics.to_numpy()
+
+    #parent = pd.read_csv('cleaning_robot_EP_backward_citations.csv', quotechar='"', skipinitialspace=True)
+
 
 
 
@@ -45,8 +52,6 @@ if __name__ == '__main__':
 #--- Check transformation ---#
     print('\n#--- Check transformation ---#\n')
 
-    #print('Shape of new array: ', np.shape(patent_transf))                                  # (3781, 30)
-    #print('Are all new columns used? Number of patents with maximum number of topics: ', sum(x is not None for x in patent_transf[:,np.shape(patent_transf)[1]-1]))        # 1
     if sum(x is not None for x in patent_transf[:,np.shape(patent_transf)[1]-1]) == 0:
         raise Exception("Error: Not all created columns in patent_transf have been filled")
 
@@ -62,76 +67,224 @@ if __name__ == '__main__':
     ### Review patent_transf and patent_IPC ###
     print('Review patent_transf and patent_IPC:\n')
 
+    # check if all patents in patent_transf are unique
     val, count = np.unique(patent_transf[:, 0], return_counts=True)
-    print('All patent ids in patent_topicDist_x are unique if: ', len(val), ' == ', len(patent_transf))
+    if len(val) != len(patent_transf):
+        raise Exception("Error: patent_transf contains non-unqiue patents")
 
 
-    val, count = np.unique(patent_IPC[:, 0], return_counts=True)
-    print('Patent_IPC contains: ', len(val), 'unique id\'s. This is more then patent_topicDist_x, since the later was cleaned of german and fransh patents')
-    print('Patent_IPC contains: ', len(patent_IPC), ' rows overall. Patents can be categorized with more than one IPC')
-
-
-    ### Clean patent_IPC (remove patents with german and france abstracts) ###
-
+    ### Find biggest number of IPCs a patent has (new space) ###
     patent_IPC_clean = [i[0] for i in patent_IPC if i[0] in patent_transf[:, 0]]
-
-    #print(len(np.unique(patent_IPC[:,1])))        #970
-
     val, count = np.unique(patent_IPC_clean, return_counts=True)
-    # print(len(val))                             # 3781
-    # print(len(patent_IPC_clean))                # 9449
-    # print(max(count))                           # 13 -> patents have at most 13 IPC's
-
-    # IPC's consist of 3 colums (IPC, subcategory, subcategory)
-    # 13 * 3 = 39 additional columns are needed in the new array
-
-    new_space_needed = max(count) * 3  # 39
-
-    # print(np.argmax(count))                     #      3485 index of highest value in count
-    # print(val[np.argmax(count)])                # 478449443 id of with highest value in count
-    # print(patent_IPC[patent_IPC[:,0] == val[np.argmax(count)]])
-
+    new_space_needed = max(count) * 3       # x * 3 = x3 additional columns are needed in the new array
 
     ### New array, including space for IPC's ###
-
     patent_join = np.empty((np.shape(patent_transf)[0], np.shape(patent_transf)[1] + new_space_needed), dtype=object)
     patent_join[:, :-new_space_needed] = patent_transf
 
-    # print(np.shape(patent_transf))            # (3781, 52)
-    # print(np.shape(patent_join))              # (3781, 91)
 
     ### Fill new array ###
-
-
-
     patent_join = Transf_misc.fill_with_IPC(patent_join, patent_IPC, new_space_needed)
 
     ### check if all created columns are used ###
 
-    print('Are all new columns used? Number of patents with maximum number of IPC\'S: ',
-          sum(x is not None for x in patent_join[:, np.shape(patent_join)[1] - 1]))
+    if sum(x is not None for x in patent_join[:, np.shape(patent_join)[1] - 1]) == 0:
+        raise Exception("Error: Not all created columns in patent_join have been filled")
 
-    # print(sum(x is not None for x in patent_join[:,90]))       they are
-    # print(patent_join[patent_join[:,0] == 478449443])
-    # print(patent_join[patent_join[:,0] == val[np.argmax(count)]])
 
-    np.set_printoptions(threshold=sys.maxsize)
-
-    #print(patent_join[100])
 
 #--- Save transformation and IPC appendix---#
-    print('\n#--- Save transformation and IPC appendix---#\n')
+    #print('\n#--- Save transformation and IPC appendix---#\n')
 
-    #print('Preview of the resulting Array:\n\n', patent_join[0])                        #  [12568 'EP' 1946896.0 '2008-07-23' 15
-                                                                                        # 'Method for adjusting at least one axle'
-                                                                                        # 'An adjustment method for at least one axis (10) in which a robot has a control unit (12) for controlling an axis (10) via which at least two component parts (16,18) are mutually movable. The component parts (16,18) each has at least one marker (24,26) and the positions of the markers are detected by a sensor, with the actual value of a characteristic value ascertained as a relative position of the two mutually movable components (16,18). The adjustment position is repeated by comparing an actual value with a stored, desired value for the adjustment position. An independent claim is included for a device with signal processing unit.'
-                                                                                        #  1 '[(139, 0.05602006688963211)]' '139' None '0.05602006688963211' None
-                                                                                        #  None None None None None None None None None None None None None None
-                                                                                        #  None None None 'B25J   9' 'Handling' 'Mechanical engineering' None None
-                                                                                        #  None None None None None None None None None None None None None None
-                                                                                        #  None None None None None None None None None None None None None None
-                                                                                        #  None None None None None None]
+    #pd.DataFrame(patent_join).to_csv('patent_lda_ipc.csv', index=False)
 
-    pd.DataFrame(patent_join).to_csv('patent_lda_ipc.csv', index=None)
+
+#### new file ############################
+
+    patent_lda_ipc = patent_join
+
+    ### Declare sliding window approach ###
+
+    windowSize =  365
+    slidingInterval = 30
+
+
+#--- Overview ---#
+    print('\n# --- Overview ---#\n')
+
+    patent_time = patent_lda_ipc[:,3].astype('datetime64')
+
+    print('Earliest day with publication: ', min(patent_time))          # earliest day with publication 2001-08-01
+    print('Latest day with publication: ', max(patent_time))            # latest  day with publication 2018-01-31
+
+    max_timeSpan = int((max(patent_time) - min(patent_time)) / np.timedelta64(1, 'D'))
+    print('Days inbetween: ', max_timeSpan)                             # 6027 day between earliest and latest publication
+
+    val, count = np.unique(patent_time, return_counts=True)
+    print('Number of days with publications: ', len(val))               # On 817 days publications were made
+                                                                        # -> on average every 7.37698898409 days a patent was published
+
+
+#--- slinding window approache ---#
+    print('\n#--- slinding window approach ---#\n')
+
+    from utilities.my_transform_utils import Transf_slidingWindow
+
+    slidingWindow_dict = Transf_slidingWindow.sliding_window_slizing(windowSize, slidingInterval, patent_lda_ipc,)
+
+    filename = 'slidingWindow_dict'
+    outfile = open(filename, 'wb')
+    pk.dump(slidingWindow_dict, outfile)
+    outfile.close()
+
+
+### New File ################################
+
+
+#--- Custom weighting function for preojection ---#
+
+
+
+#--- Preparing overall node attributes ---#
+
+    from utilities.my_transform_utils import Transf_network
+
+    node_att_name = ['publn_auth', 'publn_nr', 'publn_date', 'publn_claims', 'nb_IPC']
+
+    for i in range(1, int(max_topics) + 1):
+        node_att_name.append('TopicID_{0}'.format(i))
+        node_att_name.append('TopicCover_{0}'.format(i))
+
+    number_of_ipcs = new_space_needed/3
+
+    for i in range(1, int(number_of_ipcs) + 1):
+        node_att_name.append('IpcID_{0}'.format(i))
+        node_att_name.append('IpcSubCat1_{0}'.format(i))
+        node_att_name.append('IpcSubCat2_{0}'.format(i))
+
+
+#--- Creating a Graph for each windows---#
+
+    bipartite_graphs = {}
+    patentProject_graphs = {}
+    topicProject_graphs = {}
+
+    from utilities.my_transform_utils import Transf_network
+
+    pbar = tqdm.tqdm(total=len(slidingWindow_dict))
+
+    for window_id, window in slidingWindow_dict.items():
+
+        ### Create Graph ###
+        sliding_graph = nx.Graph()
+
+        ### Create Nodes - Paents ###
+        nodes = window[:, 0]            # extract patent ids in window
+        window_reduc = window[:, np.r_[1:5, 7, 9:len(window.T)]]
+
+        nested_dic = Transf_network.prepare_patentNodeAttr_Networkx(window_reduc, nodes, node_att_name)
+
+        sliding_graph.add_nodes_from(nodes, bipartite=1)
+        nx.set_node_attributes(sliding_graph, nested_dic)
+
+
+        print(sliding_graph.number_of_nodes())
+        print(sliding_graph.nodes[290106123])
+        # {'bipartite': 1, 'publn_auth': 'EP', 'publn_nr': 1139503.0, 'publn_date': '2001-10-04', 'publn_claims': 13, 'nb_IPC': 3, 'TopicID_1': 16.0, 'TopicName_1': nan, ...
+        #break
+
+
+        ### Create Nodes - Topics ###
+
+        ipc_position = np.r_[range(30,np.shape(patent_lda_ipc)[1]-1,3)]             # right now, this has to be adjusted manually depending on the LDA results #todo adjust
+        topic_position = np.r_[range(9,(9+int(max_topics)),2)]                                       # right now, this has to be adjusted manually depending on the LDA results #todo adjust
+
+        topicNode_list = Transf_network.prepare_topicNodes_Networkx(window, topic_position)
+
+        sliding_graph.add_nodes_from(topicNode_list, bipartite=0)
+
+        num_topics = 3
+
+        ### Create Edges ###
+
+        edges = window[:, np.r_[0, 9:(9+(2*num_topics))]]  # first three topics
+
+        #edges = window[:, np.r_[0, 9:31]]  # topics
+        #for i in range(1, 7 * 3, 3):
+
+        c = 0
+        for i in edges.T[1]:
+            if np.isfinite(i):
+                edges[c, 1] = 'topic_{0}'.format(int(i))
+            c = c + 1
+
+        c = 0
+        for i in edges.T[4]:
+            if np.isfinite(i):
+                edges[c, 4] = 'topic_{0}'.format(int(i))
+            c = c + 1
+
+        c = 0
+        for i in edges.T[7]:
+            if np.isfinite(i):
+                edges[c, 7] = 'topic_{0}'.format(int(i))
+            c = c + 1
+
+        topic1_edges = [(i[0], i[1], {'Weight_1': i[3]}) for i in edges]
+        topic2_edges = [(i[0], i[4], {'Weight_2': i[6]}) for i in edges]
+        topic3_edges = [(i[0], i[7], {'Weight_3': i[9]}) for i in edges]
+
+        topic1_edges_clear = list(filter(lambda x: x[1] == x[1], topic1_edges))
+        topic2_edges_clear = list(filter(lambda x: x[1] == x[1], topic2_edges))
+        topic3_edges_clear = list(filter(lambda x: x[1] == x[1], topic3_edges))
+
+
+        sliding_graph.add_edges_from(topic1_edges_clear)
+        sliding_graph.add_edges_from(topic2_edges_clear)
+        sliding_graph.add_edges_from(topic3_edges_clear)
+
+
+        ### Project ###
+
+        top_nodes = {n for n, d in sliding_graph.nodes(data=True) if d["bipartite"] == 0}
+        bottom_nodes = set(sliding_graph) - top_nodes
+
+        topicOccu_graph = nx.algorithms.bipartite.generic_weighted_projected_graph(sliding_graph, top_nodes, weight_function=test_weight)
+        topicSim_graph = nx.algorithms.bipartite.generic_weighted_projected_graph(sliding_graph, bottom_nodes, weight_function=test_weight)
+
+        ### Append ###
+
+        bipartite_graphs[window_id] = sliding_graph
+        topicOccu_graphs[window_id] = topicOccu_graph
+        topicSim_graphs[window_id] = topicSim_graph
+
+        pbar.update(1)
+
+    pbar.close()
+
+
+#--- Save Sliding Graphs ---#
+
+    filename = 'windows_bipartite'
+    outfile = open(filename, 'wb')
+    pk.dump(bipartite_graphs, outfile)
+    outfile.close()
+
+    filename = 'windows_topicOccu'
+    outfile = open(filename, 'wb')
+    pk.dump(topicOccu_graphs, outfile)
+    outfile.close()
+
+    filename = 'windows_topicSim'
+    outfile = open(filename, 'wb')
+    pk.dump(topicSim_graphs, outfile)
+    outfile.close()
+
+
+
+
+
+
+
 
 
