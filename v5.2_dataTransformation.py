@@ -24,8 +24,6 @@ if __name__ == '__main__':
     patent_IPC = pd.read_csv('cleaning_robot_EP_patents_IPC.csv', quotechar='"', skipinitialspace=True)
     patent_IPC = patent_IPC.to_numpy()
 
-    topics = pd.read_csv('patent_topics_mallet.csv', quotechar='"', skipinitialspace=True)
-    topics = topics.to_numpy()
 
     #parent = pd.read_csv('cleaning_robot_EP_backward_citations.csv', quotechar='"', skipinitialspace=True)
 
@@ -188,8 +186,8 @@ if __name__ == '__main__':
         nx.set_node_attributes(sliding_graph, nested_dic)
 
 
-        print(sliding_graph.number_of_nodes())
-        print(sliding_graph.nodes[290106123])
+        #print(sliding_graph.number_of_nodes())
+        #print(sliding_graph.nodes[290106123])
         # {'bipartite': 1, 'publn_auth': 'EP', 'publn_nr': 1139503.0, 'publn_date': '2001-10-04', 'publn_claims': 13, 'nb_IPC': 3, 'TopicID_1': 16.0, 'TopicName_1': nan, ...
         #break
 
@@ -197,51 +195,24 @@ if __name__ == '__main__':
         ### Create Nodes - Topics ###
 
         ipc_position = np.r_[range(30,np.shape(patent_lda_ipc)[1]-1,3)]             # right now, this has to be adjusted manually depending on the LDA results #todo adjust
-        topic_position = np.r_[range(9,(9+int(max_topics)),2)]                                       # right now, this has to be adjusted manually depending on the LDA results #todo adjust
+        topic_position = np.r_[range(9,(9+int(max_topics*2)),2)]                                       # right now, this has to be adjusted manually depending on the LDA results #todo adjust
 
         topicNode_list = Transf_network.prepare_topicNodes_Networkx(window, topic_position)
 
         sliding_graph.add_nodes_from(topicNode_list, bipartite=0)
 
-        num_topics = 3
+
 
         ### Create Edges ###
 
-        edges = window[:, np.r_[0, 9:(9+(2*num_topics))]]  # first three topics
+        num_topics = 3
 
-        #edges = window[:, np.r_[0, 9:31]]  # topics
-        #for i in range(1, 7 * 3, 3):
+        topic_edges_list = Transf_network.prepare_edgeLists_Networkx(window, num_topics, max_topics)
 
-        c = 0
-        for i in edges.T[1]:
-            if np.isfinite(i):
-                edges[c, 1] = 'topic_{0}'.format(int(i))
-            c = c + 1
+        #print(topic_edges_list)
 
-        c = 0
-        for i in edges.T[4]:
-            if np.isfinite(i):
-                edges[c, 4] = 'topic_{0}'.format(int(i))
-            c = c + 1
-
-        c = 0
-        for i in edges.T[7]:
-            if np.isfinite(i):
-                edges[c, 7] = 'topic_{0}'.format(int(i))
-            c = c + 1
-
-        topic1_edges = [(i[0], i[1], {'Weight_1': i[3]}) for i in edges]
-        topic2_edges = [(i[0], i[4], {'Weight_2': i[6]}) for i in edges]
-        topic3_edges = [(i[0], i[7], {'Weight_3': i[9]}) for i in edges]
-
-        topic1_edges_clear = list(filter(lambda x: x[1] == x[1], topic1_edges))
-        topic2_edges_clear = list(filter(lambda x: x[1] == x[1], topic2_edges))
-        topic3_edges_clear = list(filter(lambda x: x[1] == x[1], topic3_edges))
-
-
-        sliding_graph.add_edges_from(topic1_edges_clear)
-        sliding_graph.add_edges_from(topic2_edges_clear)
-        sliding_graph.add_edges_from(topic3_edges_clear)
+        for edge_list in topic_edges_list:
+            sliding_graph.add_edges_from(edge_list)
 
 
         ### Project ###
@@ -249,14 +220,14 @@ if __name__ == '__main__':
         top_nodes = {n for n, d in sliding_graph.nodes(data=True) if d["bipartite"] == 0}
         bottom_nodes = set(sliding_graph) - top_nodes
 
-        topicOccu_graph = nx.algorithms.bipartite.generic_weighted_projected_graph(sliding_graph, top_nodes, weight_function=test_weight)
-        topicSim_graph = nx.algorithms.bipartite.generic_weighted_projected_graph(sliding_graph, bottom_nodes, weight_function=test_weight)
+        topicProject_graph = nx.algorithms.bipartite.generic_weighted_projected_graph(sliding_graph, top_nodes, weight_function=Transf_network.test_weight)
+        patentProject_graph = nx.algorithms.bipartite.generic_weighted_projected_graph(sliding_graph, bottom_nodes, weight_function=Transf_network.test_weight)
 
         ### Append ###
 
         bipartite_graphs[window_id] = sliding_graph
-        topicOccu_graphs[window_id] = topicOccu_graph
-        topicSim_graphs[window_id] = topicSim_graph
+        patentProject_graphs[window_id] = patentProject_graph
+        topicProject_graphs[window_id] = topicProject_graph
 
         pbar.update(1)
 
@@ -270,14 +241,14 @@ if __name__ == '__main__':
     pk.dump(bipartite_graphs, outfile)
     outfile.close()
 
-    filename = 'windows_topicOccu'
+    filename = 'topicProject_graphs'
     outfile = open(filename, 'wb')
-    pk.dump(topicOccu_graphs, outfile)
+    pk.dump(topicProject_graphs, outfile)
     outfile.close()
 
-    filename = 'windows_topicSim'
+    filename = 'patentProject_graphs'
     outfile = open(filename, 'wb')
-    pk.dump(topicSim_graphs, outfile)
+    pk.dump(patentProject_graphs, outfile)
     outfile.close()
 
 

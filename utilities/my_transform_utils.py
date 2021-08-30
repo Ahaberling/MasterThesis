@@ -137,7 +137,7 @@ class Transf_network:
             weight1 = list(G.edges[u,i].values())[0]
             weight2 = list(G.edges[v,i].values())[0]
 
-            list_of_poducts.append(weight1 * weight2)
+            list_of_poducts.append(float(weight1) * float(weight2))
 
         projected_weight = sum(list_of_poducts) / len(list_of_poducts)
 
@@ -180,9 +180,41 @@ class Transf_network:
         for patent in window:
             topics_inWindow.append(patent[topic_position])
 
+        #print(topics_inWindow)
         topics_inWindow = [item for sublist in topics_inWindow for item in sublist]
-        topics_inWindow = list(filter(lambda x: x == x, topics_inWindow))
+        #print(topics_inWindow)
+        #topics_inWindow = list(filter(lambda x: x == x, topics_inWindow))
+        topics_inWindow = [x for x in topics_inWindow if x is not None]
+        #print(topics_inWindow)
         topics_inWindow = np.unique(topics_inWindow)
+        #print(topics_inWindow)
 
         topicNode_list = ['topic_{0}'.format(int(i)) for i in topics_inWindow]
         return topicNode_list
+
+
+    @staticmethod
+    def prepare_edgeLists_Networkx(window, num_topics, max_topics):
+
+        if num_topics >= max_topics + 1:
+            raise Exception("num_topics must be <= max_topics")
+
+        edges = window[:, np.r_[0, 9:(9 + (num_topics * 2))]]  # first three topics
+
+        topic_edges_list = []
+
+        for i in range(1, (num_topics * 2)+1, 2):
+
+            c = 0
+            for j in edges.T[i]:
+                # if np.isfinite(i):
+                if j != None:
+                    edges[c, i] = 'topic_{0}'.format(int(j))
+                c = c + 1
+
+            topic_edges = [(j[0], j[i], {'Weight_1': j[i + 1]}) for j in edges]
+            topic_edges_clear = list(filter(lambda x: x[1] != None, topic_edges))
+
+            topic_edges_list.append(topic_edges_clear)
+
+        return topic_edges_list
