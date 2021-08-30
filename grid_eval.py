@@ -13,21 +13,88 @@ papers = pd.read_csv('cleaning_robot_EP_patents.csv', quotechar='"', skipinitial
 grid_results = pd.read_csv('lda_tuning_results.csv', quotechar='"', skipinitialspace=True)
 # Print head
 topics_res = pd.read_csv('lda_tuning_results_Mallet_default-Topics1000.csv', quotechar='"', skipinitialspace=True)
+alpha_res = pd.read_csv('lda_tuning_results_Mallet_default-alpha.csv', quotechar='"', skipinitialspace=True)
+opti_res = pd.read_csv('lda_tuning_results_Mallet_default-opti.csv', quotechar='"', skipinitialspace=True)
+alphaopti_res = pd.read_csv('lda_tuning_results_Mallet_alphaOpti.csv', quotechar='"', skipinitialspace=True)
 
 grid_results = grid_results.to_numpy()
 topics_res = topics_res.to_numpy()
+alpha_res = alpha_res.to_numpy()
+opti_res = opti_res.to_numpy()
+alphaopti_res = alphaopti_res.to_numpy()
 
 x = topics_res[:,1]
 y = topics_res[:,2]
 
-fig, ax = plt.subplots()
-ax.plot(x, y)
+x_alpha = alpha_res[:,2]
+y_alpha = alpha_res[:,3]
+
+x_opti = opti_res[:,2]
+y_opti = opti_res[:,3]
+
+x_alphaopti_res1 = alphaopti_res[:,2]
+x_alphaopti_res2 = alphaopti_res[:,3]
+y_alphaopti_res = alphaopti_res[:,4]
+
+print(x_opti)
+print(y_opti)
+
+#fig, ax = plt.subplots()
+#ax.plot(x, y)
+#ax.plot(x_alpha, y_alpha)
+#ax.plot(x_opti, y_opti)
 #ax.plot(300, 0.1)
 
 plt.show()
 plt.show()
+plt.close()
 
 
+ax = plt.axes(projection="3d")
+
+
+z = alphaopti_res[:,4]
+x = alphaopti_res[:,2]
+y = alphaopti_res[:,3]
+
+ax.plot3D(x,y,z)
+
+plt.show()
+
+'''
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator
+
+fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+
+
+# x = 1x40 -> 40x40
+# y = 1x40 -> 40x40
+# R = 40x40
+# Z = 40x40
+
+X = np.arange(-5, 5, 0.25)
+Y = np.arange(-5, 5, 0.25)
+X, Y = np.meshgrid(X, Y)
+R = np.sqrt(X**2 + Y**2)
+Z = np.sin(R)
+
+print(x)
+print(Y)
+print(Z)
+
+surf = ax.plot_surface(X, Y, Z,
+                       linewidth=0, antialiased=False)
+
+ax.set_zlim(0, 1.01)
+ax.zaxis.set_major_locator(LinearLocator(10))
+# A StrMethodFormatter is used automatically
+ax.zaxis.set_major_formatter('{x:.02f}')
+
+fig.colorbar(surf, shrink=0.5, aspect=5)
+
+plt.show()
+'''
 #print(grid_results)
 #print(max(grid_results[:,4]))
 

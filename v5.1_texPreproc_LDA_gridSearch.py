@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
     highConfidence_filter = [       # High confidence, that these words can and should be filtered out
                  'also', 'therefor', 'thereto', 'additionally', 'thereof', 'minimum', 'maximum', 'multiple',
-                 'pre', 'kind', 'extra', 'double', 'manner', 'general',
+                 'thereon', 'pre', 'kind', 'extra', 'double', 'manner', 'general',
                  'previously', 'exist', 'respective', 'end', 'central', 'indirectly', 'expect', 'include', 'main',
                  'relate', 'type', 'couple', 'plurality', 'common', 'properly', 'entire', 'possible', 'multi', 'would',
                  'could', 'good', 'done', 'many', 'much', 'rather', 'right', 'even', 'may', 'some', 'preferably']
@@ -144,14 +144,14 @@ if __name__ == '__main__':
         # lda_gensim = gen_models.LdaMulticore(corpus=corpus,
         lda_gensim = gensim_models.LdaModel(corpus=corpus,
                                             id2word=id2word,
-                                            num_topics=325,
-                                            # adjust num_topics, alpha and eta with regard to grid search results
-                                            random_state=123,
-                                            # chunksize=100,
-                                            passes=10,
-                                            alpha='auto',
-                                            eta='auto',
-                                            per_word_topics=True)
+                                            num_topics=330,
+                                            random_state=123
+                                            #chunksize=100,
+                                            #passes=10,
+                                            #alpha='auto',
+                                            #eta='auto',
+                                            #per_word_topics=True
+                                            )
 
         # plain                 passes=10           passes=20               passes=10 + no topics
         # -8.62154494606457     -7.233880798919008  -6.9446708245485835     -7.931440389780358
@@ -247,7 +247,7 @@ if __name__ == '__main__':
                                                       alpha= 50,
                                                       # beta = 0.02,
                                                       # optimize_interval=0,
-                                                      # iterations=1000,
+                                                      iterations=4000,
                                                       random_seed=123)
 
         # plain                 no topics               iterations=10           optimize_interval=1
@@ -361,16 +361,18 @@ if __name__ == '__main__':
             return coherence_model_lda.get_coherence()
 
 
-        def compute_coherence_values_mallet(corpus, dictionary, num_topics, a): #, op): #, it): #, b):
+        def compute_coherence_values_mallet(corpus, dictionary, num_topics, #a,
+                                                                        #op): #,
+                                                                        it): #, b):
 
             lda_mallet = gensim_models.wrappers.LdaMallet(mallet_path,
                                                           corpus=corpus,
                                                           id2word=dictionary,
                                                           random_seed=123,
                                                           num_topics=num_topics,
-                                                          alpha=a,
-                                                          # optimize_interval=op,
-                                                          # iterations=it,
+                                                          #alpha=a,
+                                                          #optimize_interval=op,
+                                                          iterations=it,
                                                           )
 
             # print('im called')
@@ -401,7 +403,7 @@ if __name__ == '__main__':
         # hu        0.5??   & 0.01          ~165
         # Alpha parameter default = 50 (/330)
         #alpha = list(np.arange(0.01, 0.31, 0.03))
-        alpha = [33, 40, 45, 50, 55, 60, 70, 80, 100, 120, 165]
+        #alpha = [33, 40, 45, 50, 55, 60, 70, 80, 100, 120, 165]
         # alpha.append('symmetric')
         # alpha.append('asymmetric')
         # alpha.append('auto')
@@ -412,9 +414,9 @@ if __name__ == '__main__':
         # beta.append('symmetric')
         # .append('auto')
 
-        optimize_interval = list(np.arange(0, 2000, 200))
+        #optimize_interval = list(np.arange(0, 2000, 200))
 
-        # iterations = list(np.arange(1, 1001, 100))
+        iterations = list(np.arange(1000, 11000, 1000))
 
         # Validation sets
         num_of_docs = len(corpus)
@@ -429,9 +431,9 @@ if __name__ == '__main__':
 
         model_results = {'Validation_Set': [],
                          'Topics': [],
-                         'Alpha': [],
-                         # 'optimize_interval': [],
-                         # 'iterations': [],
+                         #'Alpha': [],
+                         #'optimize_interval': [],
+                         'iterations': [],
                          # 'Beta': [],
                          'Coherence': []
                          }
@@ -439,40 +441,42 @@ if __name__ == '__main__':
         # Typical value of alpha which is used in practice is 50/T where T is number of topics and value of
         # beta is 0.1 or 200/W , where W is number of words in vocabulary.
 
-        pbar = tqdm.tqdm(total=11)  # adjust if hyperparameters change # 21*7*6*1
+        pbar = tqdm.tqdm(total=10)  # adjust if hyperparameters change # 21*7*6*1
         # c = 0
         # iterate through validation corpuses
         for i in range(len(corpus_sets)):
             # iterate through number of topics
             for k in topics_range:
                 # iterate through alpha values
-                for a in alpha:
+                #for a in alpha:
                 # iterare through beta values
                 # for b in beta:
-                # for op in optimize_interval:
-                # for it in iterations:
-                # get the coherence score for the given parameters
-                # cv = compute_coherence_values_gensim(corpus=corpus_sets[i], dictionary=id2word, k=k, a=a, b=b)
+                    #for op in optimize_interval:
+                    for it in iterations:
+                    # get the coherence score for the given parameters
+                    # cv = compute_coherence_values_gensim(corpus=corpus_sets[i], dictionary=id2word, k=k, a=a, b=b)
 
-                    cv = compute_coherence_values_mallet(corpus=corpus_sets[i], dictionary=id2word,
-                                                         num_topics=k, a=a) #, op=op) #, it=it) #, b=b)
+                        cv = compute_coherence_values_mallet(corpus=corpus_sets[i], dictionary=id2word,
+                                                             num_topics=k, #a=a,
+                                                             #op=op) #,
+                                                             it=it) #, b=b)
 
-                    # Save the model results
-                    model_results['Validation_Set'].append(corpus_title[i])
-                    model_results['Topics'].append(k)
-                    model_results['Alpha'].append(a)
-                    # model_results['optimize_interval'].append(op)
-                    # model_results['iterations'].append(it)
-                    # model_results['Beta'].append(b)
-                    model_results['Coherence'].append(cv)
+                        # Save the model results
+                        model_results['Validation_Set'].append(corpus_title[i])
+                        model_results['Topics'].append(k)
+                        #model_results['Alpha'].append(a)
+                        #model_results['optimize_interval'].append(op)
+                        model_results['iterations'].append(it)
+                        # model_results['Beta'].append(b)
+                        model_results['Coherence'].append(cv)
 
-                    # c = c + 1
-                    pbar.update(1)
+                        # c = c + 1
+                        pbar.update(1)
 
         # save result
         # print(c)
 
-        pd.DataFrame(model_results).to_csv('lda_tuning_results_Mallet_default-alpha.csv', index=False)
+        pd.DataFrame(model_results).to_csv('lda_tuning_results_Mallet_it.csv', index=False)
         pbar.close()
 
     # FileNotFoundError: [Errno 2] No such file or directory: '... _state.mallet.gz' -> updated smart-open from 3.0.0 to 5.1.0

@@ -10,8 +10,6 @@ if __name__ == '__main__':
     import numpy as np
     import pandas as pd
 
-    import re
-
 
 
 #--- Initialization ---#
@@ -27,76 +25,30 @@ if __name__ == '__main__':
 
 
 
-#--- Transformation of topic representation ---#
-    print('\n#--- Transformation of topic representation ---#\n')
+#--- Transforming topic representation ---#
+    print('\n#--- Transforming topic representation ---#\n')
 
-    ### Eliminating round brackets ###
+    from utilities.my_transform_utils import Transf_misc
 
-    topic_transf_list = []
-    for i in range(len(patent_topicDist)):
-        topic_transf = re.findall("(\d*\.*?\d+)", patent_topicDist[i, 8])
-        topic_transf_list.append(topic_transf)
+    topic_list_helper, max_topics = Transf_misc.max_number_topics(patent_topicDist)
+    print('Maximum number of topics a patent has: ', max_topics)               # 7 is the maximum of topics abstracts have
+    print('Hence, number of new columns needed: ',   max_topics*2)             # space needed = 21 (7 topic_ids + 7 topic_names + 7 topic_coverages)
 
-
-    ### Identify the number of topics the abstract/s with the most topics has/have in order to identify the size of the new array ###
-
-    list_len = [len(i) for i in topic_transf_list]
-    new_space_needed = max(list_len)
-
-    print('Maximum number of topics a patent has: ', max(list_len)/2    )      # 7 is the maximum of topics abstracts have
-    print('Hence, number of new columns needed: ',   max(list_len))            # space needed = 21 (7 topic_ids + 7 topic_names + 7 topic_coverages)
-
-
-
-    ### New array, including space for transformation ###
-
-    patent_transf = np.empty((np.shape(patent_topicDist)[0], np.shape(patent_topicDist)[1] + new_space_needed), dtype=object)
-    patent_transf[:, :-new_space_needed] = patent_topicDist
-
+    ### Prepare dataframe with columns for topics (transformation result) ###
+    patent_transf = np.empty((np.shape(patent_topicDist)[0], np.shape(patent_topicDist)[1] + int(max_topics*2)), dtype=object)
+    patent_transf[:, :-int(max_topics*2)] = patent_topicDist
 
     ### Filling the new array ###
-
-    c = 0
-    for i in topic_transf_list:
-
-        # Create tuple list of topic_id and coverage to sort by coverage #
-        tuple_list = []
-
-        for j in range(0, len(i) - 1, 2):
-            tuple = (i[j], i[j + 1])
-            tuple_list.append(tuple)
-
-        #todo: check code above for redundancy.('-signs)
-
-        # Sort by coverage #
-        tuple_list = sorted(tuple_list, key=lambda tup: tup[1], reverse=True)
-
-        # Insert values ordered in new array #
-        l = 0
-
-        for k in range(len(tuple_list)):
-
-            # np.shape(patent_topicDist)[1] represent the number of filled columns the patent_transf array already has
-            # + l because the new data is appended to the empty columns following the filled ones
-            patent_transf[c, np.shape(patent_topicDist)[1] + l] = tuple_list[k][0]  # topic_id
-
-            # skip 1 column for topic_name (to be added later)
-            l = l + 2
-
-            patent_transf[c, np.shape(patent_topicDist)[1] + l] = tuple_list[k][1]  # topic_coverage
-            l = l + 1
-
-        c = c + 1
-
+    patent_transf = Transf_misc.fill_with_topics(patent_transf, topic_list_helper, np.shape(patent_topicDist)[1])
 
 
 #--- Check transformation ---#
     print('\n#--- Check transformation ---#\n')
 
-    print('Shape of new array: ', np.shape(patent_transf))                                  # (3781, 30)
-    print('Are all new columns used? Number of patents with maximum number of topics: ',
-          sum(x is not None for x in patent_transf[:,np.shape(patent_transf)[1]-1]))        # 1
-
+    #print('Shape of new array: ', np.shape(patent_transf))                                  # (3781, 30)
+    #print('Are all new columns used? Number of patents with maximum number of topics: ', sum(x is not None for x in patent_transf[:,np.shape(patent_transf)[1]-1]))        # 1
+    if sum(x is not None for x in patent_transf[:,np.shape(patent_transf)[1]-1]) == 0:
+        raise Exception("Error: Not all created columns in patent_transf have been filled")
 
 
 #--- Append IPC ---#
@@ -150,21 +102,9 @@ if __name__ == '__main__':
 
     ### Fill new array ###
 
-    count_list = []
-    count_l = 0
 
-    for i in patent_IPC:
 
-        if i[0] in patent_join[:,0]:  # For each row in patent_IPC, check if id in patent_join (identical to patent_transf)
-            count_l = count_list.count(i[0])  # Retrieve how often the id has been seen yet (how often ipc's where appended already
-
-            # if patent_join[patent_join[:,0] == i[0],-(new_space_needed-count_l*3)] == None:
-
-            patent_join[patent_join[:, 0] == i[0], -(new_space_needed - count_l * 3)] = i[1]
-            patent_join[patent_join[:, 0] == i[0], -(new_space_needed - count_l * 3 - 1)] = i[2]
-            patent_join[patent_join[:, 0] == i[0], -(new_space_needed - count_l * 3 - 2)] = i[3]
-
-        count_list.append(i[0])
+    patent_join = Transf_misc.fill_with_IPC(patent_join, patent_IPC, new_space_needed)
 
     ### check if all created columns are used ###
 
