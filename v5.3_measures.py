@@ -39,228 +39,113 @@ if __name__ == '__main__':
     # --- Preprocessing for pattern arrays (IPC's, topics) x (singular, pair, tripple)  --#
     print('\n#--- Preprocessing for pattern arrays (IPC\'s, topics) x (singluar, pair, tripple) ---#\n')
 
-    print(np.shape(patent_lda_ipc))
+    ### Create dictionaries containing ALL ipc/topic singles/pairs/triples for a window ###
 
-    topic_end = 23
+    from utilities.my_measure_utils import PlainMeasures
 
-    if preproc_bool == True:
+    knowledgeComponent_dict = PlainMeasures.extract_knowledgeComponent_per_window(slidingWindow_dict, kC='topic', unit=2)
 
-        ipc_position = np.r_[range(30, np.shape(patent_lda_ipc)[1] - 1,
-                                   3)]  # right now, this has to be adjusted manually depending on the LDA results #todo adjust
-        topic_position = np.r_[
-            range(9, 22, 2)]  # right now, this has to be adjusted manually depending on the LDA results #todo adjust
-
-        slidingWindow_ipcs_single = {}
-        slidingWindow_topics_single = {}
-
-        slidingWindow_ipcs_pairs = {}
-        slidingWindow_topics_pairs = {}
-
-        slidingWindow_ipcs_triples = {}
-        slidingWindow_topics_triples = {}
-
-        c = 0
-        pbar = tqdm.tqdm(total=len(slidingWindow_dict))
-
-        for window in slidingWindow_dict.values():
-
-            ipc_list = []
-            topic_list = []
-
-            ipc_pair_list = []
-            topic_pair_list = []
-
-            ipc_tripple_list = []
-            topic_tripple_list = []
-
-            for patent in window:
-                # collect all ipc's within patents within a window
-                y = [x for x in patent[ipc_position] if x == x]  # nan elimination
-                y = np.unique(
-                    y)  # todo probably/hopefully not neccessary (because hopefully the data is clean enough so that one paper is not classfied with the same ipc more than once)
-                ipc_list.append(tuple(
-                    y))  # for each window I get a list of tuples. one tuple represents the ipc's within a patent of the window
-
-                # collect all topics within patents within a window
-                z = [x for x in patent[topic_position] if x == x]  # nan elimination
-                z = np.unique(
-                    z)  # todo probably/hopefully not neccessary (because hopefully the data is clean enough so that one paper is not classfied with the same topic more than once)
-                topic_list.append(tuple(z))
-
-                # collect all possible ipc pairs and triples within a patent within a window
-                ipc_pair_list.append(list(itertools.combinations(y, r=2)))
-                ipc_tripple_list.append(list(itertools.combinations(y, r=3)))
-
-                # collect all possible topic pairs and triples within a patent within a window
-                topic_pair_list.append(list(itertools.combinations(z, r=2)))
-                topic_tripple_list.append(list(itertools.combinations(z, r=3)))
-
-            # dictionary with all singularly occuring ipc's within a window
-            ipc_list = [item for sublist in ipc_list for item in sublist]
-            window90by1_ipcs_single['window_{0}'.format(c)] = ipc_list
-
-            # dictionary with all singularly occuring topics within a window
-            topic_list = [item for sublist in topic_list for item in sublist]
-            window90by1_topics_single['window_{0}'.format(c)] = topic_list
-
-            # dictionary with all possible pairs of ipc's within patents within a window
-            # meaning one patent -> (possibly) multiple tuples of size two
-            ipc_pair_list = [item for sublist in ipc_pair_list for item in sublist]
-            window90by1_ipcs_pairs['window_{0}'.format(c)] = ipc_pair_list
-
-            # dictionary with all possible pairs of topics within patents within a window
-            # meaning one patent -> (possibly) multiple tuples of size two
-            topic_pair_list = [item for sublist in topic_pair_list for item in sublist]
-            window90by1_topics_pairs['window_{0}'.format(c)] = topic_pair_list
-
-            # dictionary with all possible triples of ipc's within patents within a window
-            # meaning one patent -> (possibly) multiple tuples of size three
-            ipc_tripple_list = [item for sublist in ipc_tripple_list for item in sublist]
-            window90by1_ipcs_triples['window_{0}'.format(c)] = ipc_tripple_list
-
-            # dictionary with all possible triples of topics within patents within a window
-            # meaning one patent -> (possibly) multiple tuples of size three
-            topic_tripple_list = [item for sublist in topic_tripple_list for item in sublist]
-            window90by1_topics_triples['window_{0}'.format(c)] = topic_tripple_list
-
-            c = c + 1
-            pbar.update(1)
-
-        pbar.close()
-
-        ### Save preprocessing ###
-
-        filename = 'window90by1_ipcs_single'
-        outfile = open(filename, 'wb')
-        pk.dump(window90by1_ipcs_single, outfile)
-        outfile.close()
-
-        filename = 'window90by1_topics_single'
-        outfile = open(filename, 'wb')
-        pk.dump(window90by1_topics_single, outfile)
-        outfile.close()
-
-        filename = 'window90by1_ipcs_pairs'
-        outfile = open(filename, 'wb')
-        pk.dump(window90by1_ipcs_pairs, outfile)
-        outfile.close()
-
-        filename = 'window90by1_topics_pairs'
-        outfile = open(filename, 'wb')
-        pk.dump(window90by1_topics_pairs, outfile)
-        outfile.close()
-
-        filename = 'window90by1_ipcs_triples'
-        outfile = open(filename, 'wb')
-        pk.dump(window90by1_ipcs_triples, outfile)
-        outfile.close()
-
-        filename = 'window90by1_topics_triples'
-        outfile = open(filename, 'wb')
-        pk.dump(window90by1_topics_triples, outfile)
-        outfile.close()
 
     # --- Constructing pattern arrays (IPC\'s, topics) x (singular, pair, tripple) ---#
     print('\n#--- Constructing pattern arrays (IPC\'s, topics) x (singular, pair, tripple) ---#\n')
 
-    if pattern_bool == True:
+    def create_pattern_array(knowledgeComponent_dict):
 
-        ### IPC Sigles ###
-        print('\n\t### IPC Sigles ###\n')
+        row_list = []
+        column_list = []
 
-        with open('window90by1_ipcs_single', 'rb') as handle:
-            window90by1_ipcs_single = pk.load(handle)
+        for window_id, window in knowledgeComponent_dict.items():
+            row_list.append(window_id)
+            column_list.append(window)
 
-        single_list = []
+        column_list = [item for sublist in column_list for item in sublist]
+        column_list, column_list_counts = np.unique(column_list, return_counts=True, axis=0)
+        # sort column list??
 
-        for i in window90by1_ipcs_single.values():
-            single_list.append(i)
+        print(row_list)
+        print(column_list)
 
-        single_list = [item for sublist in single_list for item in sublist]
-        single_list, single_list_counts = np.unique(single_list, return_counts=True, axis=0)
+        pattern_array = np.zeros((len(row_list), len(column_list)))
 
-        window_list = window90by1_ipcs_single.keys()
+        pbar = tqdm.tqdm(total=len(row_list))
+        c_row = 0
 
-        # New array, including space for occurence pattern - ipc singles #
+        for row in row_list:
+            c_column = 0
 
-        pattern_ipc_singles = np.zeros((len(window_list), len(single_list)))
-        # print(np.shape(pattern_ipc_singles))  # (5937, 953)
+            for column in column_list:
+                if column in knowledgeComponent_dict[row]:
+                    pattern_array[c_row, c_column] = list(knowledgeComponent_dict[row]).count(column)
 
-        # Populate occurence pattern - ipc singles #
-
-        c_i = 0
-        pbar = tqdm.tqdm(total=len(window_list))
-
-        for i in window_list:
-            c_j = 0
-
-            for j in single_list:
-                if j in window90by1_ipcs_single[i]:
-                    pattern_ipc_singles[c_i, c_j] = list(window90by1_ipcs_single[i]).count(j)
-
-                c_j = c_j + 1
-            c_i = c_i + 1
+                c_column = c_column + 1
+            c_row = c_row + 1
             pbar.update(1)
 
         pbar.close()
 
+        return pattern_array
+
+    pattern_array = create_pattern_array(knowledgeComponent_dict)
+
+    print(pattern_array)
+    '''
         filename = 'window90by1_ipcs_singles_pattern'
         outfile = open(filename, 'wb')
         pk.dump(pattern_ipc_singles, outfile)
         outfile.close()
+    '''
+    ### IPC Pairs ###
+    print('\n\t### IPC Pairs ###\n')
 
-        ### IPC Pairs ###
-        print('\n\t### IPC Pairs ###\n')
+    with open('window90by1_ipcs_pairs', 'rb') as handle:
+        window90by1_ipcs_pairs = pk.load(handle)
 
-        with open('window90by1_ipcs_pairs', 'rb') as handle:
-            window90by1_ipcs_pairs = pk.load(handle)
+    # Identify unique ipc pairs in the whole dictionary for the column dimension of the pattern array #
 
-        # Identify unique ipc pairs in the whole dictionary for the column dimension of the pattern array #
+    tuple_list = []
+    for i in window90by1_ipcs_pairs.values():
+        tuple_list.append(i)
 
-        tuple_list = []
-        for i in window90by1_ipcs_pairs.values():
-            tuple_list.append(i)
+    tuple_list = [item for sublist in tuple_list for item in sublist]
+    # print('number of all tuples before taking only the unique ones: ', len(tuple_list))         # 1047572
+    tuple_list, tuple_list_counts = np.unique(tuple_list, return_counts=True, axis=0)
+    # print('number of all tuples after taking only the unique ones (number of columns in the pattern array): ', len(tuple_list))    # 5445
+    # print(tuple_list_counts)        # where does the 90 and the "weird" values come from? explaination: if a combination occures in the whole timeframe only once (in one patent) then it is captures 90 times. The reason for this is the size of the sliding window of 90 and the sliding by one day. One patent will thereby be capured in 90 sliding windows (excaption: the patents in the first and last 90 days of the overall timeframe, they are capture in less then 90 sliding windows)
 
-        tuple_list = [item for sublist in tuple_list for item in sublist]
-        # print('number of all tuples before taking only the unique ones: ', len(tuple_list))         # 1047572
-        tuple_list, tuple_list_counts = np.unique(tuple_list, return_counts=True, axis=0)
-        # print('number of all tuples after taking only the unique ones (number of columns in the pattern array): ', len(tuple_list))    # 5445
-        # print(tuple_list_counts)        # where does the 90 and the "weird" values come from? explaination: if a combination occures in the whole timeframe only once (in one patent) then it is captures 90 times. The reason for this is the size of the sliding window of 90 and the sliding by one day. One patent will thereby be capured in 90 sliding windows (excaption: the patents in the first and last 90 days of the overall timeframe, they are capture in less then 90 sliding windows)
+    window_list = window90by1_ipcs_pairs.keys()
+    # print('number of all windows (number of rows in the pattent array): ', len(window_list))    # 5937
 
-        window_list = window90by1_ipcs_pairs.keys()
-        # print('number of all windows (number of rows in the pattent array): ', len(window_list))    # 5937
+    # New array, including space for occurence pattern - ipc pairs #
 
-        # New array, including space for occurence pattern - ipc pairs #
+    pattern_ipc_pairs = np.zeros((len(window_list), len(tuple_list)))
+    # print(np.shape(pattern_ipc_pairs))                        # (5937, 5445)
 
-        pattern_ipc_pairs = np.zeros((len(window_list), len(tuple_list)))
-        # print(np.shape(pattern_ipc_pairs))                        # (5937, 5445)
+    # Populate occurence pattern - ipc pairs #
 
-        # Populate occurence pattern - ipc pairs #
+    c_i = 0
+    pbar = tqdm.tqdm(total=len(window_list))
 
-        c_i = 0
-        pbar = tqdm.tqdm(total=len(window_list))
+    for i in window_list:
+        c_j = 0
 
-        for i in window_list:
-            c_j = 0
+        for j in tuple_list:
 
-            for j in tuple_list:
+            if tuple(j) in window90by1_ipcs_pairs[i]:
+                # pattern_ipc_pairs[c_i,c_j] = 1                                        # results in sum(sum(array)) =  869062.0
+                pattern_ipc_pairs[c_i, c_j] = window90by1_ipcs_pairs[i].count(
+                    tuple(j))  # results in sum(sum(array)) = 1047572.0
 
-                if tuple(j) in window90by1_ipcs_pairs[i]:
-                    # pattern_ipc_pairs[c_i,c_j] = 1                                        # results in sum(sum(array)) =  869062.0
-                    pattern_ipc_pairs[c_i, c_j] = window90by1_ipcs_pairs[i].count(
-                        tuple(j))  # results in sum(sum(array)) = 1047572.0
+            c_j = c_j + 1
 
-                c_j = c_j + 1
+        c_i = c_i + 1
+        pbar.update(1)
 
-            c_i = c_i + 1
-            pbar.update(1)
+    pbar.close()
 
-        pbar.close()
-
-        filename = 'window90by1_ipcs_pairs_pattern'
-        outfile = open(filename, 'wb')
-        pk.dump(pattern_ipc_pairs, outfile)
-        outfile.close()
+    filename = 'window90by1_ipcs_pairs_pattern'
+    outfile = open(filename, 'wb')
+    pk.dump(pattern_ipc_pairs, outfile)
+    outfile.close()
 
     ### IPC triples ###
     # ...
