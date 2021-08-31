@@ -13,6 +13,7 @@ if __name__ == '__main__':
     import tqdm
 
     import itertools
+    import operator
     import scipy.signal as signal
 
     preproc_bool = True
@@ -41,181 +42,51 @@ if __name__ == '__main__':
 
     ### Create dictionaries containing ALL ipc/topic singles/pairs/triples for a window ###
 
-    from utilities.my_measure_utils import PlainMeasures
+    from utilities.my_measure_utils import ReferenceMeasures
 
-    knowledgeComponent_dict = PlainMeasures.extract_knowledgeComponent_per_window(slidingWindow_dict, kC='topic', unit=2)
+    knowledgeComponent_dict = ReferenceMeasures.extract_knowledgeComponent_per_window(slidingWindow_dict, kC='topic', unit=2)
 
 
     # --- Constructing pattern arrays (IPC\'s, topics) x (singular, pair, tripple) ---#
     print('\n#--- Constructing pattern arrays (IPC\'s, topics) x (singular, pair, tripple) ---#\n')
 
-    def create_pattern_array(knowledgeComponent_dict):
+    pattern_array_reference, recombination_reference  = ReferenceMeasures.create_pattern_array(knowledgeComponent_dict)
 
-        row_list = []
-        column_list = []
-
-        for window_id, window in knowledgeComponent_dict.items():
-            row_list.append(window_id)
-            column_list.append(window)
-
-        column_list = [item for sublist in column_list for item in sublist]
-        column_list, column_list_counts = np.unique(column_list, return_counts=True, axis=0)
-        # sort column list??
-
-        print(row_list)
-        print(column_list)
-
-        pattern_array = np.zeros((len(row_list), len(column_list)))
-
-        pbar = tqdm.tqdm(total=len(row_list))
-        c_row = 0
-
-        for row in row_list:
-            c_column = 0
-
-            for column in column_list:
-                if column in knowledgeComponent_dict[row]:
-                    pattern_array[c_row, c_column] = list(knowledgeComponent_dict[row]).count(column)
-
-                c_column = c_column + 1
-            c_row = c_row + 1
-            pbar.update(1)
-
-        pbar.close()
-
-        return pattern_array
-
-    pattern_array = create_pattern_array(knowledgeComponent_dict)
-
-    print(pattern_array)
-    '''
-        filename = 'window90by1_ipcs_singles_pattern'
-        outfile = open(filename, 'wb')
-        pk.dump(pattern_ipc_singles, outfile)
-        outfile.close()
-    '''
-    ### IPC Pairs ###
-    print('\n\t### IPC Pairs ###\n')
-
-    with open('window90by1_ipcs_pairs', 'rb') as handle:
-        window90by1_ipcs_pairs = pk.load(handle)
-
-    # Identify unique ipc pairs in the whole dictionary for the column dimension of the pattern array #
-
-    tuple_list = []
-    for i in window90by1_ipcs_pairs.values():
-        tuple_list.append(i)
-
-    tuple_list = [item for sublist in tuple_list for item in sublist]
-    # print('number of all tuples before taking only the unique ones: ', len(tuple_list))         # 1047572
-    tuple_list, tuple_list_counts = np.unique(tuple_list, return_counts=True, axis=0)
-    # print('number of all tuples after taking only the unique ones (number of columns in the pattern array): ', len(tuple_list))    # 5445
-    # print(tuple_list_counts)        # where does the 90 and the "weird" values come from? explaination: if a combination occures in the whole timeframe only once (in one patent) then it is captures 90 times. The reason for this is the size of the sliding window of 90 and the sliding by one day. One patent will thereby be capured in 90 sliding windows (excaption: the patents in the first and last 90 days of the overall timeframe, they are capture in less then 90 sliding windows)
-
-    window_list = window90by1_ipcs_pairs.keys()
-    # print('number of all windows (number of rows in the pattent array): ', len(window_list))    # 5937
-
-    # New array, including space for occurence pattern - ipc pairs #
-
-    pattern_ipc_pairs = np.zeros((len(window_list), len(tuple_list)))
-    # print(np.shape(pattern_ipc_pairs))                        # (5937, 5445)
-
-    # Populate occurence pattern - ipc pairs #
-
-    c_i = 0
-    pbar = tqdm.tqdm(total=len(window_list))
-
-    for i in window_list:
-        c_j = 0
-
-        for j in tuple_list:
-
-            if tuple(j) in window90by1_ipcs_pairs[i]:
-                # pattern_ipc_pairs[c_i,c_j] = 1                                        # results in sum(sum(array)) =  869062.0
-                pattern_ipc_pairs[c_i, c_j] = window90by1_ipcs_pairs[i].count(
-                    tuple(j))  # results in sum(sum(array)) = 1047572.0
-
-            c_j = c_j + 1
-
-        c_i = c_i + 1
-        pbar.update(1)
-
-    pbar.close()
-
-    filename = 'window90by1_ipcs_pairs_pattern'
-    outfile = open(filename, 'wb')
-    pk.dump(pattern_ipc_pairs, outfile)
-    outfile.close()
-
-    ### IPC triples ###
-    # ...
-    ### Topic Sigles ###
-    # ...
-    ### Topic Pairs ###
-    # ...
-    ### Topic triples ###
-    # ...
 
     # --- Normalized plain pattern arrays (IPC\'s, topics) x (singular, pair, triple)  ---#
     print('\n#--- Normalized plain pattern arrays (IPC\'s, topics) x (singular, pair, triple)  ---#\n')
 
-    if measures_bool == True:
 
-        ### IPC Sigles ###
+    row_sum = pattern_array_reference.sum(axis=1)
+    pattern_array_norm_reference = pattern_array_reference / row_sum[:, np.newaxis]
 
-        with open('window90by1_ipcs_singles_pattern', 'rb') as handle:
-            pattern_ipc_singles = pk.load(handle)
 
-        # print(np.amax(pattern_ipc_singles))                                 # 59
+    # --- Binarized plain pattern arrays (IPC\'s, topics) x (singular, pair, triple)  ---#
+    print('\n#--- Binarized plain pattern arrays (IPC\'s, topics) x (singular, pair, triple)  ---#\n')
 
-        window_sum = pattern_ipc_singles.sum(axis=1)
-        pattern_ipc_singles_norm = pattern_ipc_singles / window_sum[:, np.newaxis]
+    ### IPC singles ###
 
-        ### IPC Pairs ###
+    threshold = 0.01
 
-        with open('window90by1_ipcs_pairs_pattern', 'rb') as handle:
-            pattern_ipc_pairs = pk.load(handle)
+    pattern_array_thresh_reference = np.where(pattern_array_norm_reference < threshold, 0, 1)  # arbitrary threshold of 0.01
 
-        # print(np.amax(pattern_ipc_pairs))                                   # 15
 
-        window_sum = pattern_ipc_pairs.sum(axis=1)
-        pattern_ipc_pairs_norm = pattern_ipc_pairs / window_sum[:, np.newaxis]
+    # --- Measuring recombination, diffusion of recombination and diffusion of singular ipc's/topics  ---#
+    print(
+        '\n#--- Measuring recombination, diffusion of recombination and diffusion of singular ipc\'s/topics  ---#\n')
 
-        window_sum_test = pattern_ipc_singles_norm.sum(axis=1)
-        # print(max(window_sum_test))                                         # 1.0000000000000002
+    # The resulting data structure looks like [[window_position, ipc_position, duration],[w,i,d],...]
+    # For further insights the w and i coordinates can be used to review the unnormalized and unbinarized pattern array.
 
-        ### IPC Triples ###
-        # ...
-        ### Topic Sigles ###
-        # ...
-        ### Topic Pairs ###
-        # ...
-        ### Topic Triples ###
-        # ...
+    ### IPC singles ###
+    print('\n\t### IPC singles ###')
+    print('\t Locating diffusion\n')
 
-        # --- Binarized plain pattern arrays (IPC\'s, topics) x (singular, pair, triple)  ---#
-        print('\n#--- Binarized plain pattern arrays (IPC\'s, topics) x (singular, pair, triple)  ---#\n')
+    # finding diffusion patterns #
 
-        ### IPC singles ###
+    pattern_array_thresh_reference
 
-        pattern_ipc_singles_thres = np.where(pattern_ipc_singles_norm < 0.01, 0, 1)  # arbitrary threshold of 0.01
-
-        ### IPC pairs ###
-
-        pattern_ipc_pairs_thres = np.where(pattern_ipc_pairs_norm < 0.01, 0, 1)  # arbitrary threshold of 0.01
-
-        # --- Measuring recombination, diffusion of recombination and diffusion of singular ipc's/topics  ---#
-        print(
-            '\n#--- Measuring recombination, diffusion of recombination and diffusion of singular ipc\'s/topics  ---#\n')
-
-        # The resulting data structure looks like [[window_position, ipc_position, duration],[w,i,d],...]
-        # For further insights the w and i coordinates can be used to review the unnormalized and unbinarized pattern array.
-
-        ### IPC singles ###
-        print('\n\t### IPC singles ###')
-        print('\t Locating diffusion\n')
-
-        # finding diffusion patterns #
+    def
 
         diff_pos = []
 
@@ -234,159 +105,159 @@ if __name__ == '__main__':
 
         pbar.close()
 
-        # print(diff_pos)             # [[2171, 2], [2206, 2], [2213, 2], [2220, 2], [3074, 2], [3081, 2], [3088, 2], [2171, 5], [2206, 5], [2213, 5]
-        #  [2220, 5], [3074, 5], [3081, 5], [3088, 5], [3383, 5], [3431, 5], [3445, 5], [3635, 5], [3747, 5], ...
-        # print(len(diff_pos))        # 3095
+    # print(diff_pos)             # [[2171, 2], [2206, 2], [2213, 2], [2220, 2], [3074, 2], [3081, 2], [3088, 2], [2171, 5], [2206, 5], [2213, 5]
+    #  [2220, 5], [3074, 5], [3081, 5], [3088, 5], [3383, 5], [3431, 5], [3445, 5], [3635, 5], [3747, 5], ...
+    # print(len(diff_pos))        # 3095
 
-        '''
-        print(pattern_ipc_singles_thres[2170:2175, 2])
-        print(pattern_ipc_singles_thres[2205:2210, 2])
-        print(pattern_ipc_singles_thres[3080:3085, 5])
-        print(pattern_ipc_singles_thres[232:240, 132])
-        print(pattern_ipc_singles_thres[3151:3155, 126])
-        print(pattern_ipc_singles_thres[4096:4100, 420])
-        '''
+    '''
+    print(pattern_ipc_singles_thres[2170:2175, 2])
+    print(pattern_ipc_singles_thres[2205:2210, 2])
+    print(pattern_ipc_singles_thres[3080:3085, 5])
+    print(pattern_ipc_singles_thres[232:240, 132])
+    print(pattern_ipc_singles_thres[3151:3155, 126])
+    print(pattern_ipc_singles_thres[4096:4100, 420])
+    '''
 
-        # counting diffusion #
-        print('\t Measuring diffusion\n')
+    # counting diffusion #
+    print('\t Measuring diffusion\n')
 
-        diffusion_duration_list = []
-        pbar = tqdm.tqdm(total=len(diff_pos))
+    diffusion_duration_list = []
+    pbar = tqdm.tqdm(total=len(diff_pos))
 
-        for occurrence in diff_pos:
-            diffusion = -1
-            i = 0
+    for occurrence in diff_pos:
+        diffusion = -1
+        i = 0
 
-            while pattern_ipc_singles_thres[occurrence[0] + i, occurrence[1]] == 1:
-                diffusion = diffusion + 1
+        while pattern_ipc_singles_thres[occurrence[0] + i, occurrence[1]] == 1:
+            diffusion = diffusion + 1
 
-                i = i + 1
-                if occurrence[0] + i == len(pattern_ipc_singles_thres):
-                    break
+            i = i + 1
+            if occurrence[0] + i == len(pattern_ipc_singles_thres):
+                break
 
-            diffusion_duration_list.append(diffusion)
+        diffusion_duration_list.append(diffusion)
 
-            pbar.update(1)
+        pbar.update(1)
 
-        pbar.close()
+    pbar.close()
 
-        # print(diffusion_duration_list)          # [0, 0, 0, 13, 0, 0, 20, 0, 0, 0, 13, 0, 0, 20, 41, 7, 0, 89, 89, 152, 5, 229, 90, 0, 6,
-        # print(len(diffusion_duration_list))     # 3095
+    # print(diffusion_duration_list)          # [0, 0, 0, 13, 0, 0, 20, 0, 0, 0, 13, 0, 0, 20, 41, 7, 0, 89, 89, 152, 5, 229, 90, 0, 6,
+    # print(len(diffusion_duration_list))     # 3095
 
-        # Merge both lists to get final data structure #
+    # Merge both lists to get final data structure #
 
-        for i in range(len(diff_pos)):
-            diff_pos[i].append(diffusion_duration_list[i])
+    for i in range(len(diff_pos)):
+        diff_pos[i].append(diffusion_duration_list[i])
 
-        # print(diff_pos)
-        # print(len(diff_pos))
+    # print(diff_pos)
+    # print(len(diff_pos))
 
-        # print('\tPositions and duration of diffusion: \n', diff_pos)        # [[2171, 2, 0], [2206, 2, 0], [2213, 2, 0], [2220, 2, 13], [3074, 2, 0], [3081, 2, 0],
-        # print('\n\tExample with first entry: \n', diff_pos[0])               # [2171, 2, 0]
+    # print('\tPositions and duration of diffusion: \n', diff_pos)        # [[2171, 2, 0], [2206, 2, 0], [2213, 2, 0], [2220, 2, 13], [3074, 2, 0], [3081, 2, 0],
+    # print('\n\tExample with first entry: \n', diff_pos[0])               # [2171, 2, 0]
 
-        np.set_printoptions(threshold=sys.maxsize)
-        # print('\n',pattern_ipc_singles_thres[2170:2175,2])                   # [0          1          0          0          0]
-        # print(pattern_ipc_singles[2170:2175,2])                              # [1.         1.         1.         1.         1.]
-        # print(pattern_ipc_singles_norm[2170:2175,2])                         # [0.00869565 0.01041667 0.00877193 0.00877193 0.00877193]
+    np.set_printoptions(threshold=sys.maxsize)
+    # print('\n',pattern_ipc_singles_thres[2170:2175,2])                   # [0          1          0          0          0]
+    # print(pattern_ipc_singles[2170:2175,2])                              # [1.         1.         1.         1.         1.]
+    # print(pattern_ipc_singles_norm[2170:2175,2])                         # [0.00869565 0.01041667 0.00877193 0.00877193 0.00877193]
 
-        '''
-        print('\n',pattern_ipc_singles_thres[2205:2210,2])
-        print(pattern_ipc_singles[2205:2210,2])
-        print(pattern_ipc_singles_norm[2205:2210,2])
-        '''
-        print('\n', pattern_ipc_singles_thres[2212:2217, 2])
-        print(pattern_ipc_singles[2212:2217, 2])
-        print(pattern_ipc_singles_norm[2212:2217, 2])
+    '''
+    print('\n',pattern_ipc_singles_thres[2205:2210,2])
+    print(pattern_ipc_singles[2205:2210,2])
+    print(pattern_ipc_singles_norm[2205:2210,2])
+    '''
+    print('\n', pattern_ipc_singles_thres[2212:2217, 2])
+    print(pattern_ipc_singles[2212:2217, 2])
+    print(pattern_ipc_singles_norm[2212:2217, 2])
 
-        print('\n', pattern_ipc_singles_thres[2219:2241, 2])
-        print(pattern_ipc_singles[2219:2241, 2])
-        print(pattern_ipc_singles_norm[2219:2241, 2])
-        '''
-        print('\n',pattern_ipc_singles_thres[1093:1110,216])                # [1094, 216, 13]
-        print(pattern_ipc_singles[1093:1110,216])                           # [1094, 216, 13]
-        print(pattern_ipc_singles_norm[1093:1110,216])                      # [1094, 216, 13]
+    print('\n', pattern_ipc_singles_thres[2219:2241, 2])
+    print(pattern_ipc_singles[2219:2241, 2])
+    print(pattern_ipc_singles_norm[2219:2241, 2])
+    '''
+    print('\n',pattern_ipc_singles_thres[1093:1110,216])                # [1094, 216, 13]
+    print(pattern_ipc_singles[1093:1110,216])                           # [1094, 216, 13]
+    print(pattern_ipc_singles_norm[1093:1110,216])                      # [1094, 216, 13]
 
-        print('\n',pattern_ipc_singles_thres[3654:3685,276])                # [3655, 276, 27]
-        print(pattern_ipc_singles[3654:3685,276])                           # [3655, 276, 27]
-        print(pattern_ipc_singles_norm[3654:3685,276])                      # [3655, 276, 27]
+    print('\n',pattern_ipc_singles_thres[3654:3685,276])                # [3655, 276, 27]
+    print(pattern_ipc_singles[3654:3685,276])                           # [3655, 276, 27]
+    print(pattern_ipc_singles_norm[3654:3685,276])                      # [3655, 276, 27]
 
-        print('\n',pattern_ipc_singles_thres[3745:3750,501])                # [3746, 501, 0]
-        print(pattern_ipc_singles[3745:3750,501])                           # [3746, 501, 0]
-        print(pattern_ipc_singles_norm[3745:3750,501])                      # [3746, 501, 0]
-        '''
+    print('\n',pattern_ipc_singles_thres[3745:3750,501])                # [3746, 501, 0]
+    print(pattern_ipc_singles[3745:3750,501])                           # [3746, 501, 0]
+    print(pattern_ipc_singles_norm[3745:3750,501])                      # [3746, 501, 0]
+    '''
 
-        # --------------------------------------------------------------------
+    # --------------------------------------------------------------------
 
-        ### ipc pairs ###
-        print('\n\t### IPC pairs ###')
-        print('\t Locating recombination\n')
+    ### ipc pairs ###
+    print('\n\t### IPC pairs ###')
+    print('\t Locating recombination\n')
 
-        recomb_pos = []
+    recomb_pos = []
 
-        c = 0
-        pbar = tqdm.tqdm(total=len(pattern_ipc_pairs_thres))
+    c = 0
+    pbar = tqdm.tqdm(total=len(pattern_ipc_pairs_thres))
 
-        for combinations in pattern_ipc_pairs_thres.T:
-            for window_pos in range(len(combinations)):
-                if window_pos != 0:
-                    if combinations[window_pos] == 1:
-                        if combinations[window_pos - 1] == 0:
-                            recomb_pos.append([window_pos, c])
+    for combinations in pattern_ipc_pairs_thres.T:
+        for window_pos in range(len(combinations)):
+            if window_pos != 0:
+                if combinations[window_pos] == 1:
+                    if combinations[window_pos - 1] == 0:
+                        recomb_pos.append([window_pos, c])
 
-            c = c + 1
-            pbar.update(1)
+        c = c + 1
+        pbar.update(1)
 
-        pbar.close()
+    pbar.close()
 
-        # counting diffusion #
-        print('\t Measuring diffusion of recombination\n')
+    # counting diffusion #
+    print('\t Measuring diffusion of recombination\n')
 
-        diffusion_duration_list = []
-        pbar = tqdm.tqdm(total=len(recomb_pos))
+    diffusion_duration_list = []
+    pbar = tqdm.tqdm(total=len(recomb_pos))
 
-        for recomb in recomb_pos:
-            diffusion = -1
-            i = 0
+    for recomb in recomb_pos:
+        diffusion = -1
+        i = 0
 
-            while pattern_ipc_pairs_thres[recomb[0] + i, recomb[1]] == 1:
-                diffusion = diffusion + 1
-                i = i + 1
-                if recomb[0] + i == len(pattern_ipc_pairs_thres):
-                    break
+        while pattern_ipc_pairs_thres[recomb[0] + i, recomb[1]] == 1:
+            diffusion = diffusion + 1
+            i = i + 1
+            if recomb[0] + i == len(pattern_ipc_pairs_thres):
+                break
 
-            diffusion_duration_list.append(diffusion)
-            pbar.update(1)
+        diffusion_duration_list.append(diffusion)
+        pbar.update(1)
 
-        pbar.close()
+    pbar.close()
 
-        # Merge both lists to get final data structure #
+    # Merge both lists to get final data structure #
 
-        for i in range(len(recomb_pos)):
-            recomb_pos[i].append(diffusion_duration_list[i])
+    for i in range(len(recomb_pos)):
+        recomb_pos[i].append(diffusion_duration_list[i])
 
-        # print('\tPositions and diffusion duration of recombinations: \n', recomb_pos)       # [[2171, 7, 0], [2178, 7, 14], [2206, 7, 27], [3088, 7, 20], [2171, 8, 0],
-        # print('\tExample with fourth entry: \n', recomb_pos[3])                             #                                              [3088, 7, 20]
+    # print('\tPositions and diffusion duration of recombinations: \n', recomb_pos)       # [[2171, 7, 0], [2178, 7, 14], [2206, 7, 27], [3088, 7, 20], [2171, 8, 0],
+    # print('\tExample with fourth entry: \n', recomb_pos[3])                             #                                              [3088, 7, 20]
 
-        # print('\n', pattern_ipc_pairs_thres[3087:3110,7])               #  [0  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  0 ]
-        # print(pattern_ipc_pairs[3087:3110,7])                           #  [1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 0.]
-        # print(pattern_ipc_pairs_norm[3087:3110,7])                      # [0.00869565 0.0125     0.0125     0.0125     0.0125     0.0125
-        #  0.0125     0.0125     0.01298701 0.01162791 0.01162791 0.01162791
-        #  0.01162791 0.01162791 0.01162791 0.01351351 0.0125     0.0125
-        #  0.0125     0.0125     0.0125     0.0125     0.        ]
+    # print('\n', pattern_ipc_pairs_thres[3087:3110,7])               #  [0  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  0 ]
+    # print(pattern_ipc_pairs[3087:3110,7])                           #  [1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 0.]
+    # print(pattern_ipc_pairs_norm[3087:3110,7])                      # [0.00869565 0.0125     0.0125     0.0125     0.0125     0.0125
+    #  0.0125     0.0125     0.01298701 0.01162791 0.01162791 0.01162791
+    #  0.01162791 0.01162791 0.01162791 0.01351351 0.0125     0.0125
+    #  0.0125     0.0125     0.0125     0.0125     0.        ]
 
-        '''
-        print('\n', pattern_ipc_pairs_thres[2177:2194,8])               # [2178, 8, 14]
-        print(pattern_ipc_pairs[2177:2194,8])
-        print(pattern_ipc_pairs_norm[2177:2194,8])
+    '''
+    print('\n', pattern_ipc_pairs_thres[2177:2194,8])               # [2178, 8, 14]
+    print(pattern_ipc_pairs[2177:2194,8])
+    print(pattern_ipc_pairs_norm[2177:2194,8])
 
-        print('\n', pattern_ipc_pairs_thres[2835:2852,261])               # [2836, 261, 14]
-        print(pattern_ipc_pairs[2835:2852,261])
-        print(pattern_ipc_pairs_norm[2835:2852,261])
+    print('\n', pattern_ipc_pairs_thres[2835:2852,261])               # [2836, 261, 14]
+    print(pattern_ipc_pairs[2835:2852,261])
+    print(pattern_ipc_pairs_norm[2835:2852,261])
 
-        print('\n', pattern_ipc_pairs_thres[3290:3294,572])               # [3291, 572, 0]
-        print(pattern_ipc_pairs[3290:3294,572])
-        print(pattern_ipc_pairs_norm[3290:3294,572])
-        '''
+    print('\n', pattern_ipc_pairs_thres[3290:3294,572])               # [3291, 572, 0]
+    print(pattern_ipc_pairs[3290:3294,572])
+    print(pattern_ipc_pairs_norm[3290:3294,572])
+    '''
 
     # --- introduce leeway ---#
 
