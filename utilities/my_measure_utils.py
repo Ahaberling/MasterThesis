@@ -2,6 +2,8 @@ import numpy as np
 import tqdm
 import itertools
 import scipy.signal as sciSignal
+from cdlib import algorithms
+import networkx as nx
 
 class ReferenceMeasures:
 
@@ -208,3 +210,56 @@ class ReferenceMeasures:
 
             c = c + 1
         return pattern_array_thresh
+
+class CommunityMeasures:
+
+    @staticmethod
+    def detect_communities(patentProject_graphs, cD_algorithm):
+
+        community_dict = {}
+
+        if cD_algorithm == 'label_propagation':
+            c = 0
+            pbar = tqdm.tqdm(total=len(patentProject_graphs))
+            for window_id, window in patentProject_graphs.items():
+                lp = nx.algorithms.community.label_propagation.asyn_lpa_communities(window, weight='weight', seed=123)
+                community_dict[window_id] = list(lp)
+                pbar.update(1)
+
+            pbar.close()
+
+        elif cD_algorithm == 'greedy_modularity':
+            c = 0
+            pbar = tqdm.tqdm(total=len(patentProject_graphs))
+            for window_id, window in patentProject_graphs.items():
+                gm = algorithms.greedy_modularity(
+                    window)  # , weight='weight')                               # no seed needed i think, weights yield less communities (right now)
+                community_dict[window_id] = gm.to_node_community_map()
+                pbar.update(1)
+
+            pbar.close()
+
+        elif cD_algorithm == 'k_clique':
+            c = 0
+            pbar = tqdm.tqdm(total=len(patentProject_graphs))
+            for window_id, window in patentProject_graphs.items():
+                kclique = algorithms.kclique(window, k=3)  # no seed needed i think
+                community_dict[window_id] = kclique.to_node_community_map()
+                pbar.update(1)
+
+            pbar.close()
+
+        elif cD_algorithm == 'lais2':
+            c = 0
+            pbar = tqdm.tqdm(total=len(patentProject_graphs))
+            for window_id, window in patentProject_graphs.items():
+                lais2 = algorithms.lais2(window)  # no seed needed i think
+                community_dict[window_id] = lais2.to_node_community_map()
+                pbar.update(1)
+
+            pbar.close()
+
+        else:
+            raise Exception("cD_algorithm must be 'label_propagation','greedy_modularity','k_clique' or 'lais2'")
+
+        return community_dict

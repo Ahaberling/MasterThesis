@@ -5,9 +5,8 @@ if __name__ == '__main__':
 
     import pickle as pk
 
-    import networkx as nx
-    from cdlib import algorithms
-    # import wurlitzer                   #not working for windows
+
+
 
     import tqdm
     import os
@@ -17,52 +16,24 @@ if __name__ == '__main__':
 
     os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
 
-    with open('windows_topicSim', 'rb') as handle:
-        topicSim = pk.load(handle)
+    with open('patentProject_graphs', 'rb') as handle:
+        patentProject_graphs = pk.load(handle)
 
     # --- Applying Community detection to each graph/window and populate respective dictionaries ---#
 
     ### Creating dictionaries to save communities ###
 
-    # CD - crisp #
-    lp_PlainCommu = {}  # Weighted Label Propagation of Networkx (asyn_lpa_communities)
-    gm_PlainCommu = {}  # Greedy Modularity of cd_lib
+    from utilities.my_measure_utils import CommunityMeasures
 
-    # CD - overlapping #
-    kclique_PlainCommu = {}  # kclique of cd_lib
-    lais2_PlainCommu = {}  # lais2 of cd_lib
+    community_dict = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='greedy_modularity')
 
-    ### Applying Community Detection and filling dictionaries ###
-
-    c = 0
-    pbar = tqdm.tqdm(total=len(topicSim))
-
-    for window_id, window in topicSim.items():
-        # CD - crisp #
-        lp = nx.algorithms.community.label_propagation.asyn_lpa_communities(window, weight='weight', seed=123)
-        lp_PlainCommu[window_id] = list(lp)
-
-        gm = algorithms.greedy_modularity(
-            window)  # , weight='weight')                               # no seed needed i think, weights yield less communities (right now)
-        gm_PlainCommu[window_id] = gm.to_node_community_map()
-
-        # CD - overlapping #
-        kclique = algorithms.kclique(window, k=3)  # no seed needed i think
-        kclique_PlainCommu[window_id] = kclique.to_node_community_map()
-
-        lais2 = algorithms.lais2(window)  # no seed needed i think
-        lais2_PlainCommu[window_id] = lais2.to_node_community_map()
-
-        pbar.update(1)
-
-    pbar.close()
 
     # --- Transform data structure ---#
 
     # greedy_modularity #
     gm_transf = {}
 
-    for window_id, window in gm_PlainCommu.items():
+    for window_id, window in community_dict.items():
         community_list = []
         focal_commu = []
         c = 0

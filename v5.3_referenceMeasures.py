@@ -82,14 +82,7 @@ if __name__ == '__main__':
     #  [2220, 5], [3074, 5], [3081, 5], [3088, 5], [3383, 5], [3431, 5], [3445, 5], [3635, 5], [3747, 5], ...
     # print(len(diff_pos))        # 3095
 
-    '''
-    print(pattern_ipc_singles_thres[2170:2175, 2])
-    print(pattern_ipc_singles_thres[2205:2210, 2])
-    print(pattern_ipc_singles_thres[3080:3085, 5])
-    print(pattern_ipc_singles_thres[232:240, 132])
-    print(pattern_ipc_singles_thres[3151:3155, 126])
-    print(pattern_ipc_singles_thres[4096:4100, 420])
-    '''
+
 
     # counting diffusion #
     print('\t Measuring diffusion\n')
