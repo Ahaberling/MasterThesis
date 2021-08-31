@@ -1,6 +1,7 @@
 import numpy as np
 import tqdm
 import itertools
+import scipy.signal as sciSignal
 
 class ReferenceMeasures:
 
@@ -66,7 +67,7 @@ class ReferenceMeasures:
         column_list = [item for sublist in column_list for item in sublist]
         column_list, column_list_counts = np.unique(column_list, return_counts=True, axis=0)
 
-        print(type(column_list[0]))
+        #print(type(column_list[0]))
         if np.issubdtype(type(column_list[0]), np.integer) or np.issubdtype(type(column_list[0]), np.str_):
             column_list.sort()
 
@@ -96,3 +97,114 @@ class ReferenceMeasures:
         pbar.close()
 
         return pattern_array, column_list
+
+    @staticmethod
+    def find_recombination(pattern_array_thresh):
+
+        recom_pos = []
+        c = 0
+
+        pbar = tqdm.tqdm(total=len(pattern_array_thresh.T))
+
+        for column in pattern_array_thresh.T:
+            for row in range(len(pattern_array_thresh)):
+                if row != 0:
+                    if column[row] == 1:
+                        if column[row - 1] == 0:
+                            recom_pos.append([row, c])
+
+            c = c + 1
+            pbar.update(1)
+
+        pbar.close()
+        return recom_pos
+
+    @staticmethod
+    def find_diffusion(pattern_array_thresh, recombinationPos):
+
+        diff_list = []
+        pbar = tqdm.tqdm(total=len(recombinationPos))
+
+        for pos in recombinationPos:
+            diffusion = -1
+            i = 0
+
+            while pattern_array_thresh[pos[0] + i, pos[1]] == 1:
+                diffusion = diffusion + 1
+
+                i = i + 1
+                if pos[0] + i == len(pattern_array_thresh):
+                    break
+
+            diff_list.append(diffusion)
+
+            pbar.update(1)
+
+        pbar.close()
+
+        # print(diffusion_duration_list)          # [0, 0, 0, 13, 0, 0, 20, 0, 0, 0, 13, 0, 0, 20, 41, 7, 0, 89, 89, 152, 5, 229, 90, 0, 6,
+        # print(len(diffusion_duration_list))     # 3095
+
+        # Merge both lists to get final data structure #
+
+        for i in range(len(recombinationPos)):
+            recombinationPos[i].append(diff_list[i])
+
+        return recombinationPos
+
+    @staticmethod
+    def search_sequence_helper(arr, seq):
+        """
+        Parameters
+        ----------
+        arr    : input 1D array
+        seq    : input 1D array
+
+        Output
+        ------
+        Output : 1D Array of indices in the input array that satisfy the
+        matching of input sequence in the input array.
+        In case of no match, an empty list is returned.
+        """
+
+        # Store sizes of input array and sequence
+        Na, Nseq = arr.size, seq.size
+
+        # Range of sequence
+        r_seq = np.arange(Nseq)
+
+        # Create a 2D array of sliding indices across the entire length of input array.
+        # Match up with the input sequence & get the matching starting indices.
+        M = (arr[np.arange(Na - Nseq + 1)[:, None] + r_seq] == seq).all(1)
+
+        # Get the range of those indices as final output
+        if M.any() > 0:
+            return np.where(np.convolve(M, np.ones((Nseq), dtype=int)) > 0)[0]
+        else:
+            return []  # No match found
+
+    @staticmethod
+    def search_sequence(pattern_array_thresh, sequence):
+        sequencePos = []
+
+        c = 0
+        for row in pattern_array_thresh.T:
+            result = ReferenceMeasures.search_sequence_helper(row, sequence)
+            # print(result)
+            if len(result) != 0:
+                sequencePos.append((c, result))
+
+            c = c + 1
+        return sequencePos
+
+    @staticmethod
+    def introcude_leeway(pattern_array_thresh, sequence, impute_value):
+
+        c = 0
+        for row in pattern_array_thresh.T:
+            row[(sciSignal.convolve(row, sequence, 'same') == 2) & (row == 0)] = impute_value
+
+            pattern_array_thresh.T[c, :] = row
+
+            c = c + 1
+        return pattern_array_thresh
