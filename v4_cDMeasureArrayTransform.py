@@ -574,10 +574,10 @@ if __name__ == '__main__':
             for j in range(len(singleDiffusion_array.T)):
 
                 window = cd_topD_dic_clean['window_{0}'.format(i*30)]
-                #print(window)
-                #print(window.values())
-                #print(list(window.values()))
-                #print(j)
+                print(window)
+                print(window.values())
+                print(list(window.values()))
+                print(j)
 
                 if any(j in sublist for sublist in list(window.values())) == True:
                     # A count is not necessary, since the value can not exceed 1. Community ids are unique within a window.

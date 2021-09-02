@@ -757,3 +757,245 @@ class CommunityMeasures:
 
         return visual_array
 
+    @staticmethod
+    def is_community_id_unique(cd_labeled):
+
+        for window_id, window in cd_labeled.items():
+
+            id_list = []
+            for community in window:
+
+                id_list.append(community[1][0])
+
+            if len(id_list) != len(np.unique(id_list)):
+                raise Exception("Community labeling faulty: {} contains non-unique community id's".format(window_id))
+
+        return
+
+    @staticmethod
+    def find_recombinations_crisp(community_dict_labeled, patentProject_graphs):
+        cd_recombination_dic = {}
+
+        for i in range(len(patentProject_graphs)):
+            window_list = []
+
+            if i != 0:
+                t = set(patentProject_graphs['window_{0}'.format((i-1) * 30)].nodes())
+                t_plus1 = set(patentProject_graphs['window_{0}'.format(i * 30)].nodes())
+                new_patents = t_plus1.difference(t)
+
+                for patent in new_patents:
+                    neighbor_list = list(patentProject_graphs['window_{0}'.format(i * 30)].neighbors(patent))
+
+                    patent_list = []
+
+                    if len(neighbor_list) >=2:
+
+                        bridge_list = []
+                        already_found_community = []
+
+                        for neighbor in neighbor_list:
+
+                            for community in community_dict_labeled['window_{0}'.format((i-1) * 30)]:
+
+                                #if set([neighbor]).issubset(community):
+                                if neighbor in community[0]:
+                                    if community not in already_found_community:
+                                        bridge_list.append((neighbor, community[1]))
+                                        already_found_community.append(community)
+
+                        if len(bridge_list) >= 2:
+                            bridge_list.sort(key=operator.itemgetter(1))
+                            patent_list.append(bridge_list)
+
+                    if len(patent_list) != 0:
+                        #window_list.append((patent, patent_list[0]))
+                        patent_list_comb = list(itertools.combinations(patent_list[0], r=2)) # sorting order is preserved here
+                        for comb in patent_list_comb:
+                            window_list.append([patent, comb])
+
+            cd_recombination_dic['window_{0}'.format(i * 30)] = window_list # list of all patents that recombine  [[patent, [neighbor, neighbor]],...]
+
+        #print(lp_recombination_dic)    # {'window_30': [], 'window_60': [], ...,  'window_300': [[287657442, [[287933459, 290076304]]], ...
+
+        return cd_recombination_dic
+
+    @staticmethod
+    def find_recombinations_overlapping(community_dict_labeled, patentProject_graphs):
+        cd_recombination_dic = {}
+
+        for window_id, window in community_dict_labeled.items():
+            recombination_list = []
+
+            for patent in patentProject_graphs[window_id].nodes():
+
+                recombinations = []
+                for community in window:
+                    if patent in community[0]:
+                        community_id = community[1]
+                        recombinations.append([patent, community_id])
+
+                if len(recombinations) >= 2:
+
+                    community_id_list = []
+                    for tuple in recombinations:
+
+                        community_id_list.append(tuple[1][0])
+
+                    community_id_list.sort()
+
+                    #if len(community_id_list) >= 3:
+                        #print(community_id_list)
+
+                    community_id_list_comb = list(itertools.combinations(community_id_list, r=2))
+
+                    for i in community_id_list_comb:
+                        recombination_list.append((recombinations[0][0], i))
+
+            helper = []
+            for j in recombination_list:
+                if j not in helper:
+                    helper.append(j)
+
+            cd_recombination_dic[window_id] = recombination_list
+
+        return cd_recombination_dic
+
+    @staticmethod
+    def recombination_threshold_crisp(recombination_dict, patentProject_graphs, threshold_value):
+        recombination_threshold = {}
+
+        for window_id, window in recombination_dict.items():
+            recombination_types_plusCount = []
+
+            if len(window) != 0:
+                total_number_patents = len(patentProject_graphs[window_id].nodes())
+                recombination_types = []
+
+                for recombination in window:
+                    if recombination[1][0][1][0] <= recombination[1][1][1][
+                        0]:  # probably not necessary anymore, because it was sorted in the pre function as well
+                        community_id1 = recombination[1][0][1][0]  #
+                        community_id2 = recombination[1][1][1][0]
+                    else:
+                        community_id1 = recombination[1][1][1][0]
+                        community_id2 = recombination[1][0][1][0]
+
+                    recombination_types.append((community_id1, community_id2))
+
+                recombination_types_unique, index, count = np.unique(recombination_types, axis=0, return_counts=True,
+                                                                     return_index=True)
+                fraction = [x / total_number_patents for x in count]
+                threshold_meet_list = []
+
+                for i in range(len(fraction)):
+                    threshold_meet = 0  # default
+                    if fraction[i] >= threshold_value:
+                        threshold_meet = 1
+
+                    threshold_meet_list.append(threshold_meet)
+
+                for i in range(len(recombination_types_unique)):
+                    recombination_types_plusCount.append(
+                        (tuple(recombination_types_unique[i]), count[i], threshold_meet_list[i]))  # , fraction[i]))
+
+            recombination_threshold[window_id] = recombination_types_plusCount
+
+        return recombination_threshold
+
+    @staticmethod
+    def recombination_threshold_overlapping(recombination_dict, patentProject_graphs, threshold_value):
+        recombination_threshold = {}
+
+        for window_id, window in recombination_dict.items():
+            recombination_types_plusCount = []
+
+            if len(window) != 0:
+                total_number_patents = len(patentProject_graphs[window_id].nodes())
+                recombination_types = []
+
+                for recombination in window:
+                    if recombination[1][0] <= recombination[1][1]:          # probably not necessary anymore, because it was sorted in the pre function as well
+                        community_id1 = recombination[1][0]                      #
+                        community_id2 = recombination[1][1]
+                    else:
+                        community_id1 = recombination[1][1]
+                        community_id2 = recombination[1][0]
+
+                    recombination_types.append((community_id1, community_id2))
+
+                recombination_types_unique, index, count = np.unique(recombination_types, axis=0, return_counts=True, return_index=True)
+
+                fraction = [x / total_number_patents for x in count]
+
+                threshold_meet_list = []
+
+                for i in range(len(fraction)):
+                    threshold_meet = 0  # default
+                    if fraction[i] >= threshold_value:
+                        threshold_meet = 1
+
+                    threshold_meet_list.append(threshold_meet)
+
+                for i in range(len(recombination_types_unique)):
+                    recombination_types_plusCount.append((tuple(recombination_types_unique[i]), count[i], threshold_meet_list[i]))  # , fraction[i]))
+
+            recombination_threshold[window_id] = recombination_types_plusCount
+
+        return recombination_threshold
+
+    @staticmethod
+    def enrich_recombinations_dic_with_thresholds_crips(recombination_dict, recombination_dict_threshold):
+
+        recombinations_dic_with_thresholds = {}
+
+        for window_id, window in recombination_dict.items():
+
+            new_window = []
+            for recombination in window:
+                #print(recombination)
+                community_id1 = recombination[1][0][1][0]
+                community_id2 = recombination[1][1][1][0]
+
+                for recombination_threshold in recombination_dict_threshold[window_id]:
+                    if recombination_threshold[0] == (community_id1, community_id2):
+
+                        count = recombination_threshold[1]
+                        threshold = recombination_threshold[2]
+
+                        recombination.append(count)
+                        recombination.append(threshold)
+
+
+                new_window.append(recombination)
+            recombinations_dic_with_thresholds[window_id] = new_window
+
+        return recombinations_dic_with_thresholds
+
+    @staticmethod
+    def enrich_recombinations_dic_with_thresholds_overlapping(recombination_dict, recombination_dict_threshold):
+        recombinations_dic_with_thresholds = {}
+
+        for window_id, window in recombination_dict.items():
+
+            new_window = []
+            for recombination in window:
+                community_id1 = recombination[1][0]
+                community_id2 = recombination[1][1]
+
+                recombination_value = list(recombination)
+
+            for recombination_threshold in recombination_dict_threshold[window_id]:
+                if recombination_threshold[0] == (community_id1, community_id2):
+
+                    count = recombination_threshold[1]
+                    threshold = recombination_threshold[2]
+
+                    recombination_value.append(count)
+                    recombination_value.append(threshold)
+
+                new_window.append(recombination_value)
+            recombinations_dic_with_thresholds[window_id] = new_window
+
+        return recombinations_dic_with_thresholds
+
