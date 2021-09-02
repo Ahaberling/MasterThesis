@@ -5,6 +5,7 @@ import scipy.signal as sciSignal
 from cdlib import algorithms
 import networkx as nx
 import operator
+import copy
 
 class ReferenceMeasures:
 
@@ -998,4 +999,481 @@ class CommunityMeasures:
             recombinations_dic_with_thresholds[window_id] = new_window
 
         return recombinations_dic_with_thresholds
+
+    @staticmethod
+    def create_cleaningIndex_associationAccumulated(topD_communityID_association_accumulated, community_dict_topD):
+        merging_communities_dic = {}
+
+        for i in range(len(topD_communityID_association_accumulated) - 1):
+
+            #if i == 25:
+                #print(1 + 1)
+            #if i == 185:
+                #print(1 + 1)
+
+            window_id = 'window_{0}'.format(i * 30)
+            window = topD_communityID_association_accumulated[window_id]
+
+            next_window_id = 'window_{0}'.format((i + 1) * 30)
+            next_window = topD_communityID_association_accumulated[next_window_id]
+
+            swallowed_communities = []
+
+            if i != 0:
+
+                # if i == 12:
+                # print(1+1)
+
+                for topD in window.keys():
+
+                    if topD not in next_window.keys():
+
+                        next_community_lists = list(next_window.values())
+
+                        # print(next_community_lists)
+
+                        for community in next_community_lists:
+
+                            if set(window[topD]).issubset(set(community)):
+
+                                if len(set(community) - set(window[topD])) != 0:
+                                    swallowed_communities.append([topD, window[topD]])
+                                break
+
+                # get life time
+                # I want for every window a list of community_ids that are swallowed, and their death time
+                if len(swallowed_communities) != 0:
+                    for swallowed_community in swallowed_communities:
+                        # if len(swallowed_community) != 0:
+                        for community in community_dict_topD[window_id]:
+
+                            if swallowed_community[0] == community[1][0][0]:
+                                swallowed_community.append(community[0])
+                                break
+                    # print(swallowed_communities)
+
+                    for swallowed_community in swallowed_communities:
+                        community_death = False
+                        j = i
+                        members = list(swallowed_community[2])
+
+                        while community_death == False:  # [288465877, 287698910, 286963357, 289531190]
+
+                            all_id_in_next_window = [item for sublist in community_dict_topD['window_{0}'.format((j + 1) * 30)] for
+                                                     item in sublist]
+                            all_id_in_next_window = [item for sublist in all_id_in_next_window for item in sublist]
+
+                            # todo: CHECK FOR ALL WITHIN A WINDOW (IF ALL DISAPPEAR)
+                            # 237 in window 185 is not in swallowed?
+                            missing_members = []
+                            for member in members:
+                                if member not in all_id_in_next_window:
+                                    missing_members.append(member)
+                            if len(missing_members) >= len(members):
+                                community_death = True
+
+                            else:
+                                j = j + 1
+
+                                if j == 188:
+                                    community_death = True
+
+                        swallowed_community.append(i)  # i = last point before merge
+                        swallowed_community.append(j)  # j = point of death (first row were not alive)
+
+            merging_communities_dic[window_id] = swallowed_communities
+
+        return merging_communities_dic
+
+    @staticmethod
+
+    def cleaning_associationAccumulated(topD_communityID_association_accumulated, topD_communityID_association_accumulated_cleanID):
+        cd_topD_dic_clean = copy.deepcopy(topD_communityID_association_accumulated)
+
+        for i in range(len(topD_communityID_association_accumulated_cleanID)):
+            window_id = 'window_{0}'.format(i * 30)
+            window = topD_communityID_association_accumulated_cleanID[window_id]
+
+            for cleaning_entry in window:
+                community_id = cleaning_entry[1]
+                last_point_before_swallowed = cleaning_entry[3]
+                point_of_death = cleaning_entry[4]
+
+                # for j2 in range(last_point_before_swallowed,point_of_death):
+                # print(cd_topD_dic_clean['window_{0}'.format(j2 * 30)])
+
+                for j in range(point_of_death, len(cd_topD_dic_clean)):
+                    cleaning_window = cd_topD_dic_clean['window_{0}'.format(j * 30)]
+                    for community_toBeCleaned in cleaning_window.values():
+                        if set(community_id).issubset(set(community_toBeCleaned)):
+                            for id in community_id:
+                                community_toBeCleaned.remove(id)
+
+                # for j3 in range(last_point_before_swallowed, point_of_death+10):
+                # print(cd_topD_dic_clean['window_{0}'.format(j3 * 30)])
+
+                # print(cd_topD_dic_clean['window_330'])
+
+        return cd_topD_dic_clean
+
+    @staticmethod
+    def single_diffusion_v2(cd_topD_dic_clean):
+        row_length = len(cd_topD_dic_clean)
+
+        all_ids = []
+        for window_id, window in cd_topD_dic_clean.items():
+
+            for community in window:
+                all_ids.append(window[community])
+        all_ids = [item for sublist in all_ids for item in sublist]
+
+        column_length = max(all_ids)
+
+        singleDiffusion_array = np.zeros((row_length, column_length), dtype=int)
+
+        pbar = tqdm.tqdm(total=len(singleDiffusion_array))
+        for i in range(len(singleDiffusion_array)):
+            for j in range(len(singleDiffusion_array.T)):
+
+                window = cd_topD_dic_clean['window_{0}'.format(i * 30)]
+                #print(window)
+                #print(window.values())
+                #print(list(window.values()))
+                #print(j)
+
+                if any(j in sublist for sublist in list(window.values())) == True:
+                    # A count is not necessary, since the value can not exceed 1. Community ids are unique within a window.
+                    singleDiffusion_array[i, j] = 1
+
+                '''
+                for k in range(len(list(window.values()))):
+                    if j in list(window.values())[k]:
+                        big_community = list(window.values())[k]
+                        break
+                #print(big_community)
+
+                overall_count = 0
+
+                big_community = 1
+                '''
+            pbar.update(1)
+
+        pbar.close()
+
+        return singleDiffusion_array
+
+    @staticmethod
+    def recombination_diffusion_crip_v2(cd_topD_dic_clean, cd_recombinations, patentProject_graphs):
+
+        # NOTE: a recombination in a window of cd_recombinations contains a patent that recombines knowledge with it's links.
+        # This patent occures in the said window.
+        # BUT the two nodes that are identifying the recombination are extracted from the window before (t-1). This means that
+        # the following case is possible:
+        # In window 10, patent A recombines knowledge via neighbor B (community X) and neighbor C (Community Y). Patent A is always
+        # present in window 10, but it's nighboors B and C were extracted in window 9. They, or their community might have vanished in window 10
+        # For this reason, we are ... #
+
+        row_length = len(cd_recombinations)
+
+        recombinations_dic = {}
+        recombinations_all = []
+        # for window_id, window in cd_recombinations.items():
+        for l in range(1, len(cd_recombinations)):
+
+            recombinations_window = []
+            for recombination in cd_recombinations['window_{0}'.format(l * 30)]:
+                community_id1 = recombination[1][0][1][0]
+                community_id2 = recombination[1][1][1][0]
+                recombinations_all.append((community_id1, community_id2))
+                recombinations_window.append((community_id1, community_id2))
+
+            recombinations_dic['window_{0}'.format((l - 1) * 30)] = recombinations_window
+        # print(len(recombinations_dic))
+        recombinations_dic['window_{0}'.format((len(cd_recombinations) - 1) * 30)] = []
+        # print(len(recombinations_dic))
+
+        # print(recombinations_dic)
+
+        # print(len(recombinations_all))
+        recombinations_all.sort()
+        # print(recombinations_all)
+        recombinations_all = np.unique(recombinations_all, axis=0)
+        # print(recombinations_all)
+
+        recombinations_all_tuple = []
+        for recombination in recombinations_all:
+            recombinations_all_tuple.append(tuple(recombination))
+
+        recombinations_all = recombinations_all_tuple
+        # print(len(recombinations_all))
+
+        # print(recombinations_all)
+        column_length = len(recombinations_all)
+
+        # recombinationDiffusion_count = np.zeros((row_length, column_length), dtype=int)
+        recombinationDiffusion_count = np.full((row_length, column_length), 9999999, dtype=int)
+        recombinationDiffusion_fraction = np.zeros((row_length, column_length), dtype=float)
+        recombinationDiffusion_threshold = np.zeros((row_length, column_length), dtype=float)
+
+        pbar = tqdm.tqdm(total=len(recombinationDiffusion_count))
+        for i in range(len(recombinationDiffusion_count)):  # 63: [[59], [63], [64], [65], [66]]
+            # if i == 10:
+            # print(1+1)
+            for j in range(len(recombinationDiffusion_count.T)):
+
+                window_topD_dic = cd_topD_dic_clean['window_{0}'.format(i * 30)]
+                # print(window_topD_dic)
+
+                # count how often a recombination appears in a window
+                # Recombinations are identified over community id. These community id's are dominant.
+                # print(recombinations_all[j])
+                # print(recombinations_dic['window_{0}'.format(i*30)])
+                recombination_count = recombinations_dic['window_{0}'.format(i * 30)].count(recombinations_all[j])
+                # print(recombination_count)
+
+                if recombination_count != 0:
+                    # this count has to be placed in all columns that are the same recombination under different community ids
+                    # (e.g. because of a community merge where the dominant id overwrite the original one used in the prior recombination
+
+                    # print(list(window_topD_dic.values()))
+                    for k in range(len(list(window_topD_dic.values()))):
+                        # print(recombinations_all[j][0])
+                        # print(list(window_topD_dic.values())[k])
+                        if recombinations_all[j][0] in list(window_topD_dic.values())[k]:
+                            big_community1 = list(window_topD_dic.values())[k]
+                            # print(big_community1)
+                            break
+
+                    list(window_topD_dic.values())
+                    for k in range(len(list(window_topD_dic.values()))):
+                        # print(recombinations_all[j][1])
+                        # print(list(window_topD_dic.values())[k])
+                        if recombinations_all[j][1] in list(window_topD_dic.values())[k]:
+                            big_community2 = list(window_topD_dic.values())[k]
+                            # print(big_community2)
+                            break
+
+                    # find all j's where the count has to be written in as well
+
+                    weak_recombination_list = []
+                    # print(recombinations_all)
+                    for h in range(len(recombinations_all)):
+                        # print(recombinations_all[h][0])
+                        # print(big_community1)
+                        # print(big_community2)
+                        if recombinations_all[h][0] in big_community1:
+                            # print(recombinations_all[h][1])
+                            # print(big_community2)
+                            if recombinations_all[h][1] in big_community2:
+                                # print(h)
+                                weak_recombination_list.append(h)
+                        elif recombinations_all[h][0] in big_community2:
+                            # print(recombinations_all[h][1])
+                            # print(big_community1)
+                            if recombinations_all[h][1] in big_community1:
+                                # print(h)
+                                weak_recombination_list.append(h)
+
+                    for weak_recombination_pos in weak_recombination_list:
+                        # print(weak_recombination_pos)
+                        # print(recombination_count)
+                        recombinationDiffusion_count[i, weak_recombination_pos] = recombination_count
+                        # print(recombinationDiffusion_count[i, weak_recombination_pos])
+
+                    '''
+                    # window_300': [[286963357, ((289337379, [5]), (287698910, [8])), 1, 1]]
+                    window_community = cd_recombinations['window_{0}'.format(i*30)]
+                    window_recomb = cd_recombinations['window_{0}'.format(i*30)]
+                    print(window)
+                    print(window.values())
+                    print(list(window.values()))
+                    print(j)
+
+                    for k in range(len(list(window.values()))):
+                        if j in list(window.values())[k]:
+                            big_community = list(window.values())[k]
+                            break
+                    print(big_community)
+
+                    overall_count = 0
+
+                    community_id1 = recombinations_all[j][0]
+                    community_id2 = recombinations_all[j][1]
+
+                    for k in range(len(list(window_community.values()))):
+                        if community_id1 in list(window_community.values())[k]:
+                            big_community1 = list(window_community.values())[k]
+                            break
+
+                    for k in range(len(list(window_community.values()))):
+                        if community_id2 in list(window_community.values())[k]:
+                            big_community2 = list(window_community.values())[k]
+                            break
+
+                    for recombination in window_recomb:
+                        if recombination[1][0][1][0] in big_community1:
+                            if recombination[1][1][1][0] in big_community2:
+                                overall_count = overall_count + 1
+                                break
+                        elif recombination[1][0][1][0] in big_community2:
+                            if recombination[1][1][1][0] in big_community1:
+                                overall_count = overall_count + 1
+                                break
+
+                    recombinationDiffusion_count[i,j] = overall_count
+
+                    #for recombination in window_recomb:
+
+                    #           big_community1 = community_list where tuple[0] is present (for this window)
+                    #           big_community2 = community_list where tuple[1] is present (for this window)
+                    #           overall_count = 0
+                    #           for all recombinations:
+                    #               if recombination[0] in big_community1:
+                    #                   if recombination[1] in big_community2:
+                    #                       overall_count = overall_count + 1
+                    #                       break
+                    #               elif: recombination[0] in big_community2:
+                    #                   if recombination[1] in big_community1:
+                    #                       overall_count = overall_count + 1
+                    #                       break
+
+                    '''
+
+            pbar.update(1)
+        pbar.close()
+
+        for n in range(len(patentProject_graphs)):
+            # if n == 50:
+            # print(1+1)
+            all_nodes_window = len(patentProject_graphs['window_{0}'.format(n * 30)].nodes())
+            # print(all_nodes_window)
+            # print(recombinationDiffusion_count[n,:])
+            recombinationDiffusion_fraction[n, :] = recombinationDiffusion_count[n, :] / all_nodes_window
+            # print(recombinationDiffusion_fraction[n,:])
+
+        recombinationDiffusion_threshold = np.where(recombinationDiffusion_fraction < 0.005, 0, 1)
+        #print(1 + 1)
+
+        return recombinationDiffusion_count, recombinationDiffusion_fraction, recombinationDiffusion_threshold
+
+
+    @staticmethod
+    def recombination_diffusion_overlapping_v2(cd_topD_dic_clean, cd_recombinations, patentProject_graphs):
+        row_length = len(cd_recombinations)
+
+        recombinations_dic = {}
+        recombinations_all = []
+        for window_id, window in cd_recombinations.items():
+            recombinations_window = []
+            for recombination in window:
+                community_id1 = recombination[1][0]
+                community_id2 = recombination[1][1]
+                recombinations_all.append((community_id1, community_id2))
+                recombinations_window.append((community_id1, community_id2))
+
+            recombinations_dic[window_id] = recombinations_window
+        # print(recombinations_dic)
+
+        # print(len(recombinations_all))
+        recombinations_all.sort()
+        # print(recombinations_all)
+        recombinations_all = np.unique(recombinations_all, axis=0)
+        # print(recombinations_all)
+        recombinations_all_tuple = []
+        for recombination in recombinations_all:
+            recombinations_all_tuple.append(tuple(recombination))
+        recombinations_all = recombinations_all_tuple
+        # print(len(recombinations_all))
+
+        # print(recombinations_all)
+        column_length = len(recombinations_all)
+
+        # recombinationDiffusion_count = np.zeros((row_length, column_length), dtype=int)
+        recombinationDiffusion_count = np.full((row_length, column_length), 9999999, dtype=int)
+        recombinationDiffusion_fraction = np.zeros((row_length, column_length), dtype=float)
+        # recombinationDiffusion_threshold = np.zeros((row_length, column_length), dtype=float)
+
+        pbar = tqdm.tqdm(total=len(recombinationDiffusion_count))
+        for i in range(len(recombinationDiffusion_count)):
+            # if i == 10:
+            # print(1+1)
+            for j in range(len(recombinationDiffusion_count.T)):
+
+                window_topD_dic = cd_topD_dic_clean['window_{0}'.format(i * 30)]
+                # print(window_topD_dic)
+
+                # count how often a recombination appears in a window
+                # Recombinations are identified over community id. These community id's are dominant.
+                # print(recombinations_all[j])
+                # print(recombinations_dic['window_{0}'.format(i*30)])
+                recombination_count = recombinations_dic['window_{0}'.format(i * 30)].count(recombinations_all[j])
+                # print(recombination_count)
+
+                if recombination_count != 0:
+                    # this count has to be placed in all columns that are the same recombination under different community ids
+                    # (e.g. because of a community merge where the dominant id overwrite the original one used in the prior recombination
+
+                    # print(list(window_topD_dic.values()))
+                    for k in range(len(list(window_topD_dic.values()))):
+                        # print(recombinations_all[j][0])
+                        # print(list(window_topD_dic.values())[k])
+                        if recombinations_all[j][0] in list(window_topD_dic.values())[k]:
+                            big_community1 = list(window_topD_dic.values())[k]
+                            # print(big_community1)
+                            break
+
+                    # print(list(window_topD_dic.values()))
+                    for k in range(len(list(window_topD_dic.values()))):
+                        # print(recombinations_all[j][1])
+                        # print(list(window_topD_dic.values())[k])
+                        if recombinations_all[j][1] in list(window_topD_dic.values())[k]:
+                            big_community2 = list(window_topD_dic.values())[k]
+                            # print(big_community2)
+                            break
+
+                    # find all j's where the count has to be written in as well
+
+                    # 'weak' not fitting anymore
+                    weak_recombination_list = []
+                    # print(recombinations_all)
+                    for h in range(len(recombinations_all)):
+                        # print(recombinations_all[h][0])
+                        # print(big_community1)
+                        # print(big_community2)
+                        if recombinations_all[h][0] in big_community1:
+                            # print(recombinations_all[h][1])
+                            # print(big_community2)
+                            if recombinations_all[h][1] in big_community2:
+                                # print(h)
+                                weak_recombination_list.append(h)
+                        elif recombinations_all[h][0] in big_community2:
+                            # print(recombinations_all[h][1])
+                            # print(big_community1)
+                            if recombinations_all[h][1] in big_community1:
+                                # print(h)
+                                weak_recombination_list.append(h)
+
+                    for weak_recombination_pos in weak_recombination_list:
+                        # print(weak_recombination_pos)
+                        # print(recombination_count)
+                        recombinationDiffusion_count[i, weak_recombination_pos] = recombination_count
+                        # print(recombinationDiffusion_count[i, weak_recombination_pos])
+
+            pbar.update(1)
+        pbar.close()
+
+        for n in range(len(patentProject_graphs)):
+            # if n == 50:
+            # print(1+1)
+            all_nodes_window = len(patentProject_graphs['window_{0}'.format(n * 30)].nodes())
+            # print(all_nodes_window)
+            # print(recombinationDiffusion_count[n,:])
+            recombinationDiffusion_fraction[n, :] = recombinationDiffusion_count[n, :] / all_nodes_window
+            # print(recombinationDiffusion_fraction[n,:])
+
+        recombinationDiffusion_threshold = np.where(recombinationDiffusion_fraction < 0.005, 0, 1)
+
+        #print(1 + 1)
+
+        return recombinationDiffusion_count, recombinationDiffusion_fraction, recombinationDiffusion_threshold
 
