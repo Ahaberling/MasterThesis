@@ -470,3 +470,290 @@ class CommunityMeasures:
             merged_community_dic[window_id] = new_window[0]
 
         return merged_community_dic
+
+    @staticmethod
+    def max_number_community(cd_topD):
+        max_number = 0
+        for window in cd_topD.values():
+                max_number = max_number + len(window)
+        return max_number
+
+    @staticmethod
+    def create_tracing_array(max_number_community, community_dict_topD, patentProject_graphs):
+
+        # Create Arrays #
+        community_tracing_array = np.zeros((len(patentProject_graphs), max_number_community), dtype=int)
+        community_size_array = np.zeros((len(patentProject_graphs), max_number_community), dtype=int)
+
+        for row in range(len(community_tracing_array)):
+            current_window = community_dict_topD['window_{0}'.format(row * 30)]
+
+            # Part1: Trace existing TopD's #
+            if row != 0:  # skip in first row, since there is nothing to trace
+                prev_window = community_dict_topD['window_{0}'.format((row - 1) * 30)]
+
+                for column in range(len(community_tracing_array.T)):
+
+                    prev_topD = community_tracing_array[row - 1, column]
+
+                                                 # community[1][0][0] = TopD of community                             community[0] = set of id's of community
+                    current_topD_candidate      = [community[1][0][0] for community in current_window if prev_topD in community[0]]
+                    current_topD_candidate_size = [len(community[0]) for community in current_window if prev_topD in community[0]]
+
+                    if len(current_topD_candidate) == 1:  # >=2 only possible for overlapping CD
+                        community_tracing_array[row, column] = current_topD_candidate[0]
+                        community_size_array[row, column] = current_topD_candidate_size[0]
+
+                    else:  # (e.g. 0 because the node disappears or 2 because it is in two communities)
+                        community_candidate = [community[0] for community in prev_window if prev_topD in community[0]]
+
+                        if len(community_candidate) >= 2:
+                            community_size, community_candidate = max([(len(x), x) for x in community_candidate])
+                            community_candidate = [community_candidate]
+                            # alternative: take the one for which prev_topk has most edges in or biggest edge weight sum in
+                        if len(community_candidate) != 0:
+
+                            all_new_candidates = []
+                            for candidate in community_candidate[0]:
+                                all_new_candidates.append(
+                                    (candidate, patentProject_graphs['window_{0}'.format((row - 1) * 30)].degree(candidate)))
+
+                            all_new_candidates.sort(key=operator.itemgetter(1), reverse=True)
+
+                            for degree_candidate in all_new_candidates:
+
+                                next_topk_candidate = [community[1][0][0] for community in current_window if degree_candidate[0] in community[0]]
+                                next_topk_candidate_size = [len(community[0]) for community in current_window if degree_candidate[0] in community[0]]
+
+                                if len(next_topk_candidate) == 1:
+                                    community_tracing_array[row, column] = next_topk_candidate[0]
+                                    community_size_array[row, column] = next_topk_candidate_size[0]
+                                    break
+
+            # Part2: Create new communitiy entries if tracing did not create them #
+            for community in current_window:
+
+                community_identifier = community[1][0][0]
+
+                if community_identifier not in community_tracing_array[row]:
+
+                    for column_id in range(len(community_tracing_array.T)):
+
+                        if sum(community_tracing_array[:,
+                               column_id]) == 0:  # RuntimeWarning: overflow encountered in long_scalars
+
+                            community_tracing_array[row, column_id] = community[1][0][0]
+                            community_size_array[row, column_id] = len(community[0])
+                            break
+
+
+        # Resize the arrays and exclude non relevant columns #
+        for i in range(len(community_tracing_array.T)):
+            if sum(community_tracing_array[:, i]) == 0:
+                cutoff = i
+                break
+
+        community_tracing_array = community_tracing_array[:, 0:cutoff]
+        community_size_array = community_size_array[:, 0:cutoff]
+
+        return community_tracing_array, community_size_array
+
+
+    @staticmethod
+    def community_labeling(tracingArray, community_dict_topD, patentProject_graphs):
+
+        ### Create dict with all unique topD per window
+        topD_dic = {}
+        topD_dic_unique = {}
+
+        for row in range(len(tracingArray)):
+
+            topD_dic_unique['window_{0}'.format(row * 30)] = np.unique(tracingArray[row, :])[1:]
+
+            # ---------#
+            # new approach #
+            topD_pos = {}
+            for i in range(len(tracingArray[row, :])):
+                if tracingArray[row,i] != 0:
+                    if tracingArray[row,i] in topD_pos.keys():
+                        topD_pos[tracingArray[row,i]].append(i)
+                    else:
+                        topD_pos[tracingArray[row, i]] = [i]
+
+            #print(topD_pos)
+            topD_dic['window_{0}'.format(row * 30)] = topD_pos
+
+            #---------#
+
+        ### Create dict that associates a topD identifier with a stable community id (column number) for each window ###
+        topD_associ = {}
+
+        for i in range(len(topD_dic_unique)):
+            #if i * 30 == 4470:
+                #print(1+1)
+
+            tuple_list = []
+            #                             (412413192, 337)  (412862058, 338)  (413103388, 328)  (416974172, 330)  (418775075, 339)  (419259320, 330)
+
+            for topD in topD_dic_unique['window_{0}'.format(i * 30)]:
+
+                column_pos = np.where(tracingArray[i, :] == topD)
+
+                # if topD is present in more then 1 column of a row:
+                if len(column_pos[0]) != 1:
+
+                    prev_id_list = []
+
+                    for column in column_pos[0]:
+
+                        prev_topD = tracingArray[i-1, column]
+
+                        prev_id_list.append((prev_topD, column))
+
+                    prev_id_list_unique = np.unique([prev_id[0] for prev_id in prev_id_list])
+
+                    if topD in prev_id_list_unique:
+
+                        column_pos = [prev_topD[1] for prev_topD in topD_associ['window_{0}'.format((i-1) * 30)] if prev_topD[0] == topD]
+
+                    #elif len(np.unique(prev_id_list_unique)) == 1:
+                    #    column_pos = [topD[1] for prev_topD in topD_associ['window_{0}'.format((i-1) * 30)] if prev_topD[0] == prev_id_list[0][0]]
+
+                    else:
+                        prev_topDs_withColumn = []
+                        multi_community_edgeCase = []
+
+                        for column in column_pos[0]:
+                            prev_topDs_withColumn.append((tracingArray[i-1,column], column))
+
+                        prev_topD_communities_withColumn = []
+
+                        for prev_topD in prev_topDs_withColumn:
+                            #communities = [(community, prev_topD[1]) for community in cd_topD['window_{0}'.format((i-1) * 30)] if prev_topD[0] in community[0]]
+                            communities = [(community, prev_topD[1]) for community in community_dict_topD['window_{0}'.format((i-1) * 30)] if prev_topD[0] == community[1][0][0]]
+
+                            if len(communities) >= 2:
+                                for community in communities:
+                                    prev_topD_communities_withColumn.append([community])
+                            else:
+                                prev_topD_communities_withColumn.append(communities)
+
+                        current_community = [community for community in community_dict_topD['window_{0}'.format(i * 30)] if topD in community[1][0]]
+
+                        #Assumption. if topD is identifier for a community, the it is the identifier for only that community and not for multiple
+
+                        current_community_degree_list = []
+                        for patent in current_community[0][0]:
+                            current_community_degree_list.append((patent, patentProject_graphs['window_{0}'.format(i * 30)].degree(patent)))
+
+                        current_community_degree_list.sort(key=operator.itemgetter(1), reverse=True)
+
+                        for candidate in current_community_degree_list:
+                            checklist_inMultipleCommunities = []
+                            prev_topD_communities_withColumn_mod = [prev_community[0][0] for prev_community in prev_topD_communities_withColumn]
+
+                            community_helper_list = []
+                            for community_helper in prev_topD_communities_withColumn_mod:
+                                if community_helper not in community_helper_list:
+                                    community_helper_list.append(community_helper)
+
+                            prev_topD_communities_withColumn_unique = community_helper_list
+
+                            for prev_community in prev_topD_communities_withColumn_unique:
+                                if candidate[0] in prev_community[0]:       # (290444528, 5)
+                                    checklist_inMultipleCommunities.append(prev_community)
+
+                            if len(checklist_inMultipleCommunities) == 1:
+
+                                #print(checklist_inMultipleCommunities)
+                                #print(checklist_inMultipleCommunities[0])
+                                #print(checklist_inMultipleCommunities[0][1])
+                                #print(checklist_inMultipleCommunities[0][1][0])
+                                #print(checklist_inMultipleCommunities[0][1][0][0])
+
+                                new_topD = checklist_inMultipleCommunities[0][1][0][0]
+
+                                #if new_topD not in topD_dic['window_{0}'.format((i+1) * 30)]:
+
+                                column_pos = [prev_topD[1] for prev_topD in topD_associ['window_{0}'.format((i-1) * 30)] if prev_topD[0] == new_topD]
+                                #print(new_topD)
+                                #print(topD_dic['window_{0}'.format((i + 1) * 30)])
+                                #print(column_pos)
+
+
+                                break
+
+                            elif len(checklist_inMultipleCommunities) >= 2:
+                                multi_community_edgeCase.append(checklist_inMultipleCommunities)
+
+                        if isinstance(column_pos[0], int) == False:
+                            if len(column_pos[0]) != 1:
+                                multi_community_edgeCase = [item for sublist in multi_community_edgeCase for item in sublist]
+
+                                multi_community_edgeCase_unique = []
+                                for community in multi_community_edgeCase:
+                                    if community not in multi_community_edgeCase_unique:
+                                        multi_community_edgeCase_unique.append(community)
+
+                                multi_community_edgeCase_count = []
+
+                                for unique_item in multi_community_edgeCase_unique:
+                                    c = 0
+                                    for item in multi_community_edgeCase:
+                                        if unique_item == item:
+                                            c = c + 1
+
+                                    multi_community_edgeCase_count.append((unique_item, c))
+
+                                multi_community_edgeCase_count.sort(key=operator.itemgetter(1), reverse=True)
+
+                                #print(multi_community_edgeCase_count)
+                                #print(multi_community_edgeCase_count[0])
+                                #print(multi_community_edgeCase_count[0][0])
+                                #print(multi_community_edgeCase_count[0][0][1])
+                                #print(multi_community_edgeCase_count[0][0][1][0])
+                                #print(multi_community_edgeCase_count[0][0][1][0][0])
+                                new_topD = multi_community_edgeCase_count[0][0][1][0][0]
+
+                                column_pos = [prev_topD[1] for prev_topD in topD_associ['window_{0}'.format((i - 1) * 30)] if prev_topD[0] == new_topD]
+
+                tuple_list.append((topD, int(column_pos[0])))
+
+            topD_associ['window_{0}'.format(i * 30)] = tuple_list  # list of tuples (topk, community_id)
+
+        ### Relabel all communities in cd_topD with static community id instead of dynamic TopD ###
+
+        cd_labeled = {}
+
+        for window_id, window in community_dict_topD.items():
+            new_window = []
+
+            for community in window:
+                topD = community[1][0][0]
+
+                community_id = [tuple[1] for tuple in topD_associ[window_id] if tuple[0] == topD]
+
+                new_window.append([community[0], community_id])
+
+            cd_labeled[window_id] = new_window
+
+        return cd_labeled, topD_associ, topD_dic
+
+    @staticmethod
+    def create_visualization_array(tracingArray, topD_communityID_association_perWindow):
+
+        #visual_array = np.zeros((len(topicSim), max_number), dtype=int)
+        visual_array = np.full((np.shape(tracingArray)[0], np.shape(tracingArray)[1]), 9999999)
+
+        for row in range(len(visual_array)):
+            for column in range(len(visual_array.T)):
+
+                if tracingArray[row, column] != 0:
+
+                    topD = tracingArray[row, column]
+
+                    label_entry = [tuple[1] for tuple in topD_communityID_association_perWindow['window_{0}'.format(row * 30)] if topD == tuple[0]]
+                    visual_array[row, column] = label_entry[0]
+
+        return visual_array
+
