@@ -59,6 +59,7 @@ if __name__ == '__main__':
     with open('community_dict_l2', 'rb') as handle:
         community_dict_l2 = pk.load(handle)
     '''
+    '''
     community_dict_transf_lp = CommunityMeasures.align_cD_dataStructure(community_dict_lp, cD_algorithm='label_propagation')
     #community_dict_transf_gm = CommunityMeasures.align_cD_dataStructure(community_dict_gm, cD_algorithm='greedy_modularity')
     #community_dict_transf_kc = CommunityMeasures.align_cD_dataStructure(community_dict_kc, cD_algorithm='k_clique')
@@ -187,20 +188,52 @@ if __name__ == '__main__':
     #lais2_singleDiffusion_v2 = CommunityMeasures.single_diffusion_v2(topD_communityID_association_accumulated_clean_l2)
 
 
-    lp_recombination_diffusion_crip_count_v2, lp_recombination_diffusion_crip_fraction_v2, lp_recombination_diffusion_crip_threshold_v2 = \
+    lp_recombination_diffusion_crip_count_v2, lp_recombination_diffusion_crip_fraction_v2, lp_recombination_diffusion_crip_threshold_v2, lp_recombination_diffusion_crip_columns = \
         CommunityMeasures.recombination_diffusion_crip_v2(topD_communityID_association_accumulated_clean_lp, recombination_dict_lp, patentProject_graphs)
 
-    #gm_recombination_diffusion_crip_count_v2, gm_recombination_diffusion_crip_fraction_v2, gm_recombination_diffusion_crip_threshold_v2 = \
+    #gm_recombination_diffusion_crip_count_v2, gm_recombination_diffusion_crip_fraction_v2, gm_recombination_diffusion_crip_threshold_v2, gm_recombination_diffusion_crip_columns = \
     #    CommunityMeasures.recombination_diffusion_crip_v2(topD_communityID_association_accumulated_clean_gm, recombination_dict_gm, patentProject_graphs)
 
-    #kclique_recombination_diffusion_overlapping_count_v2, kclique_recombination_diffusion_overlapping_fraction_v2, kclique_recombination_diffusion_overlapping_threshold_v2 = \
+    #kclique_recombination_diffusion_overlapping_count_v2, kclique_recombination_diffusion_overlapping_fraction_v2, kclique_recombination_diffusion_overlapping_threshold_v2, kclique_recombination_diffusion_crip_columns = \
     #    CommunityMeasures.recombination_diffusion_overlapping_v2(topD_communityID_association_accumulated_clean_kc, recombination_dict_kc, patentProject_graphs)
 
-    #lais2_recombination_diffusion_overlapping_count_v2, lais2_recombination_diffusion_overlapping_fraction_v2, lais2_recombination_diffusion_overlapping_threshold_v2 = \
+    #lais2_recombination_diffusion_overlapping_count_v2, lais2_recombination_diffusion_overlapping_fraction_v2, lais2_recombination_diffusion_overlapping_threshold_v2, lais2_recombination_diffusion_crip_columns = \
     #    CommunityMeasures.recombination_diffusion_overlapping_v2(topD_communityID_association_accumulated_clean_l2, recombination_dict_l2, patentProject_graphs)
+    '''
+    '''
+    filename = 'lp_singleDiffusion_v2'
+    outfile = open(filename, 'wb')
+    pk.dump(lp_singleDiffusion_v2, outfile)
+    outfile.close()
 
+    filename = 'lp_recombination_diffusion_crip_count_v2'
+    outfile = open(filename, 'wb')
+    pk.dump(lp_recombination_diffusion_crip_count_v2, outfile)
+    outfile.close()
 
+    filename = 'lp_recombination_diffusion_crip_columns'
+    outfile = open(filename, 'wb')
+    pk.dump(lp_recombination_diffusion_crip_columns, outfile)
+    outfile.close()
+    
+    filename = 'community_dict_labeled_lp'
+    outfile = open(filename, 'wb')
+    pk.dump(community_dict_labeled_lp, outfile)
+    outfile.close()
+    
+    '''
 
+    with open('lp_singleDiffusion_v2', 'rb') as handle:
+        lp_singleDiffusion_v2 = pk.load(handle)
+
+    with open('lp_recombination_diffusion_crip_count_v2', 'rb') as handle:
+        lp_recombination_diffusion_crip_count_v2 = pk.load(handle)
+
+    with open('lp_recombination_diffusion_crip_columns', 'rb') as handle:
+        lp_recombination_diffusion_crip_columns = pk.load(handle)
+
+    with open('community_dict_labeled_lp', 'rb') as handle:
+        community_dict_labeled_lp = pk.load(handle)
 # NEW FILE ################
 
     import numpy as np
@@ -256,10 +289,6 @@ if __name__ == '__main__':
             for patent in community[0]:
                 paten_pos = np.where(patent_lda_ipc[:, 0] == patent)
 
-                print(patent_lda_ipc[paten_pos])
-                print(patent_lda_ipc[paten_pos[0]])
-                print(patent_lda_ipc[paten_pos[0][0]])
-                print(patent_lda_ipc[paten_pos[0][0]][9:30])
                 topic_list.append(patent_lda_ipc[paten_pos[0][0]][9:23])
 
             topic_list = [item for sublist in topic_list for item in sublist]
@@ -309,6 +338,30 @@ if __name__ == '__main__':
     #   1.1 transform column/recombination list to topics
     #   1.2 add columns with same topics together
     #   1.3 sort columns new
+
+    topic_diffusion_array = np.zeros((len(community_topTopic_dic), 330))
+
+    for i in range(len(topic_diffusion_array)):
+        for j in range(len(topic_diffusion_array.T)):
+            window = community_topTopic_dic['window_{}'.format(i*30)]
+            pos_list = []
+            for community in window:
+                if community[1] == j:
+                    pos_list.append(community[0])
+
+            count = 0
+            for pos in pos_list:
+                count = count + lp_singleDiffusion_v2[i, pos]
+
+            topic_diffusion_array[i,j] = count
+
+    print(1+1)
+
+    #lp_singleDiffusion_v2
+    # 0 - 880 (column length) all number are ids of communities
+
+    #lp_recombination_diffusion_crip_count_v2 lp_recombination_diffusion_crip_columns
+
 
     #2. compute average change of confidence in a community id
     #3. compute average confidence in window

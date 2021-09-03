@@ -1354,7 +1354,7 @@ class CommunityMeasures:
         recombinationDiffusion_threshold = np.where(recombinationDiffusion_fraction < 0.005, 0, 1)
         #print(1 + 1)
 
-        return recombinationDiffusion_count, recombinationDiffusion_fraction, recombinationDiffusion_threshold
+        return recombinationDiffusion_count, recombinationDiffusion_fraction, recombinationDiffusion_threshold, recombinations_all
 
 
     @staticmethod
