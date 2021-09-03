@@ -349,13 +349,40 @@ if __name__ == '__main__':
                 if community[1] == j:
                     pos_list.append(community[0])
 
+            if len(pos_list) >= 2:
+                print(1+1)
+
             count = 0
             for pos in pos_list:
                 count = count + lp_singleDiffusion_v2[i, pos]
 
+
             topic_diffusion_array[i,j] = count
 
+    print(np.max(topic_diffusion_array))
+    print(sum(sum(lp_singleDiffusion_v2)))
+    print(sum(sum(topic_diffusion_array)))
     print(1+1)
+    print(1+1)
+
+    helper1 = []
+    helper2 = []
+    for window_id, window in community_topTopic_dic.items():
+        #helper = []
+        for community in window:
+            helper1.append(community[0])
+            helper2.append(community[1])
+
+    print(len(helper1))
+    print(len(np.unique(helper1)))
+    print(len(helper2))
+    print(len(np.unique(helper2)))
+    print(len(helper2))
+
+
+
+
+
 
     #lp_singleDiffusion_v2
     # 0 - 880 (column length) all number are ids of communities

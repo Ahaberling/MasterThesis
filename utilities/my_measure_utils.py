@@ -1127,7 +1127,7 @@ class CommunityMeasures:
                 all_ids.append(window[community])
         all_ids = [item for sublist in all_ids for item in sublist]
 
-        column_length = max(all_ids)
+        column_length = max(all_ids)+1
 
         singleDiffusion_array = np.zeros((row_length, column_length), dtype=int)
 
