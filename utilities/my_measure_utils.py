@@ -1211,7 +1211,7 @@ class CommunityMeasures:
         column_length = len(recombinations_all)
 
         # recombinationDiffusion_count = np.zeros((row_length, column_length), dtype=int)
-        recombinationDiffusion_count = np.full((row_length, column_length), 9999999, dtype=int)
+        recombinationDiffusion_count = np.zeros((row_length, column_length), dtype=int)
         recombinationDiffusion_fraction = np.zeros((row_length, column_length), dtype=float)
         recombinationDiffusion_threshold = np.zeros((row_length, column_length), dtype=float)
 
@@ -1389,7 +1389,7 @@ class CommunityMeasures:
         column_length = len(recombinations_all)
 
         # recombinationDiffusion_count = np.zeros((row_length, column_length), dtype=int)
-        recombinationDiffusion_count = np.full((row_length, column_length), 9999999, dtype=int)
+        recombinationDiffusion_count = np.zeros((row_length, column_length), dtype=int)
         recombinationDiffusion_fraction = np.zeros((row_length, column_length), dtype=float)
         # recombinationDiffusion_threshold = np.zeros((row_length, column_length), dtype=float)
 
