@@ -234,6 +234,9 @@ if __name__ == '__main__':
 
     with open('community_dict_labeled_lp', 'rb') as handle:
         community_dict_labeled_lp = pk.load(handle)
+
+
+
 # NEW FILE ################
 
     import numpy as np
@@ -339,55 +342,38 @@ if __name__ == '__main__':
     #   1.2 add columns with same topics together
     #   1.3 sort columns new
 
-    topic_diffusion_array = np.zeros((len(community_topTopic_dic), 330))
-
-    for i in range(len(topic_diffusion_array)):
-        for j in range(len(topic_diffusion_array.T)) :
-            window = community_topTopic_dic['window_{}'.format(i*30)]
-            pos_list = []
-            for community in window:
-                if community[1] == j:
-                    pos_list.append(community[0])
-
-            if len(pos_list) >= 2:
-                print(1+1)
-
-            count = 0
-            for pos in pos_list:
-                count = count + lp_singleDiffusion_v2[i, pos]
-
-
-            topic_diffusion_array[i,j] = count
-
-    print(np.max(topic_diffusion_array))
-    print(sum(sum(lp_singleDiffusion_v2)))
-    print(sum(sum(topic_diffusion_array)))
-    print(1+1)
-    print(1+1)
-
-    helper1 = []
-    helper2 = []
-    for window_id, window in community_topTopic_dic.items():
-        #helper = []
-        for community in window:
-            helper1.append(community[0])
-            helper2.append(community[1])
-
-    print(len(helper1))
-    print(len(np.unique(helper1)))
-    print(len(helper2))
-    print(len(np.unique(helper2)))
-    print(len(helper2))
-
-
-
-
 
 
     #lp_singleDiffusion_v2
     # 0 - 880 (column length) all number are ids of communities
 
+    topic_diffusion_array = np.zeros((len(community_topTopic_dic), 330))
+
+    for i in range(len(topic_diffusion_array)):
+        window = community_topTopic_dic['window_{}'.format(i * 30)]
+
+        for j in range(len(topic_diffusion_array.T)) :
+
+            if any(j == community[1] for community in window) == True:
+                print(1+616)
+                topic_diffusion_array[i, j] = 1
+
+
+    print(np.max(topic_diffusion_array))
+    print(sum(sum(lp_singleDiffusion_v2)))
+    print(sum(sum(topic_diffusion_array)))
+
+    # they cant be the same, because lp_singleDiffusion_v2 measure the lifetime of communities and not topic diffusion.
+    # in lp_singleDiffusion_v2 subset of communities are listed as well, if they were swallowed by bigger communities.
+    # this is irrelevant for topics.
+
+
+
+    print(1)
+
     #lp_recombination_diffusion_crip_count_v2 lp_recombination_diffusion_crip_columns
+    # check if i can use the recombination dic and do my own thing like in diffusion array
+
 
 
     #2. compute average change of confidence in a community id
