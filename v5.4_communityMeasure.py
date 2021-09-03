@@ -342,7 +342,7 @@ if __name__ == '__main__':
     topic_diffusion_array = np.zeros((len(community_topTopic_dic), 330))
 
     for i in range(len(topic_diffusion_array)):
-        for j in range(len(topic_diffusion_array.T)):
+        for j in range(len(topic_diffusion_array.T)) :
             window = community_topTopic_dic['window_{}'.format(i*30)]
             pos_list = []
             for community in window:
