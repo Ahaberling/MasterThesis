@@ -398,7 +398,7 @@ if __name__ == '__main__':
                     if len(new_recombination) >= 2:
                         break
             new_recombination.sort()
-            new_window.append(new_recombination)
+            new_window.append(tuple(new_recombination))
         recombination_dict_mod_lp['window_{}'.format(i*30)] = new_window
 
     for i in range(len(recombination_dict_mod_lp)):
@@ -431,6 +431,7 @@ if __name__ == '__main__':
                 if new_entry2 not in helper3:
                     helper.append(new_entry2)
                     helper3.append(new_entry2)
+        '''            
         if helper != []:
             print(helper)
             print(community_topTopic_dic['window_{0}'.format((i - 1) * 30)])
@@ -439,26 +440,58 @@ if __name__ == '__main__':
                 print(recombination_dict_lp['window_{0}'.format(i * 30)])
                 if i != 0:
                     print(community_topTopic_dic['window_{0}'.format((i - 1) * 30)])
-
+        '''
     # NOTHING GOT LOST IN MY RECOMBINATION DICT TRANSLATION! YES!
     # now build the topic recombination array array
     # then make them comparable
     # then think about sliding window approach
 
 
-    topic_recombination_array = np.zeros((np.shape(lp_recombination_diffusion_crip_count_v2)[0], np.shape(lp_recombination_diffusion_crip_count_v2)[1]))
-    '''
-    for i in range(len(topic_recombination_array)):
 
-        recombination_communityID = recombination_dict_lp['window_{}'.format(i*30)]
-        recombination_TopicID = recombination_dict_mod_lp['window_{}'.format(i*30)]
+    all_recombinations = []
+    for window_id, window in recombination_dict_mod_lp.items():
+        for recombination in window:
+            all_recombinations.append(recombination)
 
-        for j in range(len(topic_recombination_array.T)):
-            print(1+1)
-    '''
+    all_recombinations = np.unique(all_recombinations, axis = 0)
+    print(len(all_recombinations))                              # 3061
+    all_recombinations.sort()
 
-    #print(np.shape(lp_recombination_diffusion_crip_count_v2))
+    all_recombinations_tuple = []
+    for recombination in all_recombinations:
+        all_recombinations_tuple.append(tuple(recombination))
+
+    topic_recombination_array = np.zeros((len(recombination_dict_mod_lp), len(all_recombinations_tuple)), dtype=int)
+    topic_recombination_array_frac = np.zeros((len(recombination_dict_mod_lp), len(all_recombinations_tuple)), dtype=float)
+    #topic_recombination_array = np.full((len(recombination_dict_mod_lp), len(all_recombinations_tuple)), 999999, dtype=int)
+
+
+
+    #print(np.shape(lp_recombination_diffusion_crip_count_v2))   # 3710 --> 550 rekombinations are merged in other recombinations
     #print(np.shape(topic_recombination_array))
+
+
+    for i in range(len(topic_recombination_array)):
+        for j in range(len(topic_recombination_array.T)):
+
+            #print(j)
+            #print(all_recombinations_tuple[j])
+            #print(recombination_dict_mod_lp['window_{}'.format(i*30)])
+
+            count = recombination_dict_mod_lp['window_{}'.format(i*30)].count(all_recombinations_tuple[j])
+            #if count >= 2:
+                #print(count)
+            topic_recombination_array[i,j] = count
+
+        rowsum = topic_recombination_array[i,:].sum()
+
+        if rowsum != 0:
+            topic_recombination_array_frac[i,:] = topic_recombination_array[i,:] / rowsum
+
+    topic_recombination_array_threshold = np.where(topic_recombination_array_frac < 0.005, 0, 1)
+
+    print(1+1)
+
 
     #2. compute average change of confidence in a community id
     #3. compute average confidence in window
