@@ -1420,3 +1420,177 @@ class CommunityMeasures:
 
         return recombinationDiffusion_count, recombinationDiffusion_fraction, recombinationDiffusion_threshold
 
+    @staticmethod
+    def creat_dict_topicDistriburionOfCommunities(community_dict_labeled, patent_lda_ipc):
+
+        community_ids_all = []
+        for window_id, window in community_dict_labeled.items():
+            for community in window:
+                community_ids_all.append(community[1][0])
+
+        column_unique = np.unique(community_ids_all)
+        column_unique.sort()
+
+        # get biggest community each window:
+
+        community_size_dic = {}
+        for window_id, window in community_dict_labeled.items():
+            size_list = []
+            for community in window:
+                size_list.append(len(community))
+            community_size_dic[window_id] = max(size_list)
+
+        community_topicDist_dic = {}
+
+        for window_id, window in community_dict_labeled.items():
+            window_list = []
+
+            for community in window:
+                community_topics = np.zeros((len(community[0]), 330))
+                topic_list = []
+
+                for patent in community[0]:
+                    paten_pos = np.where(patent_lda_ipc[:, 0] == patent)
+                    topic_list.append(patent_lda_ipc[paten_pos[0][0]][9:23])
+
+                topic_list = [item for sublist in topic_list for item in sublist]
+                topic_list = [x for x in topic_list if x == x]
+
+                for i in range(0, len(topic_list), 2):
+                    for row in range(len(community_topics)):  # for all patents in the community
+                        if community_topics[row, int(topic_list[i])] == 0:
+                            community_topics[row, int(topic_list[i])] = topic_list[i + 1]
+                            break
+
+                community_topics = np.sum(community_topics, axis=0)
+                window_list.append([community[1][0], list(community_topics)])
+            community_topicDist_dic[window_id] = window_list
+        return community_topicDist_dic
+
+    @staticmethod
+    def create_dict_communityTopicAssociation(community_topicDist_dic):
+
+        # 1. create dic with: each window, list of tuple with (communityID, highest topic)
+
+        community_topTopic_dic = {}
+        confidence_list = []
+        for window_id, window in community_topicDist_dic.items():
+            community_list = []
+            for community in window:
+                topTopic = max(community[1])
+                topicSum = sum(community[1])
+                confidence = topTopic / topicSum
+
+                topTopic_index = community[1].index(max(community[1]))
+                community_list.append([community[0], topTopic_index, round(confidence, 2)])
+
+                confidence_list.append(confidence)
+
+            community_topTopic_dic[window_id] = community_list
+
+        avg_confidence = sum(confidence_list) / len(confidence_list)
+
+        return community_topTopic_dic, avg_confidence
+
+    @staticmethod
+    def create_diffusionArray_Topics(communityTopicAssociation_dict):
+        topic_diffusion_array = np.zeros((len(communityTopicAssociation_dict), 330))
+
+        for i in range(len(topic_diffusion_array)):
+            window = communityTopicAssociation_dict['window_{}'.format(i * 30)]
+
+            for j in range(len(topic_diffusion_array.T)):
+
+                if any(j == community[1] for community in window) == True:
+                    topic_diffusion_array[i, j] = 1
+        return topic_diffusion_array
+
+    @staticmethod
+    def created_recombination_dict_Topics(communityTopicAssociation_dict, recombination_dict):
+        recombination_dict_mod_lp = {}
+        for i in range(len(recombination_dict)):
+            new_window = []
+            for recombination in recombination_dict['window_{}'.format(i*30)]:
+                new_recombination = []
+                if i != 0:
+                    for community in communityTopicAssociation_dict['window_{}'.format((i-1)*30)]:
+                        if recombination[1][0][1][0] == community[0]:
+                            new_recombination.append(community[1])
+                        if recombination[1][1][1][0] == community[0]:
+                            new_recombination.append(community[1])
+                        if len(new_recombination) >= 2:
+                            break
+                new_recombination.sort()
+                new_window.append(tuple(new_recombination))
+            recombination_dict_mod_lp['window_{}'.format(i*30)] = new_window
+
+        return recombination_dict_mod_lp
+
+    @staticmethod
+    def doubleCheck_recombination_dict_Topics(recombination_dict_mod, recombination_dict):
+        for i in range(len(recombination_dict_mod)):
+            if len(recombination_dict_mod['window_{}'.format(i * 30)]) != len(
+                    recombination_dict['window_{}'.format(i * 30)]):
+                raise Exception("At least one window is not consistent")
+
+        for i in range(len(recombination_dict_mod)):
+            helper = []
+            for recombination in recombination_dict_mod['window_{}'.format(i * 30)]:
+                count = recombination_dict_mod['window_{0}'.format(i * 30)].count(recombination)
+                if count >= 2:
+                    new_entry = (i * 30, count, recombination)
+                    if new_entry not in helper:
+                        helper.append(new_entry)
+            helper2 = []
+            helper3 = []
+            for recombination2 in recombination_dict['window_{}'.format(i * 30)]:
+                helper2.append([recombination2[1][0][1][0], recombination2[1][1][1][0]])
+            for recombination2 in recombination_dict['window_{}'.format(i * 30)]:
+                recombination2 = [recombination2[1][0][1][0], recombination2[1][1][1][0]]
+                count2 = helper2.count(recombination2)
+                if count2 >= 2:
+                    new_entry2 = (i * 30, count2, recombination2)
+                    if new_entry2 not in helper3:
+                        helper.append(new_entry2)
+                        helper3.append(new_entry2)
+
+            if helper != []:
+                if len(helper) % 2 == 1:
+                    raise Exception("At least one window is not consistent")
+                # print helper and communityTopicAssociation_dict
+                # to stochastically check if recombinations in both dictionaries are consistent
+        return
+
+    @staticmethod
+    def create_recombinationArray_Topics(recombination_dict_Topics):
+        all_recombinations = []
+        for window_id, window in recombination_dict_Topics.items():
+            for recombination in window:
+                all_recombinations.append(recombination)
+
+        all_recombinations = np.unique(all_recombinations, axis=0)
+        print(len(all_recombinations))  # 3061
+        all_recombinations.sort()
+
+        all_recombinations_tuple = []
+        for recombination in all_recombinations:
+            all_recombinations_tuple.append(tuple(recombination))
+
+        topic_recombination_array = np.zeros((len(recombination_dict_Topics), len(all_recombinations_tuple)), dtype=int)
+        topic_recombination_array_frac = np.zeros((len(recombination_dict_Topics), len(all_recombinations_tuple)),
+                                                  dtype=float)
+        # print(np.shape(lp_recombination_diffusion_crip_count_v2))   # 3710 --> 550 rekombinations are merged in other recombinations
+
+        for i in range(len(topic_recombination_array)):
+            for j in range(len(topic_recombination_array.T)):
+                count = recombination_dict_Topics['window_{}'.format(i * 30)].count(all_recombinations_tuple[j])
+                topic_recombination_array[i, j] = count
+
+            rowsum = topic_recombination_array[i, :].sum()
+
+            if rowsum != 0:
+                topic_recombination_array_frac[i, :] = topic_recombination_array[i, :] / rowsum
+
+        topic_recombination_array_threshold = np.where(topic_recombination_array_frac < 0.005, 0, 1)
+
+        return topic_recombination_array_threshold

@@ -257,241 +257,26 @@ if __name__ == '__main__':
     patent_lda_ipc = pd.read_csv('patent_lda_ipc.csv', quotechar='"', skipinitialspace=True)
     patent_lda_ipc = patent_lda_ipc.to_numpy()
 
-    community_ids_all = []
-    for window_id, window in community_dict_labeled_lp.items():
-        for community in window:
-            community_ids_all.append(community[1][0])
-
-    column_length = max(community_ids_all)
-
-    column_unique = np.unique(community_ids_all)
-    column_unique.sort()
-    column_unique_length = len(column_unique)
-
-    #print(community_ids_all)
-    #print(column_length)
-    # print(column_unique)
-    #print(column_unique_length)
-
-    # print(patent_lda_ipc[0])
-
-    # get biggest community each window:
-
-    community_size_dic = {}
-    for window_id, window in community_dict_labeled_lp.items():
-        size_list = []
-        for community in window:
-            size_list.append(len(community))
-        community_size_dic[window_id] = max(size_list)
-
-    # for i in range(column_unique_length):
-    #    for window_id, window in lp_labeled.items():
-
-    community_topicDist_dic = {}
-
-    for window_id, window in community_dict_labeled_lp.items():
-        window_list = []
-
-        # for i in range(column_unique_length):
-
-        for community in window:
-            community_topics = np.zeros((len(community[0]), 330))
-            topic_list = []
-
-            # if community[1][0] == i:
-            for patent in community[0]:
-                paten_pos = np.where(patent_lda_ipc[:, 0] == patent)
-
-                topic_list.append(patent_lda_ipc[paten_pos[0][0]][9:23])
-
-            topic_list = [item for sublist in topic_list for item in sublist]
-            topic_list = [x for x in topic_list if x == x]
-            # print(topic_list)
-
-            for i in range(0, len(topic_list), 2):
-
-                for row in range(len(community_topics)):        # for all patents in the community
-
-                    # print(community_topics[row, int(topic_list[i])])
-                    if community_topics[row, int(topic_list[i])] == 0:
-                        # print(community_topics[row, int(topic_list[i])])
-                        community_topics[row, int(topic_list[i])] = topic_list[i + 1]
-                        break
-
-            community_topics = np.sum(community_topics, axis=0)
-
-            window_list.append([community[1][0], list(community_topics)])
-
-        community_topicDist_dic[window_id] = window_list
-
-    # 1. create dic with: each window, list of tuple with (communityID, highest topic)
-
-    community_topTopic_dic = {}
-    confidence_list = []
-    for window_id, window in community_topicDist_dic.items():
-        community_list = []
-        for community in window:
-            topTopic = max(community[1])
-            topicSum = sum(community[1])
-            confidence = topTopic / topicSum
-
-            topTopic_index = community[1].index(max(community[1]))
-            community_list.append([community[0], topTopic_index, round(confidence, 2)])
-
-            confidence_list.append(confidence)
-
-        community_topTopic_dic[window_id] = community_list
-    #print(community_topTopic_dic)
-
-    #print(sum(confidence_list) / len(confidence_list))
 
 
-    # 1. recompute diffusion and recombination pattern arrays. Note that dimension will shrink, because one topic is refered to many times with
-    # different communities
-    #   1.1 transform column/recombination list to topics
-    #   1.2 add columns with same topics together
-    #   1.3 sort columns new
+    topicDistriburionOfCommunities_dict_lp = CommunityMeasures.creat_dict_topicDistriburionOfCommunities(community_dict_labeled_lp, patent_lda_ipc)
 
+    communityTopicAssociation_dict_lp, avg_confidence_lp = CommunityMeasures.create_dict_communityTopicAssociation(topicDistriburionOfCommunities_dict_lp)
 
-
-    #lp_singleDiffusion_v2
-    # 0 - 880 (column length) all number are ids of communities
-
-    topic_diffusion_array = np.zeros((len(community_topTopic_dic), 330))
-
-    for i in range(len(topic_diffusion_array)):
-        window = community_topTopic_dic['window_{}'.format(i * 30)]
-
-        for j in range(len(topic_diffusion_array.T)) :
-
-            if any(j == community[1] for community in window) == True:
-                topic_diffusion_array[i, j] = 1
-
-
-    print(np.max(topic_diffusion_array))
-    print(sum(sum(lp_singleDiffusion_v2)))
-    print(sum(sum(topic_diffusion_array)))
+    diffusionArray_Topics_lp = CommunityMeasures.create_diffusionArray_Topics(communityTopicAssociation_dict_lp)
 
     # they cant be the same, because lp_singleDiffusion_v2 measure the lifetime of communities and not topic diffusion.
     # in lp_singleDiffusion_v2 subset of communities are listed as well, if they were swallowed by bigger communities.
     # this is irrelevant for topics.
 
+    recombination_dict_Topics_lp = CommunityMeasures.created_recombination_dict_Topics(communityTopicAssociation_dict_lp, recombination_dict_lp)
 
-    #lp_recombination_diffusion_crip_count_v2 lp_recombination_diffusion_crip_columns
-    # check if i can use the recombination dic and do my own thing like in diffusion array
+    CommunityMeasures.doubleCheck_recombination_dict_Topics(recombination_dict_Topics_lp, recombination_dict_lp)
 
-    print(community_topTopic_dic['window_510'])
-    print(community_topTopic_dic['window_540'])
-    print(recombination_dict_lp['window_540'])
+    recombinationArray_Topics_lp = CommunityMeasures.create_recombinationArray_Topics(recombination_dict_Topics_lp)
 
-    recombination_dict_mod_lp = {}
-    for i in range(len(recombination_dict_lp)):
-        new_window = []
-        for recombination in recombination_dict_lp['window_{}'.format(i*30)]:
-            new_recombination = []
-            if i != 0:
-                for community in community_topTopic_dic['window_{}'.format((i-1)*30)]:
-                    if recombination[1][0][1][0] == community[0]:
-                        new_recombination.append(community[1])
-                    if recombination[1][1][1][0] == community[0]:
-                        new_recombination.append(community[1])
-                    if len(new_recombination) >= 2:
-                        break
-            new_recombination.sort()
-            new_window.append(tuple(new_recombination))
-        recombination_dict_mod_lp['window_{}'.format(i*30)] = new_window
-
-    for i in range(len(recombination_dict_mod_lp)):
-        if len(recombination_dict_mod_lp['window_{}'.format(i*30)]) != len(recombination_dict_lp['window_{}'.format(i*30)]):
-            print('problem')
-
-    #for column in lp_recombination_diffusion_crip_columns:
-        #print(1+1)
-
-    #recombination >1 in recombinations_dic
-    # 450-2, 750-2, 780-2, 810-2, 810-4, 810-2, 900-2, 900-2, 930-2, 960-2, 960-2, 1020-2, ...
-
-    for i in range(len(recombination_dict_mod_lp)):
-        helper = []
-        for recombination in recombination_dict_mod_lp['window_{}'.format(i*30)]:
-            count = recombination_dict_mod_lp['window_{0}'.format(i * 30)].count(recombination)
-            if count >= 2:
-                new_entry = (i*30, count, recombination)
-                if new_entry not in helper:
-                    helper.append(new_entry)
-        helper2= []
-        helper3= []
-        for recombination2 in recombination_dict_lp['window_{}'.format(i*30)]:
-            helper2.append([recombination2[1][0][1][0], recombination2[1][1][1][0]])
-        for recombination2 in recombination_dict_lp['window_{}'.format(i * 30)]:
-            recombination2 = [recombination2[1][0][1][0], recombination2[1][1][1][0]]
-            count2 = helper2.count(recombination2)
-            if count2 >= 2:
-                new_entry2 = (i * 30, count2, recombination2)
-                if new_entry2 not in helper3:
-                    helper.append(new_entry2)
-                    helper3.append(new_entry2)
-        '''            
-        if helper != []:
-            print(helper)
-            print(community_topTopic_dic['window_{0}'.format((i - 1) * 30)])
-            if len(helper) % 2 == 1:
-                print(recombination_dict_mod_lp['window_{0}'.format(i * 30)])
-                print(recombination_dict_lp['window_{0}'.format(i * 30)])
-                if i != 0:
-                    print(community_topTopic_dic['window_{0}'.format((i - 1) * 30)])
-        '''
-    # NOTHING GOT LOST IN MY RECOMBINATION DICT TRANSLATION! YES!
-    # now build the topic recombination array array
-    # then make them comparable
-    # then think about sliding window approach
-
-
-
-    all_recombinations = []
-    for window_id, window in recombination_dict_mod_lp.items():
-        for recombination in window:
-            all_recombinations.append(recombination)
-
-    all_recombinations = np.unique(all_recombinations, axis = 0)
-    print(len(all_recombinations))                              # 3061
-    all_recombinations.sort()
-
-    all_recombinations_tuple = []
-    for recombination in all_recombinations:
-        all_recombinations_tuple.append(tuple(recombination))
-
-    topic_recombination_array = np.zeros((len(recombination_dict_mod_lp), len(all_recombinations_tuple)), dtype=int)
-    topic_recombination_array_frac = np.zeros((len(recombination_dict_mod_lp), len(all_recombinations_tuple)), dtype=float)
-    #topic_recombination_array = np.full((len(recombination_dict_mod_lp), len(all_recombinations_tuple)), 999999, dtype=int)
-
-
-
-    #print(np.shape(lp_recombination_diffusion_crip_count_v2))   # 3710 --> 550 rekombinations are merged in other recombinations
-    #print(np.shape(topic_recombination_array))
-
-
-    for i in range(len(topic_recombination_array)):
-        for j in range(len(topic_recombination_array.T)):
-
-            #print(j)
-            #print(all_recombinations_tuple[j])
-            #print(recombination_dict_mod_lp['window_{}'.format(i*30)])
-
-            count = recombination_dict_mod_lp['window_{}'.format(i*30)].count(all_recombinations_tuple[j])
-            #if count >= 2:
-                #print(count)
-            topic_recombination_array[i,j] = count
-
-        rowsum = topic_recombination_array[i,:].sum()
-
-        if rowsum != 0:
-            topic_recombination_array_frac[i,:] = topic_recombination_array[i,:] / rowsum
-
-    topic_recombination_array_threshold = np.where(topic_recombination_array_frac < 0.005, 0, 1)
 
     print(1+1)
-
 
     #2. compute average change of confidence in a community id
     #3. compute average confidence in window
