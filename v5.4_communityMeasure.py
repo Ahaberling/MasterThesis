@@ -220,6 +220,11 @@ if __name__ == '__main__':
     outfile = open(filename, 'wb')
     pk.dump(community_dict_labeled_lp, outfile)
     outfile.close()
+        
+    filename = 'community_dict_labeled_lp'
+    outfile = open(filename, 'wb')
+    pk.dump(community_dict_labeled_lp, outfile)
+    outfile.close()
     
     '''
 
@@ -234,6 +239,11 @@ if __name__ == '__main__':
 
     with open('community_dict_labeled_lp', 'rb') as handle:
         community_dict_labeled_lp = pk.load(handle)
+
+    with open('recombination_dict_lp', 'rb') as handle:
+        recombination_dict_lp = pk.load(handle)
+
+
 
 
 
@@ -258,10 +268,10 @@ if __name__ == '__main__':
     column_unique.sort()
     column_unique_length = len(column_unique)
 
-    print(community_ids_all)
-    print(column_length)
+    #print(community_ids_all)
+    #print(column_length)
     # print(column_unique)
-    print(column_unique_length)
+    #print(column_unique_length)
 
     # print(patent_lda_ipc[0])
 
@@ -331,9 +341,9 @@ if __name__ == '__main__':
             confidence_list.append(confidence)
 
         community_topTopic_dic[window_id] = community_list
-    print(community_topTopic_dic)
+    #print(community_topTopic_dic)
 
-    print(sum(confidence_list) / len(confidence_list))
+    #print(sum(confidence_list) / len(confidence_list))
 
 
     # 1. recompute diffusion and recombination pattern arrays. Note that dimension will shrink, because one topic is refered to many times with
@@ -355,7 +365,6 @@ if __name__ == '__main__':
         for j in range(len(topic_diffusion_array.T)) :
 
             if any(j == community[1] for community in window) == True:
-                print(1+616)
                 topic_diffusion_array[i, j] = 1
 
 
@@ -368,13 +377,88 @@ if __name__ == '__main__':
     # this is irrelevant for topics.
 
 
-
-    print(1)
-
     #lp_recombination_diffusion_crip_count_v2 lp_recombination_diffusion_crip_columns
     # check if i can use the recombination dic and do my own thing like in diffusion array
 
+    print(community_topTopic_dic['window_510'])
+    print(community_topTopic_dic['window_540'])
+    print(recombination_dict_lp['window_540'])
 
+    recombination_dict_mod_lp = {}
+    for i in range(len(recombination_dict_lp)):
+        new_window = []
+        for recombination in recombination_dict_lp['window_{}'.format(i*30)]:
+            new_recombination = []
+            if i != 0:
+                for community in community_topTopic_dic['window_{}'.format((i-1)*30)]:
+                    if recombination[1][0][1][0] == community[0]:
+                        new_recombination.append(community[1])
+                    if recombination[1][1][1][0] == community[0]:
+                        new_recombination.append(community[1])
+                    if len(new_recombination) >= 2:
+                        break
+            new_recombination.sort()
+            new_window.append(new_recombination)
+        recombination_dict_mod_lp['window_{}'.format(i*30)] = new_window
+
+    for i in range(len(recombination_dict_mod_lp)):
+        if len(recombination_dict_mod_lp['window_{}'.format(i*30)]) != len(recombination_dict_lp['window_{}'.format(i*30)]):
+            print('problem')
+
+    #for column in lp_recombination_diffusion_crip_columns:
+        #print(1+1)
+
+    #recombination >1 in recombinations_dic
+    # 450-2, 750-2, 780-2, 810-2, 810-4, 810-2, 900-2, 900-2, 930-2, 960-2, 960-2, 1020-2, ...
+
+    for i in range(len(recombination_dict_mod_lp)):
+        helper = []
+        for recombination in recombination_dict_mod_lp['window_{}'.format(i*30)]:
+            count = recombination_dict_mod_lp['window_{0}'.format(i * 30)].count(recombination)
+            if count >= 2:
+                new_entry = (i*30, count, recombination)
+                if new_entry not in helper:
+                    helper.append(new_entry)
+        helper2= []
+        helper3= []
+        for recombination2 in recombination_dict_lp['window_{}'.format(i*30)]:
+            helper2.append([recombination2[1][0][1][0], recombination2[1][1][1][0]])
+        for recombination2 in recombination_dict_lp['window_{}'.format(i * 30)]:
+            recombination2 = [recombination2[1][0][1][0], recombination2[1][1][1][0]]
+            count2 = helper2.count(recombination2)
+            if count2 >= 2:
+                new_entry2 = (i * 30, count2, recombination2)
+                if new_entry2 not in helper3:
+                    helper.append(new_entry2)
+                    helper3.append(new_entry2)
+        if helper != []:
+            print(helper)
+            print(community_topTopic_dic['window_{0}'.format((i - 1) * 30)])
+            if len(helper) % 2 == 1:
+                print(recombination_dict_mod_lp['window_{0}'.format(i * 30)])
+                print(recombination_dict_lp['window_{0}'.format(i * 30)])
+                if i != 0:
+                    print(community_topTopic_dic['window_{0}'.format((i - 1) * 30)])
+
+    # NOTHING GOT LOST IN MY RECOMBINATION DICT TRANSLATION! YES!
+    # now build the topic recombination array array
+    # then make them comparable
+    # then think about sliding window approach
+
+
+    topic_recombination_array = np.zeros((np.shape(lp_recombination_diffusion_crip_count_v2)[0], np.shape(lp_recombination_diffusion_crip_count_v2)[1]))
+    '''
+    for i in range(len(topic_recombination_array)):
+
+        recombination_communityID = recombination_dict_lp['window_{}'.format(i*30)]
+        recombination_TopicID = recombination_dict_mod_lp['window_{}'.format(i*30)]
+
+        for j in range(len(topic_recombination_array.T)):
+            print(1+1)
+    '''
+
+    #print(np.shape(lp_recombination_diffusion_crip_count_v2))
+    #print(np.shape(topic_recombination_array))
 
     #2. compute average change of confidence in a community id
     #3. compute average confidence in window

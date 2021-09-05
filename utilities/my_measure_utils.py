@@ -1230,6 +1230,8 @@ class CommunityMeasures:
                 # print(recombinations_dic['window_{0}'.format(i*30)])
                 recombination_count = recombinations_dic['window_{0}'.format(i * 30)].count(recombinations_all[j])
                 # print(recombination_count)
+                #if recombination_count >=2:
+                    #print(i*30)
 
                 if recombination_count != 0:
                     # this count has to be placed in all columns that are the same recombination under different community ids
