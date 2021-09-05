@@ -17,4 +17,14 @@ argument: finding knowledge recombination is complex, so one plain measure is no
             in what way the recombinations differ
 
 rename referenceMeasure to intuitiveMeasure
+
+idea:
+comparing diffusion should be finde
+
+idea:
+for recombination comparability focus first on recombination counts.
+in order to compare recombination, the cD measure might be adpated by adding 1 to all 10 or 11 cells following a 1, vertically
+look for patterns 111 111 111 0
+if there are patterns like this in array[10:,:] then overthink this
+
 '''
