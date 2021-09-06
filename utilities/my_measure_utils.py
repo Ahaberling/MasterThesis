@@ -82,23 +82,41 @@ class ReferenceMeasures:
 
         pattern_array = np.zeros((len(row_list), len(column_list)))
 
-        pbar = tqdm.tqdm(total=len(row_list))
-        c_row = 0
+        if np.issubdtype(type(column_list[0]), np.integer) or np.issubdtype(type(column_list[0]), np.str_):
+            pbar = tqdm.tqdm(total=len(row_list))
+            c_row = 0
+            for row in row_list:
+                c_column = 0
 
-        for row in row_list:
-            c_column = 0
+                for column in column_list:
+                    # print(tuple(column))
+                    # print(knowledgeComponent_dict[row])
+                    if column in knowledgeComponent_dict[row]:
+                        pattern_array[c_row, c_column] = list(knowledgeComponent_dict[row]).count(column)
 
-            for column in column_list:
-                #print(tuple(column))
-                #print(knowledgeComponent_dict[row])
-                if tuple(column) in knowledgeComponent_dict[row]:
-                    pattern_array[c_row, c_column] = list(knowledgeComponent_dict[row]).count(tuple(column))
+                    c_column = c_column + 1
+                c_row = c_row + 1
+                pbar.update(1)
 
-                c_column = c_column + 1
-            c_row = c_row + 1
-            pbar.update(1)
+            pbar.close()
 
-        pbar.close()
+        else:
+            pbar = tqdm.tqdm(total=len(row_list))
+            c_row = 0
+            for row in row_list:
+                c_column = 0
+
+                for column in column_list:
+                    # print(tuple(column))
+                    # print(knowledgeComponent_dict[row])
+                    if tuple(column) in knowledgeComponent_dict[row]:
+                        pattern_array[c_row, c_column] = list(knowledgeComponent_dict[row]).count(tuple(column))
+
+                    c_column = c_column + 1
+                c_row = c_row + 1
+                pbar.update(1)
+
+            pbar.close()
 
         return pattern_array, column_list
 
@@ -216,7 +234,7 @@ class ReferenceMeasures:
 class CommunityMeasures:
 
     @staticmethod
-    def detect_communities(patentProject_graphs, cD_algorithm, weight_bool, k_clique_size):
+    def detect_communities(patentProject_graphs, cD_algorithm, weight_bool=None, k_clique_size=None):
 
         community_dict = {}
 
@@ -1418,7 +1436,7 @@ class CommunityMeasures:
 
         #print(1 + 1)
 
-        return recombinationDiffusion_count, recombinationDiffusion_fraction, recombinationDiffusion_threshold
+        return recombinationDiffusion_count, recombinationDiffusion_fraction, recombinationDiffusion_threshold, recombinations_all
 
     @staticmethod
     def creat_dict_topicDistriburionOfCommunities(community_dict_labeled, patent_lda_ipc):
@@ -1438,7 +1456,10 @@ class CommunityMeasures:
             size_list = []
             for community in window:
                 size_list.append(len(community))
-            community_size_dic[window_id] = max(size_list)
+            if size_list != []:
+                community_size_dic[window_id] = max(size_list)
+            else:
+                community_size_dic[window_id] = 0
 
         community_topicDist_dic = {}
 
@@ -1503,10 +1524,10 @@ class CommunityMeasures:
 
                 if any(j == community[1] for community in window) == True:
                     topic_diffusion_array[i, j] = 1
-        return topic_diffusion_array
+        return topic_diffusion_array, range(330)
 
     @staticmethod
-    def created_recombination_dict_Topics(communityTopicAssociation_dict, recombination_dict):
+    def created_recombination_dict_Topics_crisp(communityTopicAssociation_dict, recombination_dict):
         recombination_dict_mod_lp = {}
         for i in range(len(recombination_dict)):
             new_window = []
@@ -1527,7 +1548,28 @@ class CommunityMeasures:
         return recombination_dict_mod_lp
 
     @staticmethod
-    def doubleCheck_recombination_dict_Topics(recombination_dict_mod, recombination_dict):
+    def created_recombination_dict_Topics_overlap(communityTopicAssociation_dict, recombination_dict):
+        recombination_dict_mod_lp = {}
+        for i in range(len(recombination_dict)):
+            new_window = []
+            for recombination in recombination_dict['window_{}'.format(i*30)]:
+                new_recombination = []
+                if i != 0:
+                    for community in communityTopicAssociation_dict['window_{}'.format((i-1)*30)]:
+                        if recombination[1][0] == community[0]:
+                            new_recombination.append(community[1])
+                        if recombination[1][1] == community[0]:
+                            new_recombination.append(community[1])
+                        if len(new_recombination) >= 2:
+                            break
+                new_recombination.sort()
+                new_window.append(tuple(new_recombination))
+            recombination_dict_mod_lp['window_{}'.format(i*30)] = new_window
+
+        return recombination_dict_mod_lp
+
+    @staticmethod
+    def doubleCheck_recombination_dict_Topics_crisp(recombination_dict_mod, recombination_dict):
         for i in range(len(recombination_dict_mod)):
             if len(recombination_dict_mod['window_{}'.format(i * 30)]) != len(
                     recombination_dict['window_{}'.format(i * 30)]):
@@ -1547,6 +1589,41 @@ class CommunityMeasures:
                 helper2.append([recombination2[1][0][1][0], recombination2[1][1][1][0]])
             for recombination2 in recombination_dict['window_{}'.format(i * 30)]:
                 recombination2 = [recombination2[1][0][1][0], recombination2[1][1][1][0]]
+                count2 = helper2.count(recombination2)
+                if count2 >= 2:
+                    new_entry2 = (i * 30, count2, recombination2)
+                    if new_entry2 not in helper3:
+                        helper.append(new_entry2)
+                        helper3.append(new_entry2)
+
+            if helper != []:
+                if len(helper) % 2 == 1:
+                    raise Exception("At least one window is not consistent")
+                # print helper and communityTopicAssociation_dict
+                # to stochastically check if recombinations in both dictionaries are consistent
+        return
+
+    @staticmethod
+    def doubleCheck_recombination_dict_Topics_overlap(recombination_dict_mod, recombination_dict):
+        for i in range(len(recombination_dict_mod)):
+            if len(recombination_dict_mod['window_{}'.format(i * 30)]) != len(
+                    recombination_dict['window_{}'.format(i * 30)]):
+                raise Exception("At least one window is not consistent")
+
+        for i in range(len(recombination_dict_mod)):
+            helper = []
+            for recombination in recombination_dict_mod['window_{}'.format(i * 30)]:
+                count = recombination_dict_mod['window_{0}'.format(i * 30)].count(recombination)
+                if count >= 2:
+                    new_entry = (i * 30, count, recombination)
+                    if new_entry not in helper:
+                        helper.append(new_entry)
+            helper2 = []
+            helper3 = []
+            for recombination2 in recombination_dict['window_{}'.format(i * 30)]:
+                helper2.append([recombination2[1][0], recombination2[1][1]])
+            for recombination2 in recombination_dict['window_{}'.format(i * 30)]:
+                recombination2 = [recombination2[1][0], recombination2[1][1]]
                 count2 = helper2.count(recombination2)
                 if count2 >= 2:
                     new_entry2 = (i * 30, count2, recombination2)
@@ -1593,4 +1670,91 @@ class CommunityMeasures:
 
         topic_recombination_array_threshold = np.where(topic_recombination_array_frac < 0.005, 0, 1)
 
-        return topic_recombination_array_threshold
+        return topic_recombination_array_threshold, all_recombinations
+
+
+
+
+class EdgeWeightMeasures:
+
+    @staticmethod
+    def create_diffusion_array(topicProject_graphs, threshold):
+        # get row length
+        row_length = len(topicProject_graphs)
+
+        # get column length
+        all_nodes = []
+        for window_id, graph in topicProject_graphs.items():
+            for n in graph.nodes():
+                all_nodes.append(int(n[6:]))
+
+        all_nodes_unique = np.unique(all_nodes, axis=0)
+        column_length = len(all_nodes_unique)
+        all_nodes_unique.sort()
+
+        diffusion_array = np.zeros((row_length, column_length), dtype=int)
+        diffusion_array_frac = np.zeros((row_length, column_length), dtype=float)
+
+        pbar = tqdm.tqdm(total=len(diffusion_array))
+
+        for i in range(len(diffusion_array)):
+            for j in range(len(diffusion_array.T)):
+
+                all_edgeNodes = []
+                for (u, v) in topicProject_graphs['window_{0}'.format(i * 30)].edges():
+                    all_edgeNodes.append(int(u[6:]))
+                    all_edgeNodes.append(int(v[6:]))
+
+                diffusion_array[i, j] = all_edgeNodes.count(all_nodes_unique[j])
+
+            pbar.update(1)
+            #print(len(topicProject_graphs['window_{0}'.format(i * 30)].edges()))
+            diffusion_array_frac[i] = diffusion_array[i] / len(topicProject_graphs['window_{0}'.format(i * 30)].edges())
+
+        pbar.close()
+        diffusion_array_thresh = np.where(diffusion_array_frac < threshold, 0, 1)
+
+
+
+        return diffusion_array, diffusion_array_frac, diffusion_array_thresh, all_nodes_unique
+
+    @staticmethod
+    def create_recombination_array(topicProject_graphs, threshold):
+        # get row length
+        row_length = len(topicProject_graphs)
+
+        # get column length
+        all_edges = []
+        for window_id, graph in topicProject_graphs.items():
+            for (u, v) in graph.edges():
+                all_edges.append((int(u[6:]), int(v[6:])))
+
+        all_edges_unique = np.unique(all_edges, axis=0)
+        column_length = len(all_edges_unique)
+        all_edges_unique.sort()
+
+        recombinationDiffusion = np.zeros((row_length, column_length), dtype=float)
+
+        pbar = tqdm.tqdm(total=len(recombinationDiffusion))
+
+        for i in range(len(recombinationDiffusion)):
+            for j in range(len(recombinationDiffusion.T)):
+
+                for (u, v, wt) in topicProject_graphs['window_{0}'.format(i * 30)].edges.data('weight'):
+
+                    if int(u[6:]) == all_edges_unique[j][0]:
+                        if int(v[6:]) == all_edges_unique[j][1]:
+                            recombinationDiffusion[i, j] = wt
+
+                    elif int(u[6:]) == all_edges_unique[j][1]:
+                        if int(v[6:]) == all_edges_unique[j][0]:
+                            recombinationDiffusion[i, j] = wt
+            pbar.update(1)
+
+        pbar.close()
+
+        row_sum = recombinationDiffusion.sum(axis=1)
+        recombinationDiffusion_frac = recombinationDiffusion / row_sum[:, np.newaxis]
+        recombinationDiffusion_thresh = np.where(recombinationDiffusion_frac < threshold, 0, 1)
+
+        return recombinationDiffusion, recombinationDiffusion_frac, recombinationDiffusion_thresh, all_edges_unique

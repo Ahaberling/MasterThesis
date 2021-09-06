@@ -34,18 +34,41 @@ if __name__ == '__main__':
 
     from utilities.my_measure_utils import ReferenceMeasures
 
-    knowledgeComponent_dict = ReferenceMeasures.extract_knowledgeComponent_per_window(slidingWindow_dict, kC='topic', unit=2)
+    knowledgeComponent_dict_diff = ReferenceMeasures.extract_knowledgeComponent_per_window(slidingWindow_dict, kC='topic', unit=1)
+    knowledgeComponent_dict_reco = ReferenceMeasures.extract_knowledgeComponent_per_window(slidingWindow_dict, kC='topic', unit=2)
 
 
     # --- Constructing pattern arrays (IPC\'s, topics) x (singular, pair, tripple) ---#
     print('\n#--- Constructing pattern arrays (IPC\'s, topics) x (singular, pair, tripple) ---#\n')
 
-    pattern_array_reference, columns_reference  = ReferenceMeasures.create_pattern_array(knowledgeComponent_dict)
+    pattern_array_reference_diff, columns_reference_diff = ReferenceMeasures.create_pattern_array(knowledgeComponent_dict_diff)
+    pattern_array_reference_reco, columns_reference_reco = ReferenceMeasures.create_pattern_array(knowledgeComponent_dict_reco)
 
+
+    filename = 'pattern_array_reference_diff'
+    outfile = open(filename, 'wb')
+    pk.dump(pattern_array_reference_diff, outfile)
+    outfile.close()
+
+    filename = 'columns_reference_diff'
+    outfile = open(filename, 'wb')
+    pk.dump(columns_reference_diff, outfile)
+    outfile.close()
+
+    filename = 'pattern_array_reference_reco'
+    outfile = open(filename, 'wb')
+    pk.dump(pattern_array_reference_reco, outfile)
+    outfile.close()
+
+    filename = 'columns_reference_reco'
+    outfile = open(filename, 'wb')
+    pk.dump(columns_reference_reco, outfile)
+    outfile.close()
 
     # --- Normalized plain pattern arrays (IPC\'s, topics) x (singular, pair, triple)  ---#
     print('\n#--- Normalized plain pattern arrays (IPC\'s, topics) x (singular, pair, triple)  ---#\n')
 
+    pattern_array_reference = pattern_array_reference_reco
 
     row_sum = pattern_array_reference.sum(axis=1)
     pattern_array_norm_reference = pattern_array_reference / row_sum[:, np.newaxis]
@@ -112,4 +135,6 @@ if __name__ == '__main__':
         # break
 
     # todo problem 1: imputing sequences only works for 101 case, not for 100001, and so on
+
+
 
