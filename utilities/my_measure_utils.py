@@ -1524,7 +1524,7 @@ class CommunityMeasures:
 
                 if any(j == community[1] for community in window) == True:
                     topic_diffusion_array[i, j] = 1
-        return topic_diffusion_array, range(330)
+        return topic_diffusion_array, list(range(330))
 
     @staticmethod
     def created_recombination_dict_Topics_crisp(communityTopicAssociation_dict, recombination_dict):
@@ -1554,14 +1554,14 @@ class CommunityMeasures:
             new_window = []
             for recombination in recombination_dict['window_{}'.format(i*30)]:
                 new_recombination = []
-                if i != 0:
-                    for community in communityTopicAssociation_dict['window_{}'.format((i-1)*30)]:
-                        if recombination[1][0] == community[0]:
-                            new_recombination.append(community[1])
-                        if recombination[1][1] == community[0]:
-                            new_recombination.append(community[1])
-                        if len(new_recombination) >= 2:
-                            break
+                #if i != 0:
+                for community in communityTopicAssociation_dict['window_{}'.format(i*30)]:  # todo does this have to be i or i-1?
+                    if recombination[1][0] == community[0]:
+                        new_recombination.append(community[1])
+                    if recombination[1][1] == community[0]:
+                        new_recombination.append(community[1])
+                    if len(new_recombination) >= 2:
+                        break
                 new_recombination.sort()
                 new_window.append(tuple(new_recombination))
             recombination_dict_mod_lp['window_{}'.format(i*30)] = new_window
@@ -1569,7 +1569,7 @@ class CommunityMeasures:
         return recombination_dict_mod_lp
 
     @staticmethod
-    def doubleCheck_recombination_dict_Topics_crisp(recombination_dict_mod, recombination_dict):
+    def doubleCheck_recombination_dict_Topics_crisp(recombination_dict_mod, recombination_dict, communityTopicAssociation_dict):
         for i in range(len(recombination_dict_mod)):
             if len(recombination_dict_mod['window_{}'.format(i * 30)]) != len(
                     recombination_dict['window_{}'.format(i * 30)]):
@@ -1596,15 +1596,16 @@ class CommunityMeasures:
                         helper.append(new_entry2)
                         helper3.append(new_entry2)
 
-            if helper != []:
-                if len(helper) % 2 == 1:
-                    raise Exception("At least one window is not consistent")
-                # print helper and communityTopicAssociation_dict
-                # to stochastically check if recombinations in both dictionaries are consistent
+            # stochastically check if recombinations in both dictionaries are consistent
+            #print(recombination_dict['window_{}'.format(i * 30)])
+            #print(recombination_dict_mod['window_{}'.format(i * 30)])
+            #print(helper)
+            #print(communityTopicAssociation_dict['window_{}'.format(i * 30)])
+
         return
 
     @staticmethod
-    def doubleCheck_recombination_dict_Topics_overlap(recombination_dict_mod, recombination_dict):
+    def doubleCheck_recombination_dict_Topics_overlap(recombination_dict_mod, recombination_dict, communityTopicAssociation_dict):
         for i in range(len(recombination_dict_mod)):
             if len(recombination_dict_mod['window_{}'.format(i * 30)]) != len(
                     recombination_dict['window_{}'.format(i * 30)]):
@@ -1631,12 +1632,25 @@ class CommunityMeasures:
                         helper.append(new_entry2)
                         helper3.append(new_entry2)
 
-            if helper != []:
-                if len(helper) % 2 == 1:
-                    raise Exception("At least one window is not consistent")
-                # print helper and communityTopicAssociation_dict
-                # to stochastically check if recombinations in both dictionaries are consistent
+            # stochastically check if recombinations in both dictionaries are consistent
+            #print(recombination_dict['window_{}'.format(i * 30)])
+            #print(recombination_dict_mod['window_{}'.format(i * 30)])
+            #print(helper)
+            #print(communityTopicAssociation_dict['window_{}'.format(i * 30)])
+
         return
+
+    # [[14, 121, 0.17], [21, 121, 0.38], [22, 65, 0.19], [23, 144, 0.14], [19, 178, 0.26], [24, 8, 0.33], [18, 316, 0.35]]
+    #14, 18, 21, 22, 23, 24
+
+    # recombination_dict #16
+    # [(14, 21), (22, 23), (22, 24), (23, 24), (22, 23), (22, 24), (23, 24), (14, 21), (14, 21), (14, 21), (14, 18), (14, 21), (18, 21), (22, 23), (22, 24), (23, 24)]
+
+    # recombination_dict_mod #16
+    # [(121, 121), (65, 144), (8, 65), (8, 144), (65, 144), (8, 65), (8, 144), (121, 121), (121, 121), (121, 121), (121, 316), (121, 121), (121, 316), (65, 144), (8, 65), (8, 144)]
+
+    # helper
+    # [(121, 121), (65, 144), (8, 65), (8, 144), (121, 316), [14, 21], [22, 23], [22, 24], [23, 24]]
 
     @staticmethod
     def create_recombinationArray_Topics(recombination_dict_Topics):
@@ -1646,7 +1660,7 @@ class CommunityMeasures:
                 all_recombinations.append(recombination)
 
         all_recombinations = np.unique(all_recombinations, axis=0)
-        print(len(all_recombinations))  # 3061
+        #print(len(all_recombinations))  # 3061
         all_recombinations.sort()
 
         all_recombinations_tuple = []

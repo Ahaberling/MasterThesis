@@ -121,7 +121,7 @@ if __name__ == '__main__':
     val, count = np.unique(patent_time, return_counts=True)
     print('Number of days with publications: ', len(val))               # On 817 days publications were made
                                                                         # -> on average every 7.37698898409 days a patent was published
-
+    # todo check size of last window
 
 #--- slinding window approache ---#
     print('\n#--- slinding window approach ---#\n')

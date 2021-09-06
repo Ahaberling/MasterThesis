@@ -20,12 +20,12 @@ if __name__ == '__main__':
 
     from utilities.my_measure_utils import CommunityMeasures
 
-    '''
+
     community_dict_lp = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='label_propagation', weight_bool=True)
     community_dict_gm = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='greedy_modularity')
     community_dict_kc = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='k_clique', k_clique_size=3)
     community_dict_l2 = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='lais2')
-    
+    '''
     filename = 'community_dict_lp'
     outfile = open(filename, 'wb')
     pk.dump(community_dict_lp, outfile)
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     outfile = open(filename, 'wb')
     pk.dump(community_dict_l2, outfile)
     outfile.close()
-    '''
+    
     # --- Transform data structure ---#
 
     with open('community_dict_lp', 'rb') as handle:
@@ -59,7 +59,7 @@ if __name__ == '__main__':
 
     with open('community_dict_l2', 'rb') as handle:
         community_dict_l2 = pk.load(handle)
-
+    '''
 
     community_dict_transf_lp = CommunityMeasures.align_cD_dataStructure(community_dict_lp, cD_algorithm='label_propagation')
     community_dict_transf_gm = CommunityMeasures.align_cD_dataStructure(community_dict_gm, cD_algorithm='greedy_modularity')
@@ -284,10 +284,10 @@ if __name__ == '__main__':
     recombination_dict_Topics_kc = CommunityMeasures.created_recombination_dict_Topics_overlap(communityTopicAssociation_dict_kc, recombination_dict_kc)
     recombination_dict_Topics_l2 = CommunityMeasures.created_recombination_dict_Topics_overlap(communityTopicAssociation_dict_l2, recombination_dict_l2)
 
-    CommunityMeasures.doubleCheck_recombination_dict_Topics_crisp(recombination_dict_Topics_lp, recombination_dict_lp)
-    CommunityMeasures.doubleCheck_recombination_dict_Topics_crisp(recombination_dict_Topics_gm, recombination_dict_gm)
-    CommunityMeasures.doubleCheck_recombination_dict_Topics_overlap(recombination_dict_Topics_kc, recombination_dict_kc)
-    CommunityMeasures.doubleCheck_recombination_dict_Topics_overlap(recombination_dict_Topics_l2, recombination_dict_l2)
+    CommunityMeasures.doubleCheck_recombination_dict_Topics_crisp(recombination_dict_Topics_lp, recombination_dict_lp, communityTopicAssociation_dict_lp)
+    CommunityMeasures.doubleCheck_recombination_dict_Topics_crisp(recombination_dict_Topics_gm, recombination_dict_gm, communityTopicAssociation_dict_gm)
+    CommunityMeasures.doubleCheck_recombination_dict_Topics_overlap(recombination_dict_Topics_kc, recombination_dict_kc, communityTopicAssociation_dict_kc)
+    CommunityMeasures.doubleCheck_recombination_dict_Topics_overlap(recombination_dict_Topics_l2, recombination_dict_l2, communityTopicAssociation_dict_l2)
 
     recombinationArray_Topics_lp, recombinationArray_Topics_lp_columns = CommunityMeasures.create_recombinationArray_Topics(recombination_dict_Topics_lp)
     recombinationArray_Topics_gm, recombinationArray_Topics_gm_columns = CommunityMeasures.create_recombinationArray_Topics(recombination_dict_Topics_gm)
@@ -374,6 +374,9 @@ if __name__ == '__main__':
     pk.dump(recombinationArray_Topics_l2_columns, outfile)
     outfile.close()
 
+    print(1+1)
+    print(1+1)
+    print(1+1)
     print(1+1)
 
     #2. compute average change of confidence in a community id
