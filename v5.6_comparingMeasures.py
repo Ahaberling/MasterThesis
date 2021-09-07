@@ -121,9 +121,58 @@ if __name__ == '__main__':
 #--- Comparing Diffusion arrays ---#
 
     # test if all diffusion arrays are of column length 330
-    for array in [pattern_array_reference_diff, diffusionArray_Topics_lp, diffusionArray_Topics_gm, diffusionArray_Topics_kc, diffusionArray_Topics_l2, diffusion_array_edgeWeight]:
-        if len(array.T) != len((list(diffusionArray_Topics_lp_columns))):
+    list_of_allArrays = [pattern_array_reference_diff, diffusionArray_Topics_lp, diffusionArray_Topics_gm, diffusionArray_Topics_kc, diffusionArray_Topics_l2, diffusion_array_edgeWeight]
+    list_of_allArraysNames = ['pattern_array_reference_diff', 'diffusionArray_Topics_lp', 'diffusionArray_Topics_gm', 'diffusionArray_Topics_kc', 'diffusionArray_Topics_l2', 'diffusion_array_edgeWeight']
+
+    list_of_cdArrays = [diffusionArray_Topics_lp, diffusionArray_Topics_gm, diffusionArray_Topics_kc, diffusionArray_Topics_l2]
+    list_of_cdArraysNames = ['diffusionArray_Topics_lp', 'diffusionArray_Topics_gm', 'diffusionArray_Topics_kc', 'diffusionArray_Topics_l2']
+
+    def modify_arrays(array, threshold):
+
+        row_sum = array.sum(axis=1)
+        array_frac = array / row_sum[:, np.newaxis]
+
+        nonzeros = [row[np.nonzero(row)] for row in array_frac]
+        helper = np.mean(nonzeros[0])
+        helper4 = np.median(nonzeros[0])
+        helper2 = np.quantile(nonzeros[0], 0.5)
+        helper3 = np.quantile(nonzeros[0], 0.25)
+        helper3 = np.quantile(nonzeros[0], 0.1)
+        quantil_vec = [np.mean(row) for row in nonzeros]
+
+        x = np.array([[3, 0, 0], [0, 4, 0], [5, 6, 0]])
+        print(x[0])
+        print(np.nonzero(x[0]))
+        print(x[0][np.nonzero(x[0])])
+
+        array_threshold = np.where(array_frac < threshold, 0, 1)
+
+        return array_threshold, array_frac
+
+    modArray_dict = {}
+    for i in range(len(list_of_allArrays)):
+        if len(list_of_allArrays[i].T) != len((list(diffusionArray_Topics_lp_columns))):
             raise Exception("Diffusion arrays vary in their columns")
+
+        array_threshold, array_frac = modify_arrays(list_of_allArrays[i], 0.01)
+
+        name = list_of_allArraysNames[i] + '_mod'
+        modArray_dict[name] = array_threshold
+
+    print(modArray_dict.keys())
+
+
+
+    #1. modify cd arrays to that they have 11 following ones. (ok maybe not for diffusion, just for recombination)
+    #2. calculate fraction and threshold array for all
+    #3. write diffusion dicts
+    #4. count:
+    #       average number of diffusion cycles for all topics
+    #       average length of diffusion (without diffusions of length 0?)
+    #       calculate cosine and jaccard sim between matricies (with all matricies?)
+    #       average cosine and jaccard for a topic column
+    #       pick examplary patent(s) for recombination and diffusion
+
 
 
 

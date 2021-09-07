@@ -80,7 +80,6 @@ if __name__ == '__main__':
     ### IPC singles ###
 
     threshold = 0.005
-
     pattern_array_thresh_reference = np.where(pattern_array_norm_reference < threshold, 0, 1)  # arbitrary threshold of 0.01
 
 
