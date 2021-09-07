@@ -1692,7 +1692,7 @@ class CommunityMeasures:
 class EdgeWeightMeasures:
 
     @staticmethod
-    def create_diffusion_array(topicProject_graphs, threshold):
+    def create_diffusion_array(topicProject_graphs, threshold, edge_threshold_quantil):
         # get row length
         row_length = len(topicProject_graphs)
 
@@ -1712,12 +1712,20 @@ class EdgeWeightMeasures:
         pbar = tqdm.tqdm(total=len(diffusion_array))
 
         for i in range(len(diffusion_array)):
+
+            weight_list = []
+            for (u, v, wt) in topicProject_graphs['window_{0}'.format(i * 30)].edges.data('weight'):
+                weight_list.append(wt)
+
+            weight_threshold = np.quantile(weight_list, edge_threshold_quantil)
+
             for j in range(len(diffusion_array.T)):
 
                 all_edgeNodes = []
-                for (u, v) in topicProject_graphs['window_{0}'.format(i * 30)].edges():
-                    all_edgeNodes.append(int(u[6:]))
-                    all_edgeNodes.append(int(v[6:]))
+                for (u, v, wt) in topicProject_graphs['window_{0}'.format(i * 30)].edges.data('weight'):
+                    if wt >= weight_threshold:
+                        all_edgeNodes.append(int(u[6:]))
+                        all_edgeNodes.append(int(v[6:]))
 
                 diffusion_array[i, j] = all_edgeNodes.count(all_nodes_unique[j])
 

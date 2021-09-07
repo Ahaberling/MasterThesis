@@ -138,12 +138,23 @@ if __name__ == '__main__':
         helper2 = np.quantile(nonzeros[0], 0.5)
         helper3 = np.quantile(nonzeros[0], 0.25)
         helper3 = np.quantile(nonzeros[0], 0.1)
-        quantil_vec = [np.mean(row) for row in nonzeros]
+        quantil_vec = [np.quantile(row, 0.1) for row in nonzeros]
+        quantil_vec_test = [np.quantile(row, 0.0000001) for row in nonzeros]
 
-        x = np.array([[3, 0, 0], [0, 4, 0], [5, 6, 0]])
-        print(x[0])
-        print(np.nonzero(x[0]))
-        print(x[0][np.nonzero(x[0])])
+        threshold_array = np.zeros((np.shape(array)[0],np.shape(array)[1]))
+        threshold_array_test = np.zeros((np.shape(array)[0],np.shape(array)[1]))
+        diff_list = []
+
+        for i in range(len(threshold_array)):
+            threshold_array[i,:] = np.where(array_frac[i,:] < quantil_vec[i], 0, 1)
+            threshold_array_test[i,:] = np.where(array_frac[i,:] < quantil_vec_test[i], 0, 1)
+            c = 0
+            for j in range(len(threshold_array.T)):
+                if threshold_array[i,j] !=  threshold_array_test[i,j]:
+                    c = c +1
+            diff_list.append(c)
+        print(diff_list)
+        print(sum(diff_list))
 
         array_threshold = np.where(array_frac < threshold, 0, 1)
 
@@ -153,6 +164,7 @@ if __name__ == '__main__':
     for i in range(len(list_of_allArrays)):
         if len(list_of_allArrays[i].T) != len((list(diffusionArray_Topics_lp_columns))):
             raise Exception("Diffusion arrays vary in their columns")
+        a = list_of_allArrays[i]
 
         array_threshold, array_frac = modify_arrays(list_of_allArrays[i], 0.01)
 
