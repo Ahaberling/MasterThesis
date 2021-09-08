@@ -80,7 +80,7 @@ class ReferenceMeasures:
                                                                         # However this sort is redundant non the lest in the current version
             column_list = column_list[ind]
 
-        pattern_array = np.zeros((len(row_list), len(column_list)))
+        pattern_array = np.zeros((len(row_list), len(column_list)), dtype=int)
 
         if np.issubdtype(type(column_list[0]), np.integer) or np.issubdtype(type(column_list[0]), np.str_):
             pbar = tqdm.tqdm(total=len(row_list))
@@ -1515,7 +1515,7 @@ class CommunityMeasures:
 
     @staticmethod
     def create_diffusionArray_Topics(communityTopicAssociation_dict):
-        topic_diffusion_array = np.zeros((len(communityTopicAssociation_dict), 330))
+        topic_diffusion_array = np.zeros((len(communityTopicAssociation_dict), 330), dtype=int)
 
         for i in range(len(topic_diffusion_array)):
             window = communityTopicAssociation_dict['window_{}'.format(i * 30)]
