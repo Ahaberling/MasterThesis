@@ -203,8 +203,8 @@ if __name__ == '__main__':
     print(modArray_dict['diffusionArray_Topics_lp_mod'][:,50])
 
 
-    def manhattan_sim_mod(x, y):
-        return 1 - sum(abs(a - b) for a, b in zip(x, y)) / len(x)
+    def manhattan_sim_mod(List1, List2):
+        return 1 - sum(abs(a - b) for a, b in zip(List1, List2)) / len(List1)
 
 
     from numpy import dot
@@ -229,7 +229,7 @@ if __name__ == '__main__':
     print(result)
     print(result2)
 
-    # get similarities between matrizes and over all matrix similarity score
+    # get similarities between matrices and over all matrix similarity score
 
     print(cosine_sim_mod([0,0,1],[0,1,1]))
     print(manhattan_sim_mod([0,0,1],[0,1,1]))
@@ -255,40 +255,36 @@ if __name__ == '__main__':
 
     for matrixPair in arrayPair_list:
         patternArray1 = matrixPair[0]
-        print(np.shape(matrixPair))
+        #print(np.shape(matrixPair))
         patternArray2 = matrixPair[1]
 
         cosine_list = []
         manhattan_list = []
         for column_id in range(len(patternArray1.T)):
 
-            print(max(patternArray1[:,column_id]))
-            print(max(patternArray2[:,column_id]))
+            if sum(patternArray1[:,column_id]) != 0 and sum(patternArray2[:,column_id]) != 0:
+                cosine = cosine_sim_mod(patternArray1[:,column_id],patternArray2[:,column_id])
+                manhattan = manhattan_sim_mod(patternArray1[:,column_id],patternArray2[:,column_id])
 
-            print(min(patternArray1[:, column_id]))
-            print(min(patternArray2[:, column_id]))
-
-            print(len(patternArray1[:, column_id]))
-            print(len(patternArray2[:, column_id]))
-
-            cosine = 1 - cosine_sim_mod(patternArray1[:,column_id],patternArray2[:,column_id])
-            manhattan = manhattan_sim_mod(patternArray1[:,column_id],patternArray2[:,column_id])
-
-            cosine_list.append(cosine)
-            manhattan_list.append(manhattan)
+                cosine_list.append(cosine)
+                manhattan_list.append(manhattan)
 
         cosine_avg = sum(cosine_list) / len(cosine_list)
         manhattan_avg = sum(manhattan_list) / len(manhattan_list)
 
-        similarityPair_list_cosine.append(cosine_avg)
+        similarityPair_list_cosine.append(cosine_avg)               # here is one inside that is not working at all
         similarityPair_list_manhattan.append(manhattan_avg)
 
     matrixSimilarityScore_cosine = sum(similarityPair_list_cosine) / len(similarityPair_list_cosine)
     matrixSimilarityScore_manhattan = sum(similarityPair_list_manhattan) / len(similarityPair_list_manhattan)
 
+    print(matrixSimilarityScore_cosine)
+    print(matrixSimilarityScore_manhattan)
+
     # get similarities between vectors of the same topic. max, min, avg, mode, media, distribution
 
-    topicVectore_simScore_list = []
+    simScores_withinTopic_list_cosine_avg = []
+    simScores_withinTopic_list_manhattan_avg = []
 
     for column_id in range(len(array_list[0].T)):
 
@@ -297,30 +293,47 @@ if __name__ == '__main__':
         for matrixPair in arrayPair_list:
             patternArray1 = matrixPair[0]
             patternArray2 = matrixPair[1]
+            if column_id == 5:
+                print(sum(patternArray1[:, column_id]))
+                print(sum(patternArray2[:, column_id]))
+            if (sum(patternArray1[:, column_id]) != 0) and (sum(patternArray2[:, column_id]) != 0):     # maybe this has to be or
+                cosine = cosine_sim_mod(patternArray1[:, column_id], patternArray2[:, column_id])
+                manhattan = manhattan_sim_mod(patternArray1[:, column_id], patternArray2[:, column_id])
 
-            cosine = 1 - cosine_sim_mod(patternArray1[:, column_id], patternArray2[:, column_id])
-            manhattan = manhattan_sim_mod(patternArray1[:, column_id], patternArray2[:, column_id])
+                simScores_withinTopic_cosine.append(cosine)
+                simScores_withinTopic_manhattan.append(manhattan)
 
-            simScores_withinTopic_cosine.append(cosine)
-            simScores_withinTopic_manhattan.append(manhattan)
+        if len(simScores_withinTopic_cosine) != 0:
+            simScores_withinTopic_list_cosine_avg.append(sum(simScores_withinTopic_cosine) / len(simScores_withinTopic_cosine))
+        else:
+            simScores_withinTopic_list_cosine_avg.append(-9999)
 
-        simScores_withinTopic_cosine_avg = sum(simScores_withinTopic_cosine) / len(simScores_withinTopic_cosine)
-        simScores_withinTopic_manhattan_avg = sum(simScores_withinTopic_manhattan) / len(simScores_withinTopic_manhattan)
+        if len(simScores_withinTopic_manhattan) != 0:
+            simScores_withinTopic_list_manhattan_avg.append(sum(simScores_withinTopic_manhattan) / len(simScores_withinTopic_manhattan))
+        else:
+            simScores_withinTopic_list_manhattan_avg.append(-9999)
 
-    most_similarTopic_value_cosine = max(simScores_withinTopic_cosine)
-    most_similarTopic_value_manhattan = max(simScores_withinTopic_manhattan)
+    # calculate the following only with values that are not -9999
+    # there are a lot topics falling through. check if this filter is correct
+    # also check if there are really topics with similarity of 1 across all pairs
+    simScores_withinTopic_list_cosine_avg_clean =  [x for x in simScores_withinTopic_list_cosine_avg if x != -9999]
+    simScores_withinTopic_list_manhattan_avg_clean = [x for x in simScores_withinTopic_list_manhattan_avg if x != -9999]
 
-    most_similarTopic_pos_cosine = np.where(simScores_withinTopic_cosine == max(simScores_withinTopic_cosine))
-    most_similarTopic_pos_manhattan = np.where(simScores_withinTopic_manhattan == max(simScores_withinTopic_manhattan))
+    most_similarTopic_value_cosine = max(simScores_withinTopic_list_cosine_avg_clean)
+    most_similarTopic_value_manhattan = max(simScores_withinTopic_list_manhattan_avg_clean)
 
-    least_similarTopic_value_cosine = min(simScores_withinTopic_cosine)
-    least_similarTopic_value_manhattan = min(simScores_withinTopic_manhattan)
+    most_similarTopic_pos_cosine = np.where(simScores_withinTopic_list_cosine_avg == most_similarTopic_value_cosine)
+    most_similarTopic_pos_manhattan = np.where(simScores_withinTopic_list_manhattan_avg == most_similarTopic_value_manhattan)
 
-    least_similarTopic_pos_cosine = np.where(simScores_withinTopic_cosine == min(simScores_withinTopic_cosine))
-    least_similarTopic_pos_manhattan = np.where(simScores_withinTopic_manhattan == min(simScores_withinTopic_manhattan))
+    least_similarTopic_value_cosine = min(simScores_withinTopic_list_cosine_avg_clean)
+    least_similarTopic_value_manhattan = min(simScores_withinTopic_list_manhattan_avg_clean)
 
-    avg_similarTopic_cosine = sum(simScores_withinTopic_cosine) / len(simScores_withinTopic_cosine)
-    avg_similarTopic_manhattan = sum(simScores_withinTopic_manhattan) / len(simScores_withinTopic_manhattan)
+    least_similarTopic_pos_cosine = np.where(simScores_withinTopic_list_cosine_avg == least_similarTopic_value_cosine)
+    least_similarTopic_pos_manhattan = np.where(simScores_withinTopic_list_manhattan_avg == least_similarTopic_value_manhattan)
+
+    avg_similarTopic_cosine = sum(simScores_withinTopic_list_cosine_avg_clean) / len(simScores_withinTopic_list_cosine_avg_clean)
+    avg_similarTopic_manhattan = sum(simScores_withinTopic_list_manhattan_avg_clean) / len(simScores_withinTopic_list_manhattan_avg_clean)
+    avg_similarTopic_manhattan = sum(simScores_withinTopic_list_manhattan_avg) / len(simScores_withinTopic_list_manhattan_avg)
 
 
     # A. matrix with i = j = pattern arrays.    Aij = similarity between arrays
