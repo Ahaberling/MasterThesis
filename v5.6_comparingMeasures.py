@@ -208,15 +208,7 @@ if __name__ == '__main__':
     # influence on the denominator. Better: 0-0 matches have no impact neither the numerator nor the denominator
 
 
-    result = cosine_sim_mod(modArray_dict['pattern_array_reference_diff_mod'][:,50], modArray_dict['diffusionArray_Topics_lp_mod'][:,50])
-    result2 = manhattan_sim_mod(modArray_dict['pattern_array_reference_diff_mod'][:,50], modArray_dict['diffusionArray_Topics_lp_mod'][:,50])
-    print(result)
-    print(result2)
-
     # get similarities between matrices and over all matrix similarity score
-
-    print(cosine_sim_mod([0,0,1],[0,1,1]))
-    print(manhattan_sim_mod([0,0,1],[0,1,1]))
 
 
     import itertools
@@ -304,6 +296,9 @@ if __name__ == '__main__':
     print('\n', matrixSimilarityScore_cosine_withoutGM)
     print(matrixSimilarityScore_manhattan_withoutGM)
 
+
+
+###---------------------
 
     # get similarities between vectors of the same topic. max, min, avg, mode, media, distribution
 
