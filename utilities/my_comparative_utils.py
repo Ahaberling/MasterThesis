@@ -84,3 +84,25 @@ class ComparativeMeasures:
 
             c = c + 1
         return pattern_array_thresh
+
+    @staticmethod
+    def check_dimensions(list_of_allArrays, diffusionArray_Topics_lp_columns):
+        for i in range(len(list_of_allArrays)):
+            if len(list_of_allArrays[i].T) != len((list(diffusionArray_Topics_lp_columns))):
+                raise Exception("Diffusion arrays vary in their columns")
+        return
+
+    @staticmethod
+    def normalized_and_binarize(list_of_allArrays, threshold, leeway):
+        array_rowNorm_list = []
+        array_binariz_list = []
+        for i in range(len(list_of_allArrays)):
+
+            array_threshold, array_rowNorm = ComparativeMeasures.modify_arrays(list_of_allArrays[i], threshold)
+            if leeway == True:
+                array_threshold = ComparativeMeasures.introcude_leeway(array_threshold, np.array([1, 0, 1]), 1)
+                # if there is 101 this means that there was one year without a occurrence. 1001 is one year and one month ...
+
+            array_rowNorm_list.append(array_rowNorm)
+            array_binariz_list.append(array_threshold)
+        return array_binariz_list, array_rowNorm_list
