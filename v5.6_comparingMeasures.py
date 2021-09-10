@@ -133,7 +133,7 @@ if __name__ == '__main__':
     from utilities.my_comparative_utils import ComparativeMeasures
 
     # for comparative example, choose the topics with the higest similarity between the arrays or between intuitive, link and 1 cd measure (to decide on the cd most suitable)
-
+    '''
     ComparativeMeasures.check_dimensions(list_of_allArrays, diffusionArray_Topics_lp_columns)
 
     list_of_allArrays_threshold, list_of_allArrays_rowNorm = ComparativeMeasures.normalized_and_binarize(list_of_allArrays, threshold=0.01, leeway=True)
@@ -304,26 +304,86 @@ if __name__ == '__main__':
     #       pick examplary patent(s) for recombination and diffusion
 
 
-
+    '''
 
 
 ###----------- Recombination ----------------
 #--- Comparing Recombination arrays ---#
 
-    '''
-    pattern_array_reference_reco
-    recombinationArray_Topics_lp
-    recombinationArray_Topics_gm
-    recombinationArray_Topics_kc
-    recombinationArray_Topics_l2
-    recombinationDiffusion_edgeWeight
-    
-    columns_reference_reco
-    recombinationArray_Topics_lp_columns
-    recombinationArray_Topics_gm_columns
-    recombinationArray_Topics_kc_columns
-    recombinationArray_Topics_l2_columns
-    columns_recom_edgeWeight
-        
-    '''
+
+
+    column_lists = [columns_reference_reco, recombinationArray_Topics_lp_columns, recombinationArray_Topics_gm_columns, recombinationArray_Topics_kc_columns, recombinationArray_Topics_l2_columns, columns_recom_edgeWeight]
+    columns_list_names = ['columns_reference_reco', 'recombinationArray_Topics_lp_columns', 'recombinationArray_Topics_gm_columns', 'recombinationArray_Topics_kc_columns', 'recombinationArray_Topics_l2_columns', 'columns_recom_edgeWeight']
+
+    recoArrays_list = [pattern_array_reference_reco, recombinationArray_Topics_lp, recombinationArray_Topics_gm,
+                       recombinationArray_Topics_kc, recombinationArray_Topics_l2, recombinationDiffusion_edgeWeight]
+    recoArrays_list_cD_correction = []      #insert approach 1 and 3 as well
+
+    # INSERT cd_modification
+    for cd_array in recoArrays_list[1:5]:
+
+        for j in range(len(cd_array.T)):
+
+            for i in range(len(cd_array)-2, -1, -1):    # -2 because otherwise i+1 would cause problems in the following lines
+
+                if cd_array[i,j] >= 1:
+                    if len(cd_array[i:,j]) >= 12:
+                        for k in range(1,12):
+                            cd_array[i+k,j] = cd_array[i+k,j]+cd_array[i,j]
+                    else:
+                        for k in range(1,len(cd_array[i:,j])):
+                            cd_array[i+k,j] = cd_array[i+k,j]+cd_array[i,j]
+
+
+    recoArrays_threshold_list, recoArrays_rowNorm_list = ComparativeMeasures.normalized_and_binarize(recoArrays_list, threshold=0.01, leeway=True)
+
+
+    #for i in range(len(column_lists)):
+        #column_lists[i] = [tuple(x) for x in column_lists[i]]
+
+    #for i in column_lists:
+        #print(len(i))
+
+    all_recombs = [item for sublist in column_lists for item in sublist]
+    print(len(all_recombs))
+
+    all_recombs = np.unique(all_recombs, axis=0)
+    #all_recombs = list(np.unique(all_recombs, axis=0))
+    print(len(all_recombs))
+
+    all_recombs = [tuple(x) for x in all_recombs]
+    #print(all_recombs)
+    #all_recombs = np.array(all_recombs)
+
+
+
+
+    for i in range(len(column_lists)):
+        extended_array = recoArrays_threshold_list[i]
+        recomb_pos_list = []
+        for recomb in column_lists[i]:
+            recomb_pos = all_recombs.index(tuple(recomb))
+            recomb_pos_list.append(recomb_pos)
+            #break
+        c = 0
+
+        #print(len(extended_array.T))
+
+        tuple_list = [tuple(x) for x in column_lists[i]]
+
+        #print(tuple_list)
+        for element in all_recombs:
+            #print(element)
+            if element not in tuple_list:
+                extended_array = np.c_[extended_array[:,:c], np.zeros(len(extended_array)), extended_array[:,c:]]
+
+            c = c + 1
+        extended_array = extended_array.astype(int)
+        print(len(all_recombs))
+        print(len(extended_array.T))
+        print(np.max(extended_array))
+
+        break
+
+
 
