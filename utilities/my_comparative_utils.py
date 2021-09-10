@@ -106,3 +106,89 @@ class ComparativeMeasures:
             array_rowNorm_list.append(array_rowNorm)
             array_binariz_list.append(array_threshold)
         return array_binariz_list, array_rowNorm_list
+
+    @staticmethod
+    def get_nonSimilarity_descriptives(diffusionArray_Topics_lp_columns, diffusion_length_list):
+        diff_count_per_topic = []
+        diff_duration_per_topic = []
+
+        for topic in range(len(diffusionArray_Topics_lp_columns)):
+            diff_count = 0
+            diff_duration = []
+            for entry in diffusion_length_list:
+                if entry[1] == topic:
+                    diff_count = diff_count+1
+                    diff_duration.append(entry[2])
+
+            diff_count_per_topic.append(diff_count)
+            diff_duration_per_topic.append(diff_duration)
+
+        return  diff_count_per_topic, diff_duration_per_topic
+
+    @staticmethod
+    def cosine_sim_mod(List1, List2):
+        if sum(List1) == 0 or sum(List2) == 0:
+            result = 0
+        else:
+            result = np.dot(List1, List2) / (np.linalg.norm(List1) * np.linalg.norm(List2))
+        return (result)
+
+    @staticmethod
+    def manhattan_sim_mod(List1, List2):
+        return 1 - sum(abs(a - b) for a, b in zip(List1, List2)) / len(List1)
+
+    @staticmethod
+    def get_matrix_similarities_byTopic(list_of_allArrays_names, list_of_allArrays_threshold):
+        # name_list = []
+        # array_list = []
+        namePair_list = []
+        arrayPair_list = []
+        # for i in range(len(list_of_allArrays_threshold)):
+        # name_list.append(name) # , array))
+        # array_list.append(array)
+
+        namePair_list.append(list(itertools.combinations(list_of_allArrays_names, r=2)))
+        namePair_list = namePair_list[0]
+        arrayPair_list.append(list(itertools.combinations(list_of_allArrays_threshold, r=2)))
+        arrayPair_list = arrayPair_list[0]
+
+        similarityPair_list_cosine = []
+        similarityPair_list_manhattan = []
+
+        for matrixPair in arrayPair_list:
+            patternArray1 = matrixPair[0]
+            # print(np.shape(matrixPair))
+            patternArray2 = matrixPair[1]
+
+            cosine_list = []
+            manhattan_list = []
+            for column_id in range(len(patternArray1.T)):
+
+                # print(sum(patternArray1[:,column_id]))
+                # print(sum(patternArray2[:,column_id]))
+                # when both are sum != 0 -> calculate normally
+                # when one is != 0 -> calculate normally (cosine = 0)
+                # when both are = 0 -> do not calculate anything
+                if not (sum(patternArray1[:, column_id]) == 0 and sum(patternArray2[:, column_id]) == 0):
+                    cosine = ComparativeMeasures.cosine_sim_mod(patternArray1[:, column_id],
+                                                                patternArray2[:, column_id])
+                    manhattan = ComparativeMeasures.manhattan_sim_mod(patternArray1[:, column_id],
+                                                                      patternArray2[:, column_id])
+
+                    cosine_list.append(cosine)
+                    manhattan_list.append(manhattan)
+
+            if len(cosine_list) != 0:
+                cosine_avg = sum(cosine_list) / len(cosine_list)
+            else:
+                cosine_avg = 0
+
+            if len(manhattan_list) != 0:
+                manhattan_avg = sum(manhattan_list) / len(manhattan_list)
+            else:
+                manhattan_avg = 0
+
+            similarityPair_list_cosine.append(cosine_avg)  # here is one inside that is not working at all
+            similarityPair_list_manhattan.append(manhattan_avg)
+
+        return namePair_list, similarityPair_list_cosine, similarityPair_list_manhattan
