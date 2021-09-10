@@ -210,14 +210,12 @@ if __name__ == '__main__':
     print(matrixSimilarityScore_manhattan)
     # print(namePair_list)                    # 1,5,9,10,11
 
+    slices_toExclude = [1,5,9,10,11]
 
     # 4 out of 5 similarities involving the gm approach are very bad, so we exclude them
 
-    h = similarityPair_list_cosine
-    hh = similarityPair_list_manhattan
-
-    similarityPair_list_cosine_withoutGM = np.r_[h[0], h[2:5], h[6:9], h[12:]]
-    similarityPair_list_manhattan_withoutGM = np.r_[hh[0], hh[2:5], hh[6:9], hh[12:]]
+    similarityPair_list_cosine_withoutGM = list(np.delete(similarityPair_list_cosine, slices_toExclude, axis=0))
+    similarityPair_list_manhattan_withoutGM = list(np.delete(similarityPair_list_manhattan, slices_toExclude, axis=0))
 
     matrixSimilarityScore_cosine_withoutGM = 0
     matrixSimilarityScore_manhattan_withoutGM = 0
@@ -237,46 +235,15 @@ if __name__ == '__main__':
 
     # get similarities between vectors of the same topic. max, min, avg, mode, media, distribution
 
-    simScores_withinTopic_list_cosine_avg = []
-    simScores_withinTopic_list_manhattan_avg = []
+    simScores_withinTopic_list_cosine_avg, simScores_withinTopic_list_manhattan_avg = ComparativeMeasures.get_topic_similarity(list_of_allArrays_names, list_of_allArrays_threshold, slices_toExclude)
 
-    for column_id in range(len(array_list[0].T)):
-
-        simScores_withinTopic_cosine = []
-        simScores_withinTopic_manhattan = []
-        #arrayPair_list_withoutGM = np.r_[arrayPair_list[0], arrayPair_list[2:5], arrayPair_list[6:9], arrayPair_list[11:]]
-
-        namePair_list_withoutGM = list(np.delete(namePair_list, [1,5,9,10,11], axis=0))
-        arrayPair_list_withoutGM = list(np.delete(arrayPair_list, [1,5,9,10,11], axis=0))
-        for matrixPair in arrayPair_list_withoutGM:
-            patternArray1 = matrixPair[0]
-            patternArray2 = matrixPair[1]
-            #if column_id == 5:
-                #print(sum(patternArray1[:, column_id]))
-                #print(sum(patternArray2[:, column_id]))
-            #if (sum(patternArray1[:, column_id]) != 0) and (sum(patternArray2[:, column_id]) != 0):     # maybe this has to be or
-            if not (sum(patternArray1[:, column_id]) == 0 and sum(patternArray2[:, column_id]) == 0):
-                cosine = cosine_sim_mod(patternArray1[:, column_id], patternArray2[:, column_id])
-                manhattan = manhattan_sim_mod(patternArray1[:, column_id], patternArray2[:, column_id])
-
-                simScores_withinTopic_cosine.append(cosine)
-                simScores_withinTopic_manhattan.append(manhattan)
-
-        if len(simScores_withinTopic_cosine) != 0:
-            simScores_withinTopic_list_cosine_avg.append(sum(simScores_withinTopic_cosine) / len(simScores_withinTopic_cosine))
-        else:
-            simScores_withinTopic_list_cosine_avg.append(-9999)
-
-        if len(simScores_withinTopic_manhattan) != 0:
-            simScores_withinTopic_list_manhattan_avg.append(sum(simScores_withinTopic_manhattan) / len(simScores_withinTopic_manhattan))
-        else:
-            simScores_withinTopic_list_manhattan_avg.append(-9999)
-
-    # calculate the following only with values that are not -9999
+        # calculate the following only with values that are not -9999
     # there are a lot topics falling through. check if this filter is correct
     # also check if there are really topics with similarity of 1 across all pairs
     simScores_withinTopic_list_cosine_avg_clean =  [x for x in simScores_withinTopic_list_cosine_avg if x != -9999]
     simScores_withinTopic_list_manhattan_avg_clean = [x for x in simScores_withinTopic_list_manhattan_avg if x != -9999]
+
+
 
     most_similarTopic_value_cosine = max(simScores_withinTopic_list_cosine_avg_clean)
     most_similarTopic_value_manhattan = max(simScores_withinTopic_list_manhattan_avg_clean)
@@ -292,15 +259,38 @@ if __name__ == '__main__':
 
     avg_similarTopic_cosine = sum(simScores_withinTopic_list_cosine_avg_clean) / len(simScores_withinTopic_list_cosine_avg_clean)
     avg_similarTopic_manhattan = sum(simScores_withinTopic_list_manhattan_avg_clean) / len(simScores_withinTopic_list_manhattan_avg_clean)
-    #avg_similarTopic_manhattan = sum(simScores_withinTopic_list_manhattan_avg) / len(simScores_withinTopic_list_manhattan_avg)
 
+
+    print('\n Topic Cosine Similarities between approaches:')
+    print('Highest Similarity: ', most_similarTopic_value_cosine)
+    print('Highest Similarity Topic Id: ', most_similarTopic_pos_cosine[0])
+    print('Lowest Similarity: ', least_similarTopic_value_cosine)
+    print('Lowest Similarity Topic Id: ', least_similarTopic_pos_cosine[0])
+    print('Average Similarity between all topics: ', avg_similarTopic_cosine)
+
+    print('\n Topic Manhattan Similarities between approaches:')
+    print('Highest Similarity: ', most_similarTopic_value_manhattan)
+    print('Highest Similarity Topic Id: ', most_similarTopic_pos_manhattan[0])
+    print('Lowest Similarity: ', least_similarTopic_value_manhattan)
+    print('Lowest Similarity Topic Id: ', least_similarTopic_pos_manhattan[0])
+    print('Average Similarity between all topics: ', avg_similarTopic_manhattan)
+
+    #print(len(list_of_allArrays_threshold[0]))
+    #print(len(list_of_allArrays_threshold))
+
+    vialization_higestTopicSim = np.zeros((len(list_of_allArrays_threshold[0]), len(list_of_allArrays_threshold)), dtype=int)
+    #print(np.shape(vialization_higestTopicSim))
+    for i in range(len(list_of_allArrays_threshold)):
+        #print(list_of_allArrays_threshold[i][:,23])
+        #print(vialization_higestTopicSim[:,i])
+        vialization_higestTopicSim[:,i] = list_of_allArrays_threshold[i][:,23]
+
+    #print(vialization_higestTopicSim)
 
     # A. matrix with i = j = pattern arrays.    Aij = similarity between arrays
     # B. matrix with i = j = pattern arrays.    Aij = similarity between topic vecs of most similar topic
     # C. matrix with i = j = pattern arrays.    Aij = similarity between topic vecs of least similar topic
     # D. x = average topic similarity between all topics and all pattern arrays
-
-
 
 
     #1. modify cd arrays to that they have 11 following ones. (ok maybe not for diffusion, just for recombination)
@@ -316,6 +306,8 @@ if __name__ == '__main__':
 
 
 
+
+###----------- Recombination ----------------
 #--- Comparing Recombination arrays ---#
 
     '''

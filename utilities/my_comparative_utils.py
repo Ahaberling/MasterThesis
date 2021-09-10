@@ -192,3 +192,49 @@ class ComparativeMeasures:
             similarityPair_list_manhattan.append(manhattan_avg)
 
         return namePair_list, similarityPair_list_cosine, similarityPair_list_manhattan
+
+    @staticmethod
+    def get_topic_similarity(list_of_allArrays_names, list_of_allArrays_threshold, slices_toExclude=None):
+        namePair_list = []
+        arrayPair_list = []
+        namePair_list.append(list(itertools.combinations(list_of_allArrays_names, r=2)))
+        namePair_list = namePair_list[0]
+        arrayPair_list.append(list(itertools.combinations(list_of_allArrays_threshold, r=2)))
+        arrayPair_list = arrayPair_list[0]
+
+        simScores_withinTopic_list_cosine_avg = []
+        simScores_withinTopic_list_manhattan_avg = []
+
+        for column_id in range(len(list_of_allArrays_threshold[0].T)):
+
+            simScores_withinTopic_cosine = []
+            simScores_withinTopic_manhattan = []
+
+            namePair_list_withoutGM = list(np.delete(namePair_list, slices_toExclude, axis=0))
+            arrayPair_list_withoutGM = list(np.delete(arrayPair_list, slices_toExclude, axis=0))
+            for matrixPair in arrayPair_list_withoutGM:
+                patternArray1 = matrixPair[0]
+                patternArray2 = matrixPair[1]
+
+                if not (sum(patternArray1[:, column_id]) == 0 and sum(patternArray2[:, column_id]) == 0):
+                    cosine = ComparativeMeasures.cosine_sim_mod(patternArray1[:, column_id],
+                                                                patternArray2[:, column_id])
+                    manhattan = ComparativeMeasures.manhattan_sim_mod(patternArray1[:, column_id],
+                                                                      patternArray2[:, column_id])
+
+                    simScores_withinTopic_cosine.append(cosine)
+                    simScores_withinTopic_manhattan.append(manhattan)
+
+            if len(simScores_withinTopic_cosine) != 0:
+                simScores_withinTopic_list_cosine_avg.append(
+                    sum(simScores_withinTopic_cosine) / len(simScores_withinTopic_cosine))
+            else:
+                simScores_withinTopic_list_cosine_avg.append(-9999)
+
+            if len(simScores_withinTopic_manhattan) != 0:
+                simScores_withinTopic_list_manhattan_avg.append(
+                    sum(simScores_withinTopic_manhattan) / len(simScores_withinTopic_manhattan))
+            else:
+                simScores_withinTopic_list_manhattan_avg.append(-9999)
+
+        return simScores_withinTopic_list_cosine_avg, simScores_withinTopic_list_manhattan_avg
