@@ -238,3 +238,53 @@ class ComparativeMeasures:
                 simScores_withinTopic_list_manhattan_avg.append(-9999)
 
         return simScores_withinTopic_list_cosine_avg, simScores_withinTopic_list_manhattan_avg
+
+    @staticmethod
+    def extend_cD_recombinationDiffuion(cd_Arrays, slidingWindow_size, cD_pos_start, cD_pos_end):
+        #modified_cDarrays = []
+        for cd_array in cd_Arrays[cD_pos_start:cD_pos_end]:
+
+            for j in range(len(cd_array.T)):
+                for i in range(len(cd_array) - 2, -1,
+                               -1):  # -2 because otherwise i+1 would cause problems in the following lines
+
+                    if cd_array[i, j] >= 1:
+                        if len(cd_array[i:, j]) >= slidingWindow_size:
+                            for k in range(1, slidingWindow_size):
+                                cd_array[i + k, j] = cd_array[i + k, j] + cd_array[i, j]
+                        else:
+                            for k in range(1, len(cd_array[i:, j])):
+                                cd_array[i + k, j] = cd_array[i + k, j] + cd_array[i, j]
+            #modified_cDarrays.append(cd_array)
+        return #modified_cDarrays
+
+    @staticmethod
+    def extend_recombination_columns(column_lists, recoArrays_threshold_list):
+        all_recombs = [item for sublist in column_lists for item in sublist]
+        # print(len(all_recombs))
+
+        all_recombs = np.unique(all_recombs, axis=0)
+        # print(len(all_recombs))
+
+        all_recombs = [tuple(x) for x in all_recombs]
+
+        extended_arrays = []
+        for i in range(len(column_lists)):
+            extended_array = recoArrays_threshold_list[i]
+            #recomb_pos_list = []
+            #for recomb in column_lists[i]:
+                #recomb_pos = all_recombs.index(tuple(recomb))
+                #recomb_pos_list.append(recomb_pos)
+
+
+            tuple_list = [tuple(x) for x in column_lists[i]]
+
+            for j in range(len(all_recombs)):
+                if all_recombs[j] not in tuple_list:
+                    extended_array = np.c_[extended_array[:, :j], np.zeros(len(extended_array)), extended_array[:, j:]]
+
+            extended_array = extended_array.astype(int)
+
+            extended_arrays.append(extended_array)
+        return extended_arrays
+

@@ -1749,8 +1749,16 @@ class EdgeWeightMeasures:
         all_edges = []
         for window_id, graph in topicProject_graphs.items():
             for (u, v) in graph.edges():
-                all_edges.append((int(u[6:]), int(v[6:])))
+                #all_edges.append((int(u[6:]), int(v[6:])))
 
+                if int(u[6:]) < int(v[6:]):
+                    all_edges.append((int(u[6:]), int(v[6:])))
+                elif int(u[6:]) > int(v[6:]):
+                    all_edges.append((int(v[6:]), int(u[6:])))
+                else:
+                    raise Exception("Graph contains selfloop")
+
+        all_edges.sort()
         all_edges_unique = np.unique(all_edges, axis=0)
         column_length = len(all_edges_unique)
         all_edges_unique.sort()

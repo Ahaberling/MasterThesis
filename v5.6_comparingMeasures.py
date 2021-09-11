@@ -139,7 +139,7 @@ if __name__ == '__main__':
     list_of_allArrays_threshold, list_of_allArrays_rowNorm = ComparativeMeasures.normalized_and_binarize(list_of_allArrays, threshold=0.01, leeway=True)
 
 
-    # fine diffusion position
+    # find diffusion position
     #modArray_dict = {}
     diffusion_pos_list = []
     diffusion_length_list = []
@@ -315,75 +315,101 @@ if __name__ == '__main__':
     column_lists = [columns_reference_reco, recombinationArray_Topics_lp_columns, recombinationArray_Topics_gm_columns, recombinationArray_Topics_kc_columns, recombinationArray_Topics_l2_columns, columns_recom_edgeWeight]
     columns_list_names = ['columns_reference_reco', 'recombinationArray_Topics_lp_columns', 'recombinationArray_Topics_gm_columns', 'recombinationArray_Topics_kc_columns', 'recombinationArray_Topics_l2_columns', 'columns_recom_edgeWeight']
 
+    print(len(recombinationDiffusion_edgeWeight.T))
+    print(len(columns_recom_edgeWeight))
+    print(len(np.unique(columns_recom_edgeWeight, axis=0)))
+
     recoArrays_list = [pattern_array_reference_reco, recombinationArray_Topics_lp, recombinationArray_Topics_gm,
                        recombinationArray_Topics_kc, recombinationArray_Topics_l2, recombinationDiffusion_edgeWeight]
-    recoArrays_list_cD_correction = []      #insert approach 1 and 3 as well
 
-    # INSERT cd_modification
-    for cd_array in recoArrays_list[1:5]:
+    for array in recoArrays_list:
+        columSum_vec = np.sum(array, axis= 0)
+        print(np.where(columSum_vec == 0))
+        #todo: why is this not empty for lp????
 
-        for j in range(len(cd_array.T)):
+    ComparativeMeasures.extend_cD_recombinationDiffuion(recoArrays_list, 12, 1, 5)
 
-            for i in range(len(cd_array)-2, -1, -1):    # -2 because otherwise i+1 would cause problems in the following lines
-
-                if cd_array[i,j] >= 1:
-                    if len(cd_array[i:,j]) >= 12:
-                        for k in range(1,12):
-                            cd_array[i+k,j] = cd_array[i+k,j]+cd_array[i,j]
-                    else:
-                        for k in range(1,len(cd_array[i:,j])):
-                            cd_array[i+k,j] = cd_array[i+k,j]+cd_array[i,j]
-
+    #recoArrays_list_mod = [recoArrays_list[0], extend_cD_arrays[:], recoArrays_list[-1]]
 
     recoArrays_threshold_list, recoArrays_rowNorm_list = ComparativeMeasures.normalized_and_binarize(recoArrays_list, threshold=0.01, leeway=True)
 
+    #print(sum(sum(recoArrays_threshold_list[0])))
+    #print(sum(sum(recoArrays_threshold_list[1])))
 
-    #for i in range(len(column_lists)):
-        #column_lists[i] = [tuple(x) for x in column_lists[i]]
+    extended_threshold_arrays = ComparativeMeasures.extend_recombination_columns(column_lists, recoArrays_threshold_list)
+    #extended_threshold_arrays = ComparativeMeasures.extend_recombination_columns(column_lists, recoArrays_list)
 
-    #for i in column_lists:
-        #print(len(i))
+    # delete collumns if they are 0 in all matrices
 
-    all_recombs = [item for sublist in column_lists for item in sublist]
-    print(len(all_recombs))
+    columSum_vec_list = []
+    for array in extended_threshold_arrays:
+        columSum_vec = np.sum(array, axis=0)
+        columSum_vec_list.append(columSum_vec)
+        print(len(columSum_vec))
 
-    all_recombs = np.unique(all_recombs, axis=0)
-    #all_recombs = list(np.unique(all_recombs, axis=0))
-    print(len(all_recombs))
+    columSum_vec_summed = np.sum(columSum_vec_list, axis=0)
+    topicExclusionPosition = np.where(columSum_vec_summed == 0)
+    print(topicExclusionPosition)
 
-    all_recombs = [tuple(x) for x in all_recombs]
-    #print(all_recombs)
-    #all_recombs = np.array(all_recombs)
+    resized_threshold_arrays = []
+    for array in extended_threshold_arrays:
+        resized_threshold_arrays.append(np.delete(array, topicExclusionPosition, 1))
 
-
-
-
-    for i in range(len(column_lists)):
-        extended_array = recoArrays_threshold_list[i]
-        recomb_pos_list = []
-        for recomb in column_lists[i]:
-            recomb_pos = all_recombs.index(tuple(recomb))
-            recomb_pos_list.append(recomb_pos)
-            #break
-        c = 0
-
-        #print(len(extended_array.T))
-
-        tuple_list = [tuple(x) for x in column_lists[i]]
-
-        #print(tuple_list)
-        for element in all_recombs:
-            #print(element)
-            if element not in tuple_list:
-                extended_array = np.c_[extended_array[:,:c], np.zeros(len(extended_array)), extended_array[:,c:]]
-
-            c = c + 1
-        extended_array = extended_array.astype(int)
-        print(len(all_recombs))
-        print(len(extended_array.T))
-        print(np.max(extended_array))
-
-        break
+    for array in resized_threshold_arrays:
+        print(np.shape(array))
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+    '''
+    # find diffusion position
+    # modArray_dict = {}
+    recomb_pos_list = []
+    recomb_length_list = []
+    for i in range(len(recoArrays_list)):
+        recomb_pos = ComparativeMeasures.find_recombination(recoArrays_list[i])
+        recomb_length_list.append(recomb_pos)
+
+    # fine diffusion length
+    min_diffusion_threshold = 1
+    for i in range(len(list_of_allArrays_threshold)):
+        diffusion_length = ComparativeMeasures.find_diffusion(list_of_allArrays_threshold[i], diffusion_pos_list[i])
+        diffusion_length = [entry for entry in diffusion_length if
+                            entry[2] >= min_diffusion_threshold]  # [row, column, diffusionDuration]
+        diffusion_length_list.append(diffusion_length)
+
+    # get descriptives
+    for i in range(len(list_of_allArrays_threshold)):
+        diff_count_per_topic, diff_duration_per_topic = ComparativeMeasures.get_nonSimilarity_descriptives(
+            diffusionArray_Topics_lp_columns, diffusion_length_list[i])
+        avg_duration_withinTopic = []
+        for j in diff_duration_per_topic:
+            if j != []:
+                avg_duration_withinTopic.append(np.mean(j))
+
+        threshold_array = list_of_allArrays_threshold[i]
+        size_threshold_array = np.size(threshold_array)
+        sum_threshold_array = np.sum(threshold_array)
+        topic_sum_vec = np.sum(threshold_array, axis=0)
+        avg_entry_per_topic = np.mean(topic_sum_vec)
+
+        print('\n', list_of_allArrays_names[i])
+        print('Number of Diffusion Cycles total: ', len(diffusion_length_list[i]))
+        print('Average number of Diffusion Cycles per topic: ', (sum(diff_count_per_topic) / len(diff_count_per_topic)))
+        print('Number of diffusion entries total: ', sum_threshold_array, ' of ', size_threshold_array)
+        print('Average number of diffusion entries per topic: ', avg_entry_per_topic, ' of ', len(threshold_array))
+        print('Average diffusion length: ', np.mean(avg_duration_withinTopic), 'max: ', max(avg_duration_withinTopic),
+              'min: ',
+              min(avg_duration_withinTopic), 'median: ', np.median(avg_duration_withinTopic), 'mode: ',
+              statistics.mode(avg_duration_withinTopic))
+    '''
