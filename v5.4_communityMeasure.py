@@ -20,12 +20,12 @@ if __name__ == '__main__':
 
     from utilities.my_measure_utils import CommunityMeasures
 
-
+    '''
     community_dict_lp = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='label_propagation', weight_bool=True)
     community_dict_gm = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='greedy_modularity')
     community_dict_kc = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='k_clique', k_clique_size=3)
     community_dict_l2 = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='lais2')
-    '''
+    
     filename = 'community_dict_lp'
     outfile = open(filename, 'wb')
     pk.dump(community_dict_lp, outfile)
@@ -45,9 +45,9 @@ if __name__ == '__main__':
     outfile = open(filename, 'wb')
     pk.dump(community_dict_l2, outfile)
     outfile.close()
-    
+    '''
     # --- Transform data structure ---#
-
+    #'''
     with open('community_dict_lp', 'rb') as handle:
         community_dict_lp = pk.load(handle)
     
@@ -59,7 +59,7 @@ if __name__ == '__main__':
 
     with open('community_dict_l2', 'rb') as handle:
         community_dict_l2 = pk.load(handle)
-    '''
+    #'''
 
     community_dict_transf_lp = CommunityMeasures.align_cD_dataStructure(community_dict_lp, cD_algorithm='label_propagation')
     community_dict_transf_gm = CommunityMeasures.align_cD_dataStructure(community_dict_gm, cD_algorithm='greedy_modularity')
@@ -170,10 +170,10 @@ if __name__ == '__main__':
 
     # ---  cleaning topD_dic ---#
 
-    topD_communityID_association_accumulated_cleanID_lp = CommunityMeasures.create_cleaningIndex_associationAccumulated(topD_communityID_association_accumulated_lp, community_dict_topD_lp)
-    topD_communityID_association_accumulated_cleanID_gm = CommunityMeasures.create_cleaningIndex_associationAccumulated(topD_communityID_association_accumulated_gm, community_dict_topD_gm)
-    topD_communityID_association_accumulated_cleanID_kc = CommunityMeasures.create_cleaningIndex_associationAccumulated(topD_communityID_association_accumulated_kc, community_dict_topD_kc)
-    topD_communityID_association_accumulated_cleanID_l2 = CommunityMeasures.create_cleaningIndex_associationAccumulated(topD_communityID_association_accumulated_l2, community_dict_topD_l2)
+    topD_communityID_association_accumulated_cleanID_lp = CommunityMeasures.create_cleaningIndex_associationAccumulated(topD_communityID_association_accumulated_lp, community_dict_topD_lp, patentProject_graphs)
+    topD_communityID_association_accumulated_cleanID_gm = CommunityMeasures.create_cleaningIndex_associationAccumulated(topD_communityID_association_accumulated_gm, community_dict_topD_gm, patentProject_graphs)
+    topD_communityID_association_accumulated_cleanID_kc = CommunityMeasures.create_cleaningIndex_associationAccumulated(topD_communityID_association_accumulated_kc, community_dict_topD_kc, patentProject_graphs)
+    topD_communityID_association_accumulated_cleanID_l2 = CommunityMeasures.create_cleaningIndex_associationAccumulated(topD_communityID_association_accumulated_l2, community_dict_topD_l2, patentProject_graphs)
 
     topD_communityID_association_accumulated_clean_lp = CommunityMeasures.cleaning_associationAccumulated(topD_communityID_association_accumulated_lp, topD_communityID_association_accumulated_cleanID_lp)
     topD_communityID_association_accumulated_clean_gm = CommunityMeasures.cleaning_associationAccumulated(topD_communityID_association_accumulated_gm, topD_communityID_association_accumulated_cleanID_gm)
@@ -191,6 +191,13 @@ if __name__ == '__main__':
 
     lp_recombination_diffusion_crip_count_v2, lp_recombination_diffusion_crip_fraction_v2, lp_recombination_diffusion_crip_threshold_v2, lp_recombination_diffusion_crip_columns = \
         CommunityMeasures.recombination_diffusion_crip_v2(topD_communityID_association_accumulated_clean_lp, recombination_dict_lp, patentProject_graphs)
+
+    import numpy as np
+    print(len(lp_recombination_diffusion_crip_count_v2.T))
+    columSum_vec = np.sum(lp_recombination_diffusion_crip_count_v2, axis=0)
+    print(len(columSum_vec))
+    pos = np.where(columSum_vec == 0)
+    print(pos)
 
     gm_recombination_diffusion_crip_count_v2, gm_recombination_diffusion_crip_fraction_v2, gm_recombination_diffusion_crip_threshold_v2, gm_recombination_diffusion_crip_columns = \
         CommunityMeasures.recombination_diffusion_crip_v2(topD_communityID_association_accumulated_clean_gm, recombination_dict_gm, patentProject_graphs)

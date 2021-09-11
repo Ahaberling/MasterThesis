@@ -582,17 +582,21 @@ class CommunityMeasures:
     def community_labeling(tracingArray, community_dict_topD, patentProject_graphs):
 
         ### Create dict with all unique topD per window
+        #the recombination dict indicates, that topD_dic should contain community 119 and 37 in window 89 aka 2670.
+        #Otherwise recombination dict is faulty
         topD_dic = {}
         topD_dic_unique = {}
 
         for row in range(len(tracingArray)):
-
+            if row == 89:
+                print(1 + 1)
             topD_dic_unique['window_{0}'.format(row * 30)] = np.unique(tracingArray[row, :])[1:]
 
             # ---------#
             # new approach #
             topD_pos = {}
             for i in range(len(tracingArray[row, :])):
+
                 if tracingArray[row,i] != 0:
                     if tracingArray[row,i] in topD_pos.keys():
                         topD_pos[tracingArray[row,i]].append(i)
@@ -1019,11 +1023,13 @@ class CommunityMeasures:
         return recombinations_dic_with_thresholds
 
     @staticmethod
-    def create_cleaningIndex_associationAccumulated(topD_communityID_association_accumulated, community_dict_topD):
+    def create_cleaningIndex_associationAccumulated(topD_communityID_association_accumulated, community_dict_topD, patentProject_graphs):
         merging_communities_dic = {}
-
+        # window 1140 should contain 37 and 90
         for i in range(len(topD_communityID_association_accumulated) - 1):
 
+            if i == 89:
+                print(1+1)
             #if i == 25:
                 #print(1 + 1)
             #if i == 185:
@@ -1077,9 +1083,9 @@ class CommunityMeasures:
 
                         while community_death == False:  # [288465877, 287698910, 286963357, 289531190]
 
-                            all_id_in_next_window = [item for sublist in community_dict_topD['window_{0}'.format((j + 1) * 30)] for
-                                                     item in sublist]
-                            all_id_in_next_window = [item for sublist in all_id_in_next_window for item in sublist]
+                            all_id_in_next_window = list(patentProject_graphs['window_{0}'.format((j + 1) * 30)].nodes())
+                            #all_id_in_next_window = [item for sublist in community_dict_topD['window_{0}'.format((j + 1) * 30)] for item in sublist]
+                            #all_id_in_next_window = [item for sublist in all_id_in_next_window for item in sublist]
 
                             # todo: CHECK FOR ALL WITHIN A WINDOW (IF ALL DISAPPEAR)
                             # 237 in window 185 is not in swallowed?
@@ -1111,6 +1117,8 @@ class CommunityMeasures:
         for i in range(len(topD_communityID_association_accumulated_cleanID)):
             window_id = 'window_{0}'.format(i * 30)
             window = topD_communityID_association_accumulated_cleanID[window_id]
+            if i == 79:
+                print(1+1)
 
             for cleaning_entry in window:
                 community_id = cleaning_entry[1]
@@ -1202,8 +1210,14 @@ class CommunityMeasures:
             for recombination in recombination_dict['window_{0}'.format(l * 30)]:
                 community_id1 = recombination[1][0][1][0]
                 community_id2 = recombination[1][1][1][0]
-                recombinations_all.append((community_id1, community_id2))
-                recombinations_window.append((community_id1, community_id2))
+                if community_id1 < community_id2:
+                    recombinations_all.append((community_id1, community_id2))
+                    recombinations_window.append((community_id1, community_id2))
+                elif community_id1 > community_id2:
+                    recombinations_all.append((community_id2, community_id1))
+                    recombinations_window.append((community_id2, community_id1))
+                else:
+                    raise Exception("recombination dictionary contains recombinations between the same communities")
 
             recombinations_dic['window_{0}'.format((l - 1) * 30)] = recombinations_window
         # print(len(recombinations_dic))
@@ -1227,6 +1241,7 @@ class CommunityMeasures:
 
         # print(recombinations_all)
         column_length = len(recombinations_all)
+        # column 79 = (37, 90)
 
         # recombinationDiffusion_count = np.zeros((row_length, column_length), dtype=int)
         recombinationDiffusion_count = np.zeros((row_length, column_length), dtype=int)
@@ -1246,14 +1261,22 @@ class CommunityMeasures:
                 # Recombinations are identified over community id. These community id's are dominant.
                 # print(recombinations_all[j])
                 # print(recombinations_dic['window_{0}'.format(i*30)])
+
                 recombination_count = recombinations_dic['window_{0}'.format(i * 30)].count(recombinations_all[j])
                 # print(recombination_count)
                 #if recombination_count >=2:
                     #print(i*30)
 
                 if recombination_count != 0:
+                    if j == 89:
+                        print(recombinations_all[j])
+                        print(recombinations_dic['window_{0}'.format(i * 30)])
+                        print(1 + 1)
                     # this count has to be placed in all columns that are the same recombination under different community ids
                     # (e.g. because of a community merge where the dominant id overwrite the original one used in the prior recombination
+
+                    big_community1 = []
+                    big_community2 = []
 
                     # print(list(window_topD_dic.values()))
                     for k in range(len(list(window_topD_dic.values()))):

@@ -359,7 +359,7 @@ if __name__ == '__main__':
         print(np.shape(array))
 
 
-
+    #todo either community labeling or the recombination dict is wrong. the later indicates that the former should have  community id 37 and 119 in window 89 aka 2670
 
 
 
