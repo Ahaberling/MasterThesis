@@ -5,20 +5,12 @@ if __name__ == '__main__':
 
     # Utility
     import os
-    import tqdm
-    import itertools
     import statistics
-    import pickle as pk
 
     # Data handling
     import numpy as np
     import pandas as pd
-
-    # NLP
-    import nltk
-    import spacy
-    import gensim.corpora as corpora
-    import gensim.models as gensim_models
+    import pickle as pk
 
 
 
@@ -40,11 +32,13 @@ if __name__ == '__main__':
 
     from utilities.my_text_utils import PatentCleaning
 
+    print('Number of all patents : ', len(patents_raw))
+
     # Remove non-english patents
     patents_raw, number_removed_patents_ger = PatentCleaning.remove_foreign_patents(patents_raw, language='ger', count=True)
     patents_english, number_removed_patents_fr = PatentCleaning.remove_foreign_patents(patents_raw, language='fr', count=True)
 
-    print('Number of all patents: ', len(patents_english))
+    print('Number of all english patents: ', len(patents_english))
     print('Number of german patents removed: ', number_removed_patents_ger)
     print('Number of french patents removed: ', number_removed_patents_fr)
 
@@ -106,7 +100,9 @@ if __name__ == '__main__':
 
     # Exclude of patent with id 365546649
     position = np.where(patents_english_IPC[:,0] == 365546649)
+    #print(len(patents_english_IPC))
     patents_english_IPC_cleaned = np.delete(patents_english_IPC, position, 0)
+    #print(len(patents_english_IPC_cleaned))
 
     # Revisite IPC distribution with cleaned data + other descriptives:
 
@@ -127,7 +123,7 @@ if __name__ == '__main__':
     ipc_list_class = []
     ipc_list_sec = []
 
-    for patent in patents_english_IPC:
+    for patent in patents_english_IPC_cleaned:
         for ipc in range(0, len(patent[8:]), 3):
             if patent[8:][ipc] != None:
                 ipc_list_group.append(patent[8:][ipc])
@@ -135,6 +131,7 @@ if __name__ == '__main__':
                 ipc_list_class.append(patent[8:][ipc][0:3])
                 ipc_list_sec.append(patent[8:][ipc][0:1])
 
+    print(len(patents_english_IPC_cleaned))
     print('Number of all classifications over all patents: ', len(ipc_list_group))
 
     ipc_list_group_unique = np.unique(ipc_list_group)
@@ -188,29 +185,13 @@ if __name__ == '__main__':
     val, count = np.unique(patent_time, return_counts=True)
     print('Number of days with publications: ', len(val))  # On 817 days publications were made
     # -> on average every 7.37698898409 days a patent was published
+    print('Average publication cycle: ', max_timeSpan / len(val))
+
+    import matplotlib.pyplot as plt
 
     # number of months: 5 + 16*12 + 1 = 198
-
-    import random
-    import matplotlib.pyplot as plt
-    import matplotlib.dates as mdates
-
-    # generate some random data (approximately over 5 years)
-    data = [float(random.randint(1271517521, 1429197513)) for _ in range(1000)]
-
-
-    # convert the epoch format to matplotlib date format
-    mpl_data = mdates.epoch2num(data)
-
-    print(mpl_data)
-    print(patent_time)
-
-    # plot it
     fig, ax = plt.subplots(1, 1)
     ax.hist(patent_time, bins=198, color='darkblue')
-    locator = mdates.AutoDateLocator()
-    ax.xaxis.set_major_locator(locator)
-    ax.xaxis.set_major_formatter(mdates.AutoDateFormatter(locator))
     #plt.title("Histogram: Monthly number of patent publications")
     plt.xlabel("Publication time span")
     plt.ylabel("Number of patents published")
@@ -218,5 +199,6 @@ if __name__ == '__main__':
     os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Plots')
     plt.savefig('hist_publications.png')
     os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
+
     plt.close()
 
