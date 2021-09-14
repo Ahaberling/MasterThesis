@@ -147,7 +147,7 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
     fig, ax = plt.subplots(1, 1)
-    ax.hist(ipc_list_1, bins=8, color='darkblue')
+    ax.hist(ipc_list_1, bins=8, color='darkred')
     #locator = mdates.AutoDateLocator()
     #ax.xaxis.set_major_locator(locator)
     #ax.xaxis.set_major_formatter(mdates.AutoDateFormatter(locator))
