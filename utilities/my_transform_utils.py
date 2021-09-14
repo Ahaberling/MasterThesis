@@ -61,16 +61,14 @@ class Transf_misc:
         return array_filled
 
     @staticmethod
-    def fill_with_IPC(array_toBeFilled, ipcs, max_numIPC):
+    def fill_with_IPC(array_toBeFilled, patent_IPC, max_numIPC):
         count_list = []
         count_l = 0
 
-        for i in ipcs:
+        for i in patent_IPC:
 
-            if i[0] in array_toBeFilled[:,
-                       0]:  # For each row in patent_IPC, check if id in patent_join (identical to patent_transf)
-                count_l = count_list.count(
-                    i[0])  # Retrieve how often the id has been seen yet (how often ipc's where appended already
+            if i[0] in array_toBeFilled[:, 0]:  # For each row in patent_IPC, check if id in patent_join (identical to patent_transf)
+                count_l = count_list.count(i[0])  # Retrieve how often the id has been seen yet (how often ipc's where appended already
 
                 # if patent_join[patent_join[:,0] == i[0],-(new_space_needed-count_l*3)] == None:
 

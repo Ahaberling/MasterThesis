@@ -71,10 +71,20 @@ if __name__ == '__main__':
         raise Exception("Error: patent_transf contains non-unqiue patents")
 
 
+    import statistics
+
     ### Find biggest number of IPCs a patent has (new space) ###
+    #print(patent_IPC)
     patent_IPC_clean = [i[0] for i in patent_IPC if i[0] in patent_transf[:, 0]]
+    #print(patent_IPC_clean)
     val, count = np.unique(patent_IPC_clean, return_counts=True)
+    #print(count)
     new_space_needed = max(count) * 3       # x * 3 = x3 additional columns are needed in the new array
+    print(max(count))   # x * 3 = x3 additional columns are needed in the new array
+    print(min(count))   # x * 3 = x3 additional columns are needed in the new array
+    print(np.mean(count))   # x * 3 = x3 additional columns are needed in the new array
+    print(np.median(count))   # x * 3 = x3 additional columns are needed in the new array
+    print(statistics.mode(count))   # x * 3 = x3 additional columns are needed in the new array
 
     ### New array, including space for IPC's ###
     patent_join = np.empty((np.shape(patent_transf)[0], np.shape(patent_transf)[1] + new_space_needed), dtype=object)
@@ -83,6 +93,58 @@ if __name__ == '__main__':
 
     ### Fill new array ###
     patent_join = Transf_misc.fill_with_IPC(patent_join, patent_IPC, new_space_needed)
+
+    ipc_list_full = []
+    ipc_list_4 = []
+    ipc_list_3 = []
+    ipc_list_2 = []
+    ipc_list_1 = []
+    # number of ipcs in dataset
+    for patent in patent_join:
+        #print(patent[23:])
+        #print(patent)
+        #print(len(patent[23:]))
+        for ipc in range(0,len(patent[23:]),3):
+            #print(ipc)
+            if patent[23:][ipc] != None:
+                ipc_list_full.append(patent[23:][ipc])
+                ipc_list_4.append(patent[23:][ipc][0:4])
+                ipc_list_3.append(patent[23:][ipc][0:3])
+                ipc_list_2.append(patent[23:][ipc][0:2])
+                ipc_list_1.append(patent[23:][ipc][0:1])
+
+    print("\n full:")
+    print(ipc_list_full[0])
+    print(len(ipc_list_full))
+    ipc_list_full = np.unique(ipc_list_full)
+    print(len(ipc_list_full))
+
+    print("\n 4:")
+    print(ipc_list_4[0])
+    print(len(ipc_list_4))
+    ipc_list_4 = np.unique(ipc_list_4)
+    print(len(ipc_list_4))
+
+    print("\n 3:")
+    print(ipc_list_3[0])
+    print(len(ipc_list_3))
+    ipc_list_3 = np.unique(ipc_list_3)
+    print(len(ipc_list_3))
+
+    print("\n 2:")
+    print(ipc_list_2[0])
+    print(len(ipc_list_2))
+    ipc_list_2 = np.unique(ipc_list_2)
+    print(len(ipc_list_2))
+
+    print("\n 1:")
+    print(ipc_list_1[0])
+    print(len(ipc_list_1))
+    ipc_list_1 = np.unique(ipc_list_1)
+    print(len(ipc_list_1))
+
+
+        #ipc_list.append(patent[1,23:])
 
     ### check if all created columns are used ###
 
