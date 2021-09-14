@@ -9,6 +9,7 @@ if __name__ == '__main__':
     import os
     import tqdm
     import itertools
+    import pickle as pk
 
     # Data handling
     import numpy as np
@@ -32,8 +33,11 @@ if __name__ == '__main__':
 
     # Import data
     os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
-    patent_raw = pd.read_csv('cleaning_robot_EP_patents.csv', quotechar='"', skipinitialspace=True)
-    patent_raw = patent_raw.to_numpy()
+    #patent_raw = pd.read_csv('cleaning_robot_EP_patents.csv', quotechar='"', skipinitialspace=True)
+    #patent_raw = patent_raw.to_numpy()
+
+    with open('patents_english_cleaned', 'rb') as handle:
+        patents_english_cleaned = pk.load(handle)
 
     # Nlp misc
     nltk.download('punkt')  # nltk tokenizer
@@ -71,7 +75,7 @@ if __name__ == '__main__':
                  'axis', 'position', 'operative', 'operatively', 'prepare', 'operable', 'move', 'receive', 'adapt', 'configure',
                  'movable', 'create', 'separate', 'design', 'identification', 'identify', 'joint', 'qf', 'zmp', 'llld', 'ik']
 
-
+    '''
 
     # --- Patent Cleaning ---#
     print('\n#--- Patent Cleaning ---#\n')
@@ -92,7 +96,7 @@ if __name__ == '__main__':
 
     print('Number abstracts containing', term_clean, ': ', number_abstracts_term_clean)
     print('Number abstracts containing', term_robot, ': ', number_abstracts_robot)
-
+    '''
 
 
     # --- Abstract Cleaning ---#
@@ -100,7 +104,7 @@ if __name__ == '__main__':
     from utilities.my_text_utils import AbstractCleaning
 
     # Remove non-alphabetic characters and single character terms; make all terms lower case
-    abs_intermed_preproc = AbstractCleaning.vectorize_preprocessing(patent_raw[:, 6])
+    abs_intermed_preproc = AbstractCleaning.vectorize_preprocessing(patents_english_cleaned[:, 6])
 
     # Apply tokenization
     abst_tokenized = [nltk.word_tokenize(abstract) for abstract in abs_intermed_preproc]
