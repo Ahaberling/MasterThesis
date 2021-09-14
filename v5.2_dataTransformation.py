@@ -141,6 +141,7 @@ if __name__ == '__main__':
     print(ipc_list_1[0])
     print(len(ipc_list_1))
     ipc_list_1 = np.unique(ipc_list_1)
+    print(ipc_list_1)
     print(len(ipc_list_1))
 
 
