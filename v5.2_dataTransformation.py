@@ -113,6 +113,9 @@ if __name__ == '__main__':
                 #ipc_list_2.append(patent[23:][ipc][0:2])
                 ipc_list_1.append(patent[23:][ipc][0:1])
 
+                if patent[23:][ipc][0] == 'D':
+                    print(patent)
+
     print("\n full:")
     print(ipc_list_full[0])
     print(len(ipc_list_full))
@@ -144,6 +147,8 @@ if __name__ == '__main__':
     print(ipc_list_1_clean)
     print(len(ipc_list_1_clean))
 
+
+
     import matplotlib.pyplot as plt
 
     fig, ax = plt.subplots(1, 1)
@@ -152,8 +157,8 @@ if __name__ == '__main__':
     #ax.xaxis.set_major_locator(locator)
     #ax.xaxis.set_major_formatter(mdates.AutoDateFormatter(locator))
     #plt.title("Histogram: Monthly number of patent publications")
-    plt.xlabel("Publication time span")
-    plt.ylabel("Number of patents published")
+    plt.xlabel("International Patent Classification - Sections")
+    plt.ylabel("Number of Patents")
     plt.show()
 
     #os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Plots')
