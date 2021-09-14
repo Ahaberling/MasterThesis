@@ -97,7 +97,7 @@ if __name__ == '__main__':
     ipc_list_full = []
     ipc_list_4 = []
     ipc_list_3 = []
-    ipc_list_2 = []
+    #ipc_list_2 = []            # Makes no sense
     ipc_list_1 = []
     # number of ipcs in dataset
     for patent in patent_join:
@@ -110,7 +110,7 @@ if __name__ == '__main__':
                 ipc_list_full.append(patent[23:][ipc])
                 ipc_list_4.append(patent[23:][ipc][0:4])
                 ipc_list_3.append(patent[23:][ipc][0:3])
-                ipc_list_2.append(patent[23:][ipc][0:2])
+                #ipc_list_2.append(patent[23:][ipc][0:2])
                 ipc_list_1.append(patent[23:][ipc][0:1])
 
     print("\n full:")
@@ -131,18 +131,34 @@ if __name__ == '__main__':
     ipc_list_3 = np.unique(ipc_list_3)
     print(len(ipc_list_3))
 
-    print("\n 2:")
-    print(ipc_list_2[0])
-    print(len(ipc_list_2))
-    ipc_list_2 = np.unique(ipc_list_2)
-    print(len(ipc_list_2))
+    #print("\n 2:")
+    #print(ipc_list_2[0])
+    #print(len(ipc_list_2))
+    #ipc_list_2 = np.unique(ipc_list_2)
+    #print(len(ipc_list_2))
 
     print("\n 1:")
     print(ipc_list_1[0])
     print(len(ipc_list_1))
-    ipc_list_1 = np.unique(ipc_list_1)
-    print(ipc_list_1)
-    print(len(ipc_list_1))
+    ipc_list_1_clean = np.unique(ipc_list_1)
+    print(ipc_list_1_clean)
+    print(len(ipc_list_1_clean))
+
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(1, 1)
+    ax.hist(ipc_list_1, bins=8, color='darkblue')
+    #locator = mdates.AutoDateLocator()
+    #ax.xaxis.set_major_locator(locator)
+    #ax.xaxis.set_major_formatter(mdates.AutoDateFormatter(locator))
+    #plt.title("Histogram: Monthly number of patent publications")
+    plt.xlabel("Publication time span")
+    plt.ylabel("Number of patents published")
+    plt.show()
+
+    #os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Plots')
+
+    #plt.savefig('hist_publications.png')
 
 
         #ipc_list.append(patent[1,23:])
