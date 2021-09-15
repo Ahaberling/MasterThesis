@@ -1,5 +1,6 @@
 import re
 import numpy as np
+import random
 
 class PatentCleaning:
 
@@ -57,6 +58,41 @@ class PatentCleaning:
                 check_list_term.append(i)
 
         return term, len(check_list_term)
+
+    @staticmethod
+    def stochastic_inestigation_IPCs(patents_english_IPC, level, identifier, sampleSize):
+
+        if level == 'section':
+            start = 0
+            end = 1
+        elif level == 'class':
+            start = 0
+            end = 3
+        elif level == 'subclass':
+            start = 0
+            end = 4
+        elif level == 'maingoup':
+            start = 0
+            end = -1
+        else:
+            raise Exception(
+                "'level' must be string 'section', 'class', 'subclass', or 'maingoup'. Subgoups are not present in the dataset, yet")
+
+        result_list = []
+        for patent in patents_english_IPC:
+            for ipc in range(0, len(patent[8:]), 3):
+                if patent[8:][ipc] != None:
+                    if patent[8:][ipc][start:end] == identifier:
+                        # print(patent, '\n')
+                        result_list.append((patent[8:][ipc], list(np.r_[patent[0], patent[5:7]])))
+                        # result_list.append((level, identifier, patent[8:][ipc]))
+
+        sample_list = []
+        for i in range(0, sampleSize):
+            rand_pos = random.randint(0, len(result_list) - 1)
+            sample_list.append((result_list[rand_pos][0:])) #[0:4])) #, result_list[rand_pos][1]))
+
+        return sample_list
 
 
 class AbstractCleaning:

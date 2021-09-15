@@ -73,26 +73,22 @@ if __name__ == '__main__':
     from utilities.my_transform_utils import Transf_misc
     patents_english_IPC = Transf_misc.fill_with_IPC(patents_english_IPC, patents_IPC, new_space_needed)
 
-    # Distribution of IPCs on section level
-    ipc_list_sec = []
+    # Check distribution of IPCs on section level
+    ipc_list_section = []
     for patent in patents_english_IPC:
         for ipc in range(0, len(patent[8:]), 3):
             if patent[8:][ipc] != None:
-                ipc_list_sec.append(patent[8:][ipc][0:1])
+                ipc_list_section.append(patent[8:][ipc][0:1])
 
-    # From a laymans point of view all sections can somewhat be resonably used to categorize cleaning robot patents.
-    # However, Category 'D' (Textiles; Paper) seems most unfitting:
-    val, count = np.unique(ipc_list_sec, return_counts=True)
+    val, count = np.unique(ipc_list_section, return_counts=True)
     print('IPC sections present in the data set: ', val)
     print('Distribution of these sections: ', count)
 
-    # 2 IPC classifications with section 'D' are identified -> closer investigation
-    print('Closer Investigation into patent/s with "D" IPC section: \n')
-    for patent in patents_english_IPC:
-        for ipc in range(0, len(patent[8:]), 3):
-            if patent[8:][ipc] != None:
-                if patent[8:][ipc][0] == 'D':
-                    print(patent, '\n')
+    # Stochastic investigation
+    print('Closer Investigation into patent/s')
+    x = PatentCleaning.stochastic_inestigation_IPCs(patents_english_IPC, 'class', 'A61', 10)
+    for i in range(len(x)):
+        print(x[i]) #, '\n')
 
     # Two patents exhibiting 'D'.
     # Inclusion of patent with id 55163657 seems arguable. Patent is kept in data set, following a conservative approach.
