@@ -12,6 +12,8 @@ if __name__ == '__main__':
     import pandas as pd
     import pickle as pk
 
+    # Visulization
+    import matplotlib.pyplot as plt
 
 
     # --- Initialization ---#
@@ -73,40 +75,39 @@ if __name__ == '__main__':
     from utilities.my_transform_utils import Transf_misc
     patents_english_IPC = Transf_misc.fill_with_IPC(patents_english_IPC, patents_IPC, new_space_needed)
 
-    # Check distribution of IPCs on section level
-    ipc_list_section = []
-    for patent in patents_english_IPC:
-        for ipc in range(0, len(patent[8:]), 3):
-            if patent[8:][ipc] != None:
-                ipc_list_section.append(patent[8:][ipc][0:1])
-
-    val, count = np.unique(ipc_list_section, return_counts=True)
-    print('IPC sections present in the data set: ', val)
-    print('Distribution of these sections: ', count)
-
     # Stochastic investigation
     print('Closer Investigation into patent/s')
+    print("('IPC', ['patent id', 'title', 'abstract')")
     x = PatentCleaning.stochastic_inestigation_IPCs(patents_english_IPC, 'class', 'A61', 10)
     for i in range(len(x)):
-        print(x[i]) #, '\n')
+        print(x[i])
 
-    # Two patents exhibiting 'D'.
-    # Inclusion of patent with id 55163657 seems arguable. Patent is kept in data set, following a conservative approach.
-    # Patent with id 365546649 is (broadly) concerned with dishwashers and seems unfitting for the overall case of cleaning robots.
+    # No super unfitting patents identified with stochastic search
+    # if unfitting patents are identified in future, then adapt this list to remove them from the data set
+    ids_unfitting_patents = []
 
-    # Exclude of patent with id 365546649
-    position = np.where(patents_english_IPC[:,0] == 365546649)
-    #print(len(patents_english_IPC))
-    patents_english_IPC_cleaned = np.delete(patents_english_IPC, position, 0)
-    #print(len(patents_english_IPC_cleaned))
+    # - patents_english_cleaned is used for following files. IPCs are appended in file v5.2_dataTransformation.py later on
+    #   This redundancy can be resolved in future work. Write now the redundancy is kept,
+    #   because I neither have the head space nor the time, to adjust the other files accordingly (list position/slicing shenanigans)
+    # - patents_english_IPC_cleaned is used for the following descriptives in this file
+    patents_english_cleaned = patents_english
+    patents_english_IPC_cleaned = patents_english_IPC
 
-    # Revisite IPC distribution with cleaned data + other descriptives:
+    for id in ids_unfitting_patents:
+
+        position = np.where(patents_english_cleaned[:, 0] == id)
+        patents_english_cleaned = np.delete(patents_english_cleaned, position, 0)
+
+        position2 = np.where(patents_english_IPC_cleaned[:, 0] == id)
+        patents_english_IPC_cleaned = np.delete(patents_english_IPC_cleaned, position2, 0)
+
+
+    # Descriptives: IPC distribution
 
     # Get only those patents_IPC entries that have a match in patents_english_IPC_cleaned (via patent id)
     patents_IPC_clean = [i[0] for i in patents_IPC if i[0] in patents_english_IPC_cleaned[:, 0]]
     val, count = np.unique(patents_IPC_clean, return_counts=True)
 
-    # Descriptives about IPC distribution in patents_english
     print('Max number of IPCs a patent has: ', max(count))
     print('Min number of IPCs a patent has: ', min(count))
     print('Average number of IPCs a patent has: ', np.mean(count))
@@ -117,7 +118,7 @@ if __name__ == '__main__':
     ipc_list_group = []
     ipc_list_subClass = []
     ipc_list_class = []
-    ipc_list_sec = []
+    ipc_list_section = []
 
     for patent in patents_english_IPC_cleaned:
         for ipc in range(0, len(patent[8:]), 3):
@@ -125,46 +126,40 @@ if __name__ == '__main__':
                 ipc_list_group.append(patent[8:][ipc])
                 ipc_list_subClass.append(patent[8:][ipc][0:4])
                 ipc_list_class.append(patent[8:][ipc][0:3])
-                ipc_list_sec.append(patent[8:][ipc][0:1])
+                ipc_list_section.append(patent[8:][ipc][0:1])
 
-    print(len(patents_english_IPC_cleaned))
     print('Number of all classifications over all patents: ', len(ipc_list_group))
 
     ipc_list_group_unique = np.unique(ipc_list_group)
     ipc_list_subClass_unique = np.unique(ipc_list_subClass)
     ipc_list_class_unique = np.unique(ipc_list_class)
-    ipc_list_sec_unique = np.unique(ipc_list_sec)
+    ipc_list_section_unique = np.unique(ipc_list_section)
     print('Number of unique IPCs on group level', len(ipc_list_group_unique))
     print('Number of unique IPCs on subclass level', len(ipc_list_subClass_unique))
     print('Number of unique IPCs on class level', len(ipc_list_class_unique))
-    print('Number of unique IPCs on section level', len(ipc_list_sec_unique))
+    print('Number of unique IPCs on section level', len(ipc_list_section_unique))
     print('\n')
 
-    # Visualization without odd cases
-    import matplotlib.pyplot as plt
+    # Visualization on section level
+
+    val, count = np.unique(ipc_list_section, return_counts=True)
+    print('IPC sections present in the data set: ', val)
+    print('Distribution of these sections: ', count)
+
     fig, ax = plt.subplots(1, 1)
-    ax.hist(sorted(ipc_list_sec), bins=8, color='darkred')
+    ax.hist(sorted(ipc_list_section), bins=8, color='darkred')
     plt.xlabel("International Patent Classification (IPC) - Sections")
     plt.ylabel("Number of IPCs")
 
     os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Plots')
     plt.savefig('IPC_distribution.png')
     os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
-
     plt.close()
-
-    # Patent with id 365546649  is not only exluded for patents_english_IPC but also for patents_english.
-    # The former is only created here for the descriptives. The later is used for the next step (topic modeling)
-    # Ipc are appends later on in file XXX. This redundancy can be resolved in future work. Write now the redundancy is kept,
-    # because I neither have the head space nor the time, to adjust the other files accordingly (list position/slicing shenanigans)
-    position = np.where(patents_english[:,0] == 365546649)
-    patents_english_cleaned = np.delete(patents_english, position, 0)
 
     filename = 'patents_english_cleaned'
     outfile = open(filename, 'wb')
     pk.dump(patents_english_cleaned, outfile)
     outfile.close()
-
 
 
     # --- Longitudinal Descriptives ---#
@@ -185,7 +180,9 @@ if __name__ == '__main__':
 
     import matplotlib.pyplot as plt
 
-    # number of months: 5 + 16*12 + 1 = 198
+    # number of months: 5*1              + 12        * 16       + 1*1               = 198
+    #                   5 months of 2001 + 12 months * 16 years + 1 months of 2018
+
     fig, ax = plt.subplots(1, 1)
     ax.hist(patent_time, bins=198, color='darkblue')
     #plt.title("Histogram: Monthly number of patent publications")
