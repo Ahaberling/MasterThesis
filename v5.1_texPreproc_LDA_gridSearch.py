@@ -103,6 +103,19 @@ if __name__ == '__main__':
 
     from utilities.my_text_utils import AbstractCleaning
 
+    #Number of words in Abstracts pre preprocessing
+
+    patents_english_cleaned[:, 6]
+    def number_of_word_pre_preprocessing(patents):
+            word_list = []
+            for abstract in patents:
+                for word in abstract:
+                    word_list.append(word.lower())
+
+                word_list = np.unique(word_list)
+
+        return len(word_list)
+
     # Remove non-alphabetic characters and single character terms; make all terms lower case
     abs_intermed_preproc = AbstractCleaning.vectorize_preprocessing(patents_english_cleaned[:, 6])
 
@@ -134,14 +147,17 @@ if __name__ == '__main__':
     print('\n#--- Building LDAs ---#\n')
 
     # Prepare dataframe with column for topic distributions (LDA result)
-    patent_wTopics = np.empty((np.shape(patent_raw)[0], np.shape(patent_raw)[1] + 1), dtype=object)
-    patent_wTopics[:, :-1] = patent_raw
+    patent_wTopics = np.empty((np.shape(patents_english_cleaned)[0], np.shape(patents_english_cleaned)[1] + 1), dtype=object)
+    patent_wTopics[:, :-1] = patents_english_cleaned
 
     # Create Dictionary
     id2word = corpora.Dictionary(abst_clean)
+    print(id2word)
+    print(len(id2word))
 
     # Create Corpus
     corpus = [id2word.doc2bow(text) for text in abst_clean]
+
 
     ### Build LDA model - Gensim ###
     if final_model_gensim == True:
