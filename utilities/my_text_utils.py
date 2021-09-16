@@ -1,6 +1,7 @@
 import re
 import numpy as np
 import random
+import nltk
 
 class PatentCleaning:
 
@@ -98,6 +99,52 @@ class PatentCleaning:
 class AbstractCleaning:
 
     @staticmethod
+    def number_of_word_pre_preprocessing(patents):
+        word_list = []
+        numberOfWords_abstract = []
+        numberOfWords_abstract_unique = []
+        number_less_20_abstract = 0
+
+        for abstract in patents:
+            words_inAbstract = []
+            onlyAlphabetic = re.sub('[^A-Za-z]', ' ', abstract)
+            tokenized_abstract = nltk.word_tokenize(onlyAlphabetic)
+
+            for word in tokenized_abstract:
+                word_list.append(word.lower())
+                words_inAbstract.append(word.lower())
+
+            words_inAbstract_unique = np.unique(words_inAbstract)
+
+            if len(words_inAbstract) <= 20:
+                number_less_20_abstract = number_less_20_abstract + 1
+
+            numberOfWords_abstract.append(len(words_inAbstract))
+            numberOfWords_abstract_unique.append(len(words_inAbstract_unique))
+
+        word_list_unique = np.unique(word_list)
+
+        return len(word_list_unique), numberOfWords_abstract, numberOfWords_abstract_unique, number_less_20_abstract
+
+    @staticmethod
+    def number_of_word_post_preprocessing(cleaned_abstracts):
+        numberOfWords_abstract = []
+        numberOfWords_abstract_unique = []
+
+        for abstract in cleaned_abstracts:
+            words_inAbstract = []
+
+            for word in abstract:
+                words_inAbstract.append(word)
+
+            words_inAbstract_unique = np.unique(words_inAbstract)
+
+            numberOfWords_abstract.append(len(words_inAbstract))
+            numberOfWords_abstract_unique.append(len(words_inAbstract_unique))
+
+        return numberOfWords_abstract_unique, numberOfWords_abstract
+
+    @staticmethod
     def preprocessing(text):
 
         text = re.sub('[^A-Za-z]', ' ', text)  # Remove non alphabetic characters
@@ -119,6 +166,17 @@ class AbstractCleaning:
     @staticmethod
     def make_bigrams(texts, bigram_mod):
         return [bigram_mod[doc] for doc in texts]
+
+    @staticmethod
+    def count_bigrams(abst_bigrams):
+        bigram_list = []
+        for abstract in abst_bigrams:
+            for word in abstract:
+                if '_' in word:
+                    bigram_list.append(word)
+        bigram_list = np.unique(bigram_list)
+
+        return bigram_list
 
     @staticmethod
     def lemmatization(texts, spacy_en, allowed_postags):

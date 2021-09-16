@@ -10,6 +10,7 @@ if __name__ == '__main__':
     import tqdm
     import itertools
     import pickle as pk
+    import statistics
 
     # Data handling
     import numpy as np
@@ -105,16 +106,25 @@ if __name__ == '__main__':
 
     #Number of words in Abstracts pre preprocessing
 
-    patents_english_cleaned[:, 6]
-    def number_of_word_pre_preprocessing(patents):
-            word_list = []
-            for abstract in patents:
-                for word in abstract:
-                    word_list.append(word.lower())
+    number_of_unqiue_lowercaseWords, numberOfWords_abstract, numberOfWords_abstract_unique, number_less_20_abstract = AbstractCleaning.number_of_word_pre_preprocessing(patents_english_cleaned[:, 6])
+    print('Number of all words after removing non-alphabetic characters and erasing case sensitivity: ', sum(numberOfWords_abstract))
+    print('Number of all unique words after removing non-alphabetic characters and erasing case sensitivity: ', number_of_unqiue_lowercaseWords)
 
-                word_list = np.unique(word_list)
+    print('Average Number of words per abstract: ', sum(numberOfWords_abstract) / len(numberOfWords_abstract))
+    print('Median Number of words per abstract: ', np.median(numberOfWords_abstract))
+    print('Mode Number of words per abstract: ', statistics.mode(numberOfWords_abstract))
+    print('Max Number of words per abstract: ', max(numberOfWords_abstract))
+    print('Min Number of words per abstract: ', min(numberOfWords_abstract))
 
-        return len(word_list)
+    print('Average Number of unique words per abstract: ', sum(numberOfWords_abstract_unique) / len(numberOfWords_abstract_unique))
+    print('Median Number of unique words per abstract: ', np.median(numberOfWords_abstract_unique))
+    print('Mode Number of unique words per abstract: ', statistics.mode(numberOfWords_abstract_unique))
+    print('Max Number of unique words per abstract: ', max(numberOfWords_abstract_unique))
+    print('Min Number of unique words per abstract: ', min(numberOfWords_abstract_unique))
+
+    print('Number of patents with 20 words or less: ', number_less_20_abstract)
+    print('All of these patents are kept for now. More domain knowledge might advise otherwise')
+    print('The value of 20 is chosen rather arbitrary for now. More domain knowledge might advise otherwise')
 
     # Remove non-alphabetic characters and single character terms; make all terms lower case
     abs_intermed_preproc = AbstractCleaning.vectorize_preprocessing(patents_english_cleaned[:, 6])
@@ -125,11 +135,16 @@ if __name__ == '__main__':
     # Apply term filters
     filter = list(itertools.chain(nltk_filter, numbers_filter, highConfidence_filter, mediumConfidence_filter))
     abst_nostops = [AbstractCleaning.remove_stopwords(abstract, filter) for abstract in abst_tokenized]
+    print('Number of words in filter: ', len(filter))
 
     # Build bigrams
-    bigram = gensim_models.Phrases(abst_nostops, min_count=5, threshold=100)  # higher threshold fewer phrases.
+    bigram = gensim_models.Phrases(abst_nostops, min_count=10, threshold=100)  # higher threshold fewer phrases.
     bigram_mod = gensim_models.phrases.Phraser(bigram)
     abst_bigrams = AbstractCleaning.make_bigrams(abst_nostops, bigram_mod)
+
+    bigram_list = AbstractCleaning.count_bigrams(abst_bigrams)
+    print('Exemplary bigrams mentioned in thesis: ', bigram_list[5], bigram_list[6] , bigram_list[16])
+    print('Number of unique bigrams in whole dictionary: ', len(bigram_list))
 
     # Apply lemmatization
     spacy_en = spacy.load("en_core_web_sm", disable=['parser', 'ner'])
@@ -141,7 +156,19 @@ if __name__ == '__main__':
     # todo check if bigrams (and everything else) at right place. Do we want 'an_independent_claim' and
     #  'also_included' to be tokens? (Assuming they are not cleaned by lemmatization)
 
+    # Descriptives after preprocessing
+    numberOfWords_abstract_unique, numberOfWords_abstract = AbstractCleaning.number_of_word_post_preprocessing(abst_clean)
+    print('Average number of tokens per abstract after preprocessing: ', sum(numberOfWords_abstract)/len(numberOfWords_abstract))
+    print('Median number of tokens per abstract after preprocessing: ', np.median(numberOfWords_abstract))
+    print('Mode number of tokens per abstract after preprocessing: ', statistics.mode(numberOfWords_abstract))
+    print('Max number of tokens per abstract after preprocessing: ', max(numberOfWords_abstract))
+    print('Min number of tokens per abstract after preprocessing: ', min(numberOfWords_abstract))
 
+    print('Average number of unique tokens per abstract after preprocessing: ', sum(numberOfWords_abstract_unique)/len(numberOfWords_abstract_unique))
+    print('Median number of unique tokens per abstract after preprocessing: ', np.median(numberOfWords_abstract_unique))
+    print('Mode number of unique tokens per abstract after preprocessing: ', statistics.mode(numberOfWords_abstract_unique))
+    print('Max number of unique tokens per abstract after preprocessing: ', max(numberOfWords_abstract_unique))
+    print('Min number of unique tokens per abstract after preprocessing: ', min(numberOfWords_abstract_unique))
 
     # --- Building LDAs  ---#
     print('\n#--- Building LDAs ---#\n')
@@ -152,8 +179,7 @@ if __name__ == '__main__':
 
     # Create Dictionary
     id2word = corpora.Dictionary(abst_clean)
-    print(id2word)
-    print(len(id2word))
+    print('Number of unique tokens after preprocessing: ', len(id2word))
 
     # Create Corpus
     corpus = [id2word.doc2bow(text) for text in abst_clean]
