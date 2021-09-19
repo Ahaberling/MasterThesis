@@ -194,8 +194,6 @@ if __name__ == '__main__':
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-    from utilities.my_text_utils import LDA_functions
-
     #src = inspect.getsource(gensim_models.wrappers.LdaMallet)
     '''    def __init__(self, mallet_path, corpus=None, num_topics=100, alpha=50, id2word=None, workers=4, prefix=None,
                  optimize_interval=0, iterations=1000, topic_threshold=0.0, random_seed=0):'''
@@ -215,6 +213,7 @@ if __name__ == '__main__':
                  gamma_threshold=0.001, random_state=None, minimum_probability=0.01,
                  minimum_phi_value=0.01, per_word_topics=False, dtype=np.float32):'''
 
+    from utilities.my_text_utils import LDA_functions
 
     coherence_gensim, topicDistribution_gensim, topics_gensim = LDA_functions.gensim_LDA(corpus=corpus,
                                                                                          id2word=id2word,
@@ -507,6 +506,13 @@ if __name__ == '__main__':
         # because it is unfeasable to check all the topic files of 2k ldas, first only the topic number is iterated through with the
         # default settings to arrive at a reasonable topic number (probably taking the one with the biggest increase in coherency)
     """
+
+
+    # 1.    gensim - only topics
+    #       mallet - only topics
+    # 2.    gensim - alpha
+    #       mallet - alpha & optimization
+    # 4.    mallet - all fixed + 10000 intervalls
 
     # kaplan:   0.1     & 0.01          ~33
     # feng      50/     & 0.01
