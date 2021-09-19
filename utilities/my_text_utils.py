@@ -3,6 +3,8 @@ import numpy as np
 import random
 import nltk
 
+import gensim.models as gensim_models
+
 class PatentCleaning:
 
 # Do I want self in here?
@@ -186,12 +188,96 @@ class AbstractCleaning:
             texts_out.append([token.lemma_ for token in doc if token.pos_ in allowed_postags])
         return texts_out
 
-    '''    
+
+
+class LDA_functions:
+
     @staticmethod
+    def gensim_LDA(corpus, id2word, num_topics, random_state, alpha, beta, per_word_topics, abst_clean, coherence, multicore, onlyCoherency):
+
+        if multicore == True:
+
+            lda_gensim = gensim_models.LdaMulticore(corpus=corpus,
+                                                    id2word=id2word,
+                                                    num_topics=num_topics,
+                                                    random_state=random_state,
+                                                    alpha=alpha,
+                                                    eta=beta,
+                                                    per_word_topics=per_word_topics)
+
+        elif multicore == False:
+
+            lda_gensim = gensim_models.LdaModel(corpus=corpus,
+                                                id2word=id2word,
+                                                num_topics=num_topics,
+                                                random_state=random_state,
+                                                alpha=alpha,
+                                                eta=beta,
+                                                per_word_topics=per_word_topics)
+
+        else:
+            raise Exception("multicore must be True or False")
+
+        coherence_model_lda = gensim_models.CoherenceModel(model=lda_gensim,
+                                                           texts=abst_clean,
+                                                           dictionary=id2word,
+                                                           coherence=coherence)
+
+        coherence_lda = coherence_model_lda.get_coherence()
+
+        if onlyCoherency == True:
+
+            return onlyCoherency
+
+        elif onlyCoherency == False:
+
+            document_topic_affiliation = lda_gensim.get_document_topics(corpus,
+                                                                        minimum_probability=0.05,
+                                                                        minimum_phi_value=None,
+                                                                        per_word_topics=False)
+
+            topics_gensim = lda_gensim.print_topics(num_topics=-1, num_words=8)
+            topics_gensim = np.array(topics_gensim)
+
+
+            return coherence_lda, document_topic_affiliation, topics_gensim
+
+        else:
+            raise Exception("onlyCoherency Must be True or False")
+
+
     @staticmethod
-    @staticmethod
-    @staticmethod
-    @staticmethod
-    @staticmethod
-    '''
+    def mallet_LDA(corpus, id2word, num_topics, random_seed, alpha, optimize_interval, iterations, abst_clean,
+                   coherence, mallet_path, onlyCoherency):
+        lda_mallet = gensim_models.wrappers.LdaMallet(mallet_path=mallet_path,
+                                                      corpus=corpus,
+                                                      id2word=id2word,
+                                                      num_topics=num_topics,
+                                                      random_seed=random_seed,
+                                                      alpha=alpha,
+                                                      optimize_interval=optimize_interval,
+                                                      iterations=iterations)
+
+        coherence_model_lda = gensim_models.CoherenceModel(model=lda_mallet,
+                                                           texts=abst_clean,
+                                                           dictionary=id2word,
+                                                           coherence=coherence)
+
+        coherence_lda = coherence_model_lda.get_coherence()
+
+        if onlyCoherency == True:
+
+            return onlyCoherency
+
+        elif onlyCoherency == False:
+
+            document_topic_affiliation = lda_mallet.read_doctopics(fname=lda_mallet.fdoctopics(), eps=0.05, renorm=False)
+
+            topics_mallet = lda_mallet.print_topics(num_topics=-1, num_words=8)
+            topics_mallet = np.array(topics_mallet)
+
+            return coherence_lda, document_topic_affiliation, topics_mallet
+
+        else:
+            raise Exception("onlyCoherency Must be True or False")
 
