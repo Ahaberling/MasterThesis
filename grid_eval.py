@@ -23,6 +23,178 @@ alpha_res = alpha_res.to_numpy()
 opti_res = opti_res.to_numpy()
 alphaopti_res = alphaopti_res.to_numpy()
 
+os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots/GridSearch')
+'''
+gensim_topics = pd.read_csv('gensim_topics.csv', quotechar='"', skipinitialspace=True)
+gensim_topics = gensim_topics.to_numpy()
+
+mallet_topics = pd.read_csv('mallet_topics.csv', quotechar='"', skipinitialspace=True)
+mallet_topics = mallet_topics.to_numpy()
+
+gensim_330_alpha = pd.read_csv('gensim_330_alpha.csv', quotechar='"', skipinitialspace=True)
+gensim_330_alpha = gensim_330_alpha.to_numpy()
+
+mallet_330_alphaOpti = pd.read_csv('mallet_330_alphaOpti.csv', quotechar='"', skipinitialspace=True)
+mallet_330_alphaOpti = mallet_330_alphaOpti.to_numpy()
+
+gensim_topic_withAlpha01 = pd.read_csv('gensim_topic_withAlpha01.csv', quotechar='"', skipinitialspace=True)
+gensim_topic_withAlpha01 = gensim_topic_withAlpha01.to_numpy()
+
+mallet_topic_withAlpha01 = pd.read_csv('mallet_topic_withAlpha01.csv', quotechar='"', skipinitialspace=True)
+mallet_topic_withAlpha01 = mallet_topic_withAlpha01.to_numpy()
+
+gensim_topic_withAlpha025 = pd.read_csv('gensim_topic_withAlpha025.csv', quotechar='"', skipinitialspace=True)
+gensim_topic_withAlpha025 = gensim_topic_withAlpha025.to_numpy()
+
+gensim_topic_A01_extended = pd.read_csv('gensim_topic_A01_extended.csv', quotechar='"', skipinitialspace=True)
+gensim_topic_A01_extended = gensim_topic_A01_extended.to_numpy()
+'''
+gensim_topics_A01 = pd.read_csv('gensim_topics_A01.csv', quotechar='"', skipinitialspace=True)
+gensim_topics_A01 = gensim_topics_A01.to_numpy()
+
+gensim_topics_A01_extended = pd.read_csv('gensim_topics_A01_extended.csv', quotechar='"', skipinitialspace=True)
+gensim_topics_A01_extended = gensim_topics_A01_extended.to_numpy()
+
+mallet_topics_A01 = pd.read_csv('mallet_topics_A01.csv', quotechar='"', skipinitialspace=True)
+mallet_topics_A01 = mallet_topics_A01.to_numpy()
+
+mallet_topics_A01_extended = pd.read_csv('mallet_topics_A01_extended.csv', quotechar='"', skipinitialspace=True)
+mallet_topics_A01_extended = mallet_topics_A01_extended.to_numpy()
+
+gensim_t330_alpha = pd.read_csv('gensim_t330_alpha.csv', quotechar='"', skipinitialspace=True)
+gensim_t330_alpha = gensim_t330_alpha.to_numpy()
+
+mallet_t330_op0_alpha = pd.read_csv('mallet_t330_op0_alpha.csv', quotechar='"', skipinitialspace=True)
+mallet_t330_op0_alpha = mallet_t330_op0_alpha.to_numpy()
+
+mallet_t330_a015_opti = pd.read_csv('mallet_t330_a015_opti.csv', quotechar='"', skipinitialspace=True)
+mallet_t330_a015_opti = mallet_t330_a015_opti.to_numpy()
+
+
+# OPTIMIZARTION INTER VALL WITH ALPHA 0.15 MALLET
+x = mallet_t330_a015_opti[:,2]
+y = mallet_t330_a015_opti[:,3]
+
+
+fig, ax = plt.subplots()
+#fig.subplots_adjust(bottom=0.2)
+ax.set_ylim([0.4, 0.5])
+#ax.set_yticklabels([1,4,5], fontsize=12)
+ax.plot(x, y, color='darkblue')
+#ax.set_xticklabels(x2)
+#ax.scatter(x2, y2, c='green')
+#ax.plot(x2_helper, y2, '.', color='darkblue')
+#plt.xticks(rotation=45)
+#plt.xticks(np.arange(min(x), max(x)+0.05, 0.05))
+#plt.xticks(np.arange(0, 2001, 400))
+#plt.xticks(np.arange(min(x), max(x)+0.05, 0.05), labels=x2)
+#plt.xlabel()
+plt.xlabel("Optimization Interval")
+plt.ylabel("Coherency Score C_V")
+
+#plt.show()
+os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Plots')
+plt.savefig('GrdiSearch_mallet_opti.png')
+os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots/GridSearch')
+plt.close()
+plt.close()
+
+
+
+
+'''
+ THIS IS THE GENSIM ALPHA VISU
+helper = [round(float(i), 2) for i in gensim_t330_alpha[:-3,1]]
+#helper = round(helper, 2)
+print(helper)
+
+x = helper
+y = gensim_t330_alpha[:-3,2]
+
+x2 = gensim_t330_alpha[-3:,1]
+x2_helper = [0.55, 0.6, 0.65]
+y2 = gensim_t330_alpha[-3:,2]
+
+xlabels = helper+['sym', 'asym', 'auto']
+print(xlabels)
+
+fig, ax = plt.subplots()
+fig.subplots_adjust(bottom=0.2)
+ax.set_ylim([0.25, 0.3])
+#ax.set_yticklabels([1,4,5], fontsize=12)
+ax.plot(x, y, color='darkblue')
+#ax.scatter(x2, y2, c='green')
+ax.plot(x2_helper, y2, '.', color='darkblue')
+plt.xticks(rotation=45)
+#plt.xticks(np.arange(min(x), max(x)+50, 50))
+#plt.xticks(np.arange(0, 2001, 400))
+plt.xticks(np.arange(min(x), max(x2_helper)+0.05, 0.05), labels=xlabels)
+#plt.xlabel()
+plt.xlabel("Alpha")
+plt.ylabel("Coherency Score C_V")
+
+#plt.show()
+os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Plots')
+plt.savefig('GrdiSearch_gensim_alpha.png')
+os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots/GridSearch')
+plt.close()
+
+'''
+
+
+
+'''
+MALLET ALPHA SEARCH 
+
+x = mallet_t330_op0_alpha[:,1]
+y = mallet_t330_op0_alpha[:,3]
+
+x2 = [round(float(i), 2) for i in list(np.arange(0.05, 0.51, 0.05))]
+print(x2)
+
+print(len(x))
+print(len(x2))
+
+
+fig, ax = plt.subplots()
+#fig.subplots_adjust(bottom=0.2)
+ax.set_ylim([0.35, 0.6])
+#ax.set_yticklabels([1,4,5], fontsize=12)
+ax.plot(x2, y, color='darkblue')
+#ax.set_xticklabels(x2)
+#ax.scatter(x2, y2, c='green')
+#ax.plot(x2_helper, y2, '.', color='darkblue')
+#plt.xticks(rotation=45)
+plt.xticks(np.arange(min(x2), max(x2)+0.05, 0.05))
+#plt.xticks(np.arange(0, 2001, 400))
+#plt.xticks(np.arange(min(x), max(x)+0.05, 0.05), labels=x2)
+#plt.xlabel()
+plt.xlabel("Alpha")
+plt.ylabel("Coherency Score C_V")
+
+#plt.show()
+os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Plots')
+plt.savefig('GrdiSearch_mallet_alpha.png')
+os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots/GridSearch')
+plt.close()
+plt.close()
+'''
+
+#plt.close()
+
+
+
+#x = mallet_topics[:,0]
+#y = mallet_topics[:,1]
+
+fig, ax = plt.subplots()
+ax.set_ylim([0.25, 0.3])
+#ax.set_yticklabels([1,4,5], fontsize=12)
+ax.plot(x, y)
+#plt.show()
+
+plt.close()
+
 x = topics_res[:,1]
 y = topics_res[:,2]
 

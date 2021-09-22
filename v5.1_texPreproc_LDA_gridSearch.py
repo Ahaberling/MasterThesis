@@ -215,24 +215,27 @@ if __name__ == '__main__':
 
     from utilities.my_text_utils import LDA_functions
 
-    coherence_gensim, topicDistribution_gensim, topics_gensim = LDA_functions.gensim_LDA(corpus=corpus,
-                                                                                         id2word=id2word,
-                                                                                         num_topics=330,
-                                                                                         random_state=123,
-                                                                                         #alpha=,
-                                                                                         beta=0.01,
-                                                                                         per_word_topics=True,
-                                                                                         abst_clean=abst_clean,
-                                                                                         coherence='c_v',
-                                                                                         multicore=False,
-                                                                                         onlyCoherency=False)
-    print('Coherency C_V of Gensim LDA: ', coherence_gensim)
+    mode = 'grid'
 
-    patent_topicDistribution_gensim = patent_topicDistribution
-    patent_topicDistribution_gensim.T[8, :] = topicDistribution_gensim
+    if mode == 'gensim':
+        coherence_gensim, topicDistribution_gensim, topics_gensim = LDA_functions.gensim_LDA(corpus=corpus,
+                                                                                             id2word=id2word,
+                                                                                             num_topics=330,
+                                                                                             random_state=123,
+                                                                                             #alpha=,
+                                                                                             beta=0.01,
+                                                                                             per_word_topics=True,
+                                                                                             abst_clean=abst_clean,
+                                                                                             coherence='c_v',
+                                                                                             multicore=False,
+                                                                                             onlyCoherency=False)
+        print('Coherency C_V of Gensim LDA: ', coherence_gensim)
 
-    pd.DataFrame(patent_topicDistribution_gensim).to_csv('patent_topicDistribution_gensim.csv', index=None)
-    pd.DataFrame(topics_gensim).to_csv('patent_topics_gensim.csv', index=None)
+        patent_topicDistribution_gensim = patent_topicDistribution
+        patent_topicDistribution_gensim.T[8, :] = topicDistribution_gensim
+
+        pd.DataFrame(patent_topicDistribution_gensim).to_csv('patent_topicDistribution_gensim.csv', index=None)
+        pd.DataFrame(topics_gensim).to_csv('patent_topics_gensim.csv', index=None)
 
     """
     ### Build LDA model - Gensim ###
@@ -326,26 +329,27 @@ if __name__ == '__main__':
             print('Coherence Score (c_v) of final LDA (Mallet): ', coherence_ldamallet)  # 0.4756256448838956
     '''
 
+    if mode == 'mallet':
 
-    coherence_mallet, topicDistribution_mallet, topics_mallet = LDA_functions.gensim_LDA(corpus,
-                                                                                         id2word,
-                                                                                         num_topics=330,
-                                                                                         random_seed=123,
-                                                                                         #alpha=,
-                                                                                         #optimize_interval=,
-                                                                                         iterations=10000,      # default = 1000
-                                                                                         abst_clean=abst_clean,
-                                                                                         coherence ='c_v',
-                                                                                         mallet_path=mallet_path,
-                                                                                         onlyCoherency = False)
+        coherence_mallet, topicDistribution_mallet, topics_mallet = LDA_functions.gensim_LDA(corpus,
+                                                                                             id2word,
+                                                                                             num_topics=330,
+                                                                                             random_seed=123,
+                                                                                             #alpha=,
+                                                                                             #optimize_interval=,
+                                                                                             iterations=10000,      # default = 1000
+                                                                                             abst_clean=abst_clean,
+                                                                                             coherence ='c_v',
+                                                                                             mallet_path=mallet_path,
+                                                                                             onlyCoherency = False)
 
-    print('Coherency C_V of Mallet LDA: ', coherence_mallet)
+        print('Coherency C_V of Mallet LDA: ', coherence_mallet)
 
-    patent_topicDistribution_mallet = patent_topicDistribution
-    patent_topicDistribution_mallet.T[8, :] = topicDistribution_mallet
+        patent_topicDistribution_mallet = patent_topicDistribution
+        patent_topicDistribution_mallet.T[8, :] = topicDistribution_mallet
 
-    pd.DataFrame(patent_topicDistribution_mallet).to_csv('patent_topicDistribution_mallet.csv', index=None)
-    pd.DataFrame(topics_mallet).to_csv('patent_topics_mallet.csv', index=None)
+        pd.DataFrame(patent_topicDistribution_mallet).to_csv('patent_topicDistribution_mallet.csv', index=None)
+        pd.DataFrame(topics_mallet).to_csv('patent_topics_mallet.csv', index=None)
 
     """
     if final_model_mallet == True:
@@ -527,6 +531,9 @@ if __name__ == '__main__':
     topics_range = range(min_topics, max_topics, step_size)
     topics_range_fixed = [330]  # Mallet default = 100
 
+    #  50      100     150     200     250     300     350     400     450     500
+    #   5       10      15      20      25      30      35      40      45      50
+
 
     # specify alpha range
 
@@ -535,20 +542,37 @@ if __name__ == '__main__':
     # Keep in mind: Gensim handles the 'alpha' parameter normally as alpha
     #               Mallet handles the 'alpha' parameter as value that is used to compute the real alpha ('alpha'/'num_topics'=alpha)
 
-    alpha_gensim = list(np.arange(0.01, 0.51, 0.05))
+    alpha_gensim = list(np.arange(0.05, 0.55, 0.05))
     alpha_gensim.append('symmetric')
     alpha_gensim.append('asymmetric')
     # Keep in mind: 'auto' is not compatible with Multicore LDA
-    # alpha_gensim.append('auto')
-    alpha_gensim_fixed = [0.15]  # mallet default with 330 topics
+    alpha_gensim.append('auto')
+    alpha_gensim_fixed = [0.1]  # see kaplan
 
-    alpha_mallet = [33, 50, 66, 83, 99, 116, 132, 149, 165] # this resamples the gensim scale with 330 topics
-    alpha_mallet_fixed = [50]   # default
+
+    alpha_mallet = [16, 33, 49, 66, 82, 99, 115, 132, 148, 165] # this resamples the gensim scale with 330 topics
+    alpha_mallet_fixed = [49]   # 0.15
+    alpha_mallet_fixed_a01 = []  # 0.1 see kaplan
+    '''
+    print(len(list(alpha_gensim[0:-3])))
+    print(len(alpha_mallet))
+    print(list(alpha_gensim[0:-3]))
+    print(alpha_mallet)
+    '''
+    for i in range(len(topics_range)):
+        alpha_mallet_fixed_a01.append(int(topics_range[i] / 10))
+
+    '''
+    for i in range(len(topics_range)):
+        print(alpha_gensim[i])
+        print(alpha_mallet[i])
+        alpha_mallet_fixed_01.append(topics_range[i]/10)
+    print(alpha_mallet_fixed_01)
     # Mallet does not support non-numeric values
+    '''
 
-
-    optimize_interval = list(np.arange(0, 2000, 200))
-    optimize_interval_fixed = [1000] # same as default of 0
+    optimize_interval = list(np.arange(0, 2100, 100))
+    optimize_interval_fixed = [0] # default
 
 
 
@@ -559,43 +583,47 @@ if __name__ == '__main__':
                      }
 
 
-    pbar = tqdm.tqdm(total=10)  # adjust with hyperparameter change # 21*7*6*1
+    pbar = tqdm.tqdm(total=len(optimize_interval))  # adjust with hyperparameter change # 21*7*6*1
 
-    for k in topics_range:
-    #for k in topics_range_fixed:
+    #for k in topics_range:
+    for k in topics_range_fixed:
+    #for i in range(len(topics_range)):
 
-        for a in alpha_gensim:
+        #for a in alpha_gensim:
         #for a in alpha_gensim_fixed:
         #for a in alpha_mallet:
-        #for a in alpha_mallet_fixed:
+        for a in alpha_mallet_fixed:
 
             for op in optimize_interval:
             #for op in optimize_interval_fixed:
 
-                coherency = LDA_functions.gensim_LDA(corpus=corpus,
-                                                     id2word=id2word,
-                                                     #num_topics=,
-                                                     random_state=123,
-                                                     #alpha=,
-                                                     beta=0.01,
-                                                     per_word_topics=False,
-                                                     abst_clean=abst_clean,
-                                                     coherence='c_v',
-                                                     multicore=True,
-                                                     onlyCoherency=True)
+                coherency_score = LDA_functions.mallet_LDA(mallet_path=mallet_path,
+                                                           corpus=corpus,
+                                                           id2word=id2word,
+                                                           num_topics=k,
+                                                           random_seed=123,
+                                                           alpha=a,
+                                                           #beta=0.01,
+                                                           iterations=1000,
+                                                           optimize_interval=op,
+                                                           abst_clean=abst_clean,
+                                                           coherence='c_v',
+                                                           onlyCoherency=True,
+                                                           #per_word_topics=True,
+                                                           #multicore=False
+                                                           )
 
                 # Save the model results
                 model_results['Topics'].append(k)
                 model_results['Alpha'].append(a)
                 model_results['optimize_interval'].append(op)
-                model_results['Coherence'].append(coherency)
+                model_results['Coherence'].append(coherency_score)
 
-                # c = c + 1
                 pbar.update(1)
 
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots/GridSearch')
 
-
-    pd.DataFrame(model_results).to_csv('lda_tuning_results_Mallet_it.csv', index=False)
+    pd.DataFrame(model_results).to_csv('mallet_t330_a015_opti.csv', index=False)
     pbar.close()
 
     # if :

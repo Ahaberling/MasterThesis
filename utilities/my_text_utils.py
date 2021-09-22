@@ -227,7 +227,7 @@ class LDA_functions:
 
         if onlyCoherency == True:
 
-            return onlyCoherency
+            return coherence_lda
 
         elif onlyCoherency == False:
 
@@ -267,7 +267,7 @@ class LDA_functions:
 
         if onlyCoherency == True:
 
-            return onlyCoherency
+            return coherence_lda
 
         elif onlyCoherency == False:
 
