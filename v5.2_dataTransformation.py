@@ -401,6 +401,29 @@ if __name__ == '__main__':
 
     pbar.close()
 
+#--- visualization ---#
+
+
+
+    from matplotlib import pylab as pl
+
+    print(len(bipartite_graphs))
+
+    G = bipartite_graphs['window_3000']
+    #print(G.nodes())
+    neighboor_list = []
+    for node in G.nodes():
+        neighboor_list.append((node, G[node].keys()))
+    print(neighboor_list)
+
+    res = [0,1,2,3,4,5, 'parrot'] #I've added 'parrot', a node that's not in G
+                                  #just to demonstrate that G.subgraph is okay
+                                  #with nodes not in G.
+    pos = nx.spring_layout(G)  #setting the positions with respect to G, not k.
+    k = G.subgraph(res)
+
+    pl.figure()
+    nx.draw_networkx(k, pos=pos)
 
 #--- Save Sliding Graphs ---#
 
