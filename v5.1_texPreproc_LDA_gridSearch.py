@@ -215,7 +215,7 @@ if __name__ == '__main__':
 
     from utilities.my_text_utils import LDA_functions
 
-    mode = 'grid'
+    mode = 'mallet'
 
     if mode == 'gensim':
         coherence_gensim, topicDistribution_gensim, topics_gensim = LDA_functions.gensim_LDA(corpus=corpus,
@@ -331,17 +331,21 @@ if __name__ == '__main__':
 
     if mode == 'mallet':
 
-        coherence_mallet, topicDistribution_mallet, topics_mallet = LDA_functions.gensim_LDA(corpus,
-                                                                                             id2word,
-                                                                                             num_topics=330,
-                                                                                             random_seed=123,
-                                                                                             #alpha=,
-                                                                                             #optimize_interval=,
-                                                                                             iterations=10000,      # default = 1000
-                                                                                             abst_clean=abst_clean,
-                                                                                             coherence ='c_v',
-                                                                                             mallet_path=mallet_path,
-                                                                                             onlyCoherency = False)
+        coherence_mallet, topicDistribution_mallet, topics_mallet = LDA_functions.mallet_LDA(mallet_path=mallet_path,
+                                                                                               corpus=corpus,
+                                                                                               id2word=id2word,
+                                                                                               num_topics=330,
+                                                                                               random_seed=123,
+                                                                                               alpha=49,
+                                                                                               #beta=0.01,
+                                                                                               iterations=1000,
+                                                                                               optimize_interval=1000,
+                                                                                               abst_clean=abst_clean,
+                                                                                               coherence='c_v',
+                                                                                               onlyCoherency=False,
+                                                                                               #per_word_topics=True,
+                                                                                               #multicore=False
+                                                                                               )
 
         print('Coherency C_V of Mallet LDA: ', coherence_mallet)
 
@@ -572,59 +576,65 @@ if __name__ == '__main__':
     '''
 
     optimize_interval = list(np.arange(0, 2100, 100))
-    optimize_interval_fixed = [0] # default
+    optimize_interval_fixed = [1000] # same as default 0
 
+    iterations = list(np.arange(1000, 11000, 1000))
 
 
     model_results = {'Topics': [],
                      'Alpha': [],
                      'optimize_interval': [],
+                     'iterations': [],
                      'Coherence': []
                      }
 
 
-    pbar = tqdm.tqdm(total=len(optimize_interval))  # adjust with hyperparameter change # 21*7*6*1
+    if mode == 'grid':
+        pbar = tqdm.tqdm(total=len(iterations))  # adjust with hyperparameter change # 21*7*6*1
 
-    #for k in topics_range:
-    for k in topics_range_fixed:
-    #for i in range(len(topics_range)):
+        #for k in topics_range:
+        for k in topics_range_fixed:
+        #for i in range(len(topics_range)):
 
-        #for a in alpha_gensim:
-        #for a in alpha_gensim_fixed:
-        #for a in alpha_mallet:
-        for a in alpha_mallet_fixed:
+            #for a in alpha_gensim:
+            #for a in alpha_gensim_fixed:
+            #for a in alpha_mallet:
+            for a in alpha_mallet_fixed:
 
-            for op in optimize_interval:
-            #for op in optimize_interval_fixed:
+                #for op in optimize_interval:
+                for op in optimize_interval_fixed:
 
-                coherency_score = LDA_functions.mallet_LDA(mallet_path=mallet_path,
-                                                           corpus=corpus,
-                                                           id2word=id2word,
-                                                           num_topics=k,
-                                                           random_seed=123,
-                                                           alpha=a,
-                                                           #beta=0.01,
-                                                           iterations=1000,
-                                                           optimize_interval=op,
-                                                           abst_clean=abst_clean,
-                                                           coherence='c_v',
-                                                           onlyCoherency=True,
-                                                           #per_word_topics=True,
-                                                           #multicore=False
-                                                           )
+                    for it in iterations:
 
-                # Save the model results
-                model_results['Topics'].append(k)
-                model_results['Alpha'].append(a)
-                model_results['optimize_interval'].append(op)
-                model_results['Coherence'].append(coherency_score)
+                        coherency_score = LDA_functions.mallet_LDA(mallet_path=mallet_path,
+                                                                   corpus=corpus,
+                                                                   id2word=id2word,
+                                                                   num_topics=k,
+                                                                   random_seed=123,
+                                                                   alpha=a,
+                                                                   #beta=0.01,
+                                                                   iterations=it,
+                                                                   optimize_interval=op,
+                                                                   abst_clean=abst_clean,
+                                                                   coherence='c_v',
+                                                                   onlyCoherency=True,
+                                                                   #per_word_topics=True,
+                                                                   #multicore=False
+                                                                   )
 
-                pbar.update(1)
+                        # Save the model results
+                        model_results['Topics'].append(k)
+                        model_results['Alpha'].append(a)
+                        model_results['optimize_interval'].append(op)
+                        model_results['iterations'].append(it)
+                        model_results['Coherence'].append(coherency_score)
 
-    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots/GridSearch')
+                        pbar.update(1)
 
-    pd.DataFrame(model_results).to_csv('mallet_t330_a015_opti.csv', index=False)
-    pbar.close()
+        os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots/GridSearch')
+
+        pd.DataFrame(model_results).to_csv('mallet_t330_a015_op1000_iter.csv', index=False)
+        pbar.close()
 
     # if :
     # FileNotFoundError: [Errno 2] No such file or directory: '... _state.mallet.gz'

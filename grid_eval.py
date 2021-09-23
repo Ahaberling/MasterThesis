@@ -70,31 +70,36 @@ mallet_t330_op0_alpha = mallet_t330_op0_alpha.to_numpy()
 mallet_t330_a015_opti = pd.read_csv('mallet_t330_a015_opti.csv', quotechar='"', skipinitialspace=True)
 mallet_t330_a015_opti = mallet_t330_a015_opti.to_numpy()
 
+mallet_t330_a015_op1000_iter = pd.read_csv('mallet_t330_a015_op1000_iter.csv', quotechar='"', skipinitialspace=True)
+mallet_t330_a015_op1000_iter = mallet_t330_a015_op1000_iter.to_numpy()
+
+
+
 
 # OPTIMIZARTION INTER VALL WITH ALPHA 0.15 MALLET
-x = mallet_t330_a015_opti[:,2]
-y = mallet_t330_a015_opti[:,3]
+x = mallet_t330_a015_op1000_iter[:,3]
+y = mallet_t330_a015_op1000_iter[:,4]
 
 
 fig, ax = plt.subplots()
 #fig.subplots_adjust(bottom=0.2)
-ax.set_ylim([0.4, 0.5])
+ax.set_ylim([0.35, 0.5])
 #ax.set_yticklabels([1,4,5], fontsize=12)
 ax.plot(x, y, color='darkblue')
 #ax.set_xticklabels(x2)
 #ax.scatter(x2, y2, c='green')
 #ax.plot(x2_helper, y2, '.', color='darkblue')
 #plt.xticks(rotation=45)
-#plt.xticks(np.arange(min(x), max(x)+0.05, 0.05))
+plt.xticks(np.arange(min(x), max(x)+1000, 1000))
 #plt.xticks(np.arange(0, 2001, 400))
 #plt.xticks(np.arange(min(x), max(x)+0.05, 0.05), labels=x2)
 #plt.xlabel()
-plt.xlabel("Optimization Interval")
+plt.xlabel("Number of training interations")
 plt.ylabel("Coherency Score C_V")
 
 #plt.show()
 os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Plots')
-plt.savefig('GrdiSearch_mallet_opti.png')
+plt.savefig('GrdiSearch_mallet_iter.png')
 os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots/GridSearch')
 plt.close()
 plt.close()

@@ -12,6 +12,9 @@ if __name__ == '__main__':
     import pickle as pk
     import networkx as nx
 
+    import statistics
+    import matplotlib.pyplot as plt
+
 
 #--- Initialization ---#
     print('\n#--- Initialization ---#\n')
@@ -37,7 +40,88 @@ if __name__ == '__main__':
 
     topic_list_helper, max_topics = Transf_misc.max_number_topics(patent_topicDist)
     print('Maximum number of topics a patent has: ', max_topics)               # 7 is the maximum of topics abstracts have
-    print('Hence, number of new columns needed: ',   max_topics*2)             # space needed = 21 (7 topic_ids + 7 topic_names + 7 topic_coverages)
+    print('Number of new columns needed: ',   max_topics*2)             # space needed = 21 (7 topic_ids + 7 topic_names + 7 topic_coverages)
+
+    # descriptives
+    numTopic_list = []
+    topicFrequency_list = []
+    coverageFrequency_list = []
+    for TopicList in topic_list_helper:
+        numTopic_list.append(int(len(TopicList)/2))
+        c = 0
+        for j in TopicList:
+
+            if c % 2 == 0:
+                topicFrequency_list.append(int(j))
+            else:
+                coverageFrequency_list.append(float(j))
+            c = c +1
+
+    print('Average number of topics per abstract: ', sum(numTopic_list)/len(numTopic_list))
+    print('median number of topics per abstract: ', np.median(numTopic_list))
+    print('mode number of topics per abstract: ', statistics.mode(numTopic_list))
+    print('min number of topics per abstract: ', min(numTopic_list))
+    print('max number of topics per abstract: ', max(numTopic_list))
+
+    print(coverageFrequency_list)
+    print(sum(coverageFrequency_list))
+    print(len(coverageFrequency_list))
+
+    print('Average coverage of topics: ', sum(coverageFrequency_list) / len(coverageFrequency_list))
+    print('median coverage of topics: ', np.median(coverageFrequency_list))
+    print('mode coverage of topics: ', statistics.mode(coverageFrequency_list))
+    print('min coverage of topics: ', min(coverageFrequency_list))
+    print('max coverage of topics: ', max(coverageFrequency_list))
+
+    val, count = np.unique(topicFrequency_list, return_counts=True)
+    min_pos = np.where(count == (min(count)))
+    max_pos = np.where(count == (max(count)))
+    average = np.mean(count)
+    print(val[min_pos])
+    print('Average number of abstracts a topic appears in: ', average)
+    print('Median number of abstracts a topic appears in: ', np.median(count))
+    print('Mode number of abstracts a topic appears in: ', statistics.mode(count))
+    print('Max number of abstracts a topic appears in: ', max(count))
+    print('Min number of abstracts a topic appears in: ', min(count))
+    print('least common topics: ', val[min_pos])
+    print('most common topics: ', statistics.mode(topicFrequency_list))
+
+
+
+    fig, ax = plt.subplots(1, 1)
+    ax.hist(numTopic_list, bins=8, color='darkblue')
+    # locator = mdates.AutoDateLocator()
+    # ax.xaxis.set_major_locator(locator)
+    # ax.xaxis.set_major_formatter(mdates.AutoDateFormatter(locator))
+    # plt.title("Histogram: Monthly number of patent publications")
+    plt.xlabel("Number of topics in an abstract")
+    plt.ylabel("Frequency")
+    #plt.show()
+
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Plots')
+    plt.savefig('hist_topics_perAbstract.png')
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
+    plt.close()
+
+    topicFrequency_list.sort()
+    print(np.unique(topicFrequency_list))
+
+    fig, ax = plt.subplots(1, 1)
+    ax.hist(topicFrequency_list, bins=np.arange(0, 331), color='darkblue')
+    # locator = mdates.AutoDateLocator()
+    # ax.xaxis.set_major_locator(locator)
+    # ax.xaxis.set_major_formatter(mdates.AutoDateFormatter(locator))
+    # plt.title("Histogram: Monthly number of patent publications")
+    plt.xticks(np.arange(0, 331, 30))
+    plt.xlabel("Number of abstract occurrences per topic")
+    plt.ylabel("Frequency")
+    #plt.show()
+
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Plots')
+    plt.savefig('hist_abstracts_perTopic.png')
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
+    plt.close()
+
 
     ### Prepare dataframe with columns for topics (transformation result) ###
     patent_transf = np.empty((np.shape(patent_topicDist)[0], np.shape(patent_topicDist)[1] + int(max_topics*2)), dtype=object)
@@ -71,7 +155,6 @@ if __name__ == '__main__':
         raise Exception("Error: patent_transf contains non-unqiue patents")
 
 
-    import statistics
 
     ### Find biggest number of IPCs a patent has (new space) ###
     #print(patent_IPC)
@@ -149,7 +232,7 @@ if __name__ == '__main__':
 
 
 
-    import matplotlib.pyplot as plt
+
 
     fig, ax = plt.subplots(1, 1)
     ax.hist(ipc_list_1, bins=8, color='darkred')
@@ -159,11 +242,12 @@ if __name__ == '__main__':
     #plt.title("Histogram: Monthly number of patent publications")
     plt.xlabel("International Patent Classification - Sections")
     plt.ylabel("Number of Patents")
-    plt.show()
+    #plt.show()
 
     #os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Plots')
 
     #plt.savefig('hist_publications.png')
+    plt.close()
 
 
         #ipc_list.append(patent[1,23:])
