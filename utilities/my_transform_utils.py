@@ -210,7 +210,7 @@ class Transf_network:
                     edges[c, i] = 'topic_{0}'.format(int(j))
                 c = c + 1
 
-            topic_edges = [(j[0], j[i], {'Weight_1': j[i + 1]}) for j in edges]
+            topic_edges = [(j[0], j[i], {'Weight': j[i + 1]}) for j in edges]
             topic_edges_clear = list(filter(lambda x: x[1] != None, topic_edges))
 
             topic_edges_list.append(topic_edges_clear)

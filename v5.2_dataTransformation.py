@@ -377,6 +377,8 @@ if __name__ == '__main__':
 
         topic_edges_list = Transf_network.prepare_edgeLists_Networkx(window, num_topics, max_topics)
 
+
+
         #print(topic_edges_list)
 
         for edge_list in topic_edges_list:
@@ -410,20 +412,80 @@ if __name__ == '__main__':
     print(len(bipartite_graphs))
 
     G = bipartite_graphs['window_3000']
-    #print(G.nodes())
+    print(G.nodes())
+
+    egNodes = []
+    egNodes.append(273953397)
+
+    # 272999421     ['272999421' '317462158' '317530443' '323751034' 'topic_104' 'topic_117' 'topic_12' 'topic_160' 'topic_26']
+    # 277219032     ['274322017' '277219032' '318062322' 'topic_110' 'topic_27' 'topic_279' 'topic_291' 'topic_38']
+    # 'topic_104'   ['291106478' '315726604' '317462158' '323152249' '323944922' 'topic_104' 'topic_109' 'topic_117' 'topic_12' 'topic_212' 'topic_296']
+    # 273953397     ['273375412' '273614561' '273901583' '273953397' '277444788' '315561860' '315954107' '317579869' '317721234' '322535964' '323122567' 'topic_136' 'topic_175' 'topic_204' 'topic_23' 'topic_279' 'topic_68' 'topic_81']
+
+
+
+
+
+
+    c = 0
+    for node in egNodes:
+        for neighbor in list(G[node]):
+            egNodes.append(neighbor)
+
+        if c >= 5:
+            break
+        c = c + 1
+
+    print(egNodes)
+
+    print(np.unique(egNodes))
+
+
+
+# [267695565,       'topic_108', 'topic_211', 'topic_263',      267695565, 267695565, 277444788, 315562469, 267695565]
+# ['topic_108',     267695565,                                  'topic_108', 'topic_211', 'topic_263',                  267695565, 267695565, 277444788]
+
     neighboor_list = []
     for node in G.nodes():
-        neighboor_list.append((node, G[node].keys()))
+        neighboor_list.append((node, list(G[node])))
+        #break
     print(neighboor_list)
 
-    res = [0,1,2,3,4,5, 'parrot'] #I've added 'parrot', a node that's not in G
-                                  #just to demonstrate that G.subgraph is okay
-                                  #with nodes not in G.
-    pos = nx.spring_layout(G)  #setting the positions with respect to G, not k.
+    list_length = []
+    for neighborList in neighboor_list:
+        list_length.append(len(neighborList[1]))
+
+    print(np.mean(list_length))
+    print(max(list_length))
+
+    # 'topic_104'   ['291106478' '315726604' '317462158' '323152249' '323944922' 'topic_104' 'topic_109' 'topic_117' 'topic_12' 'topic_212' 'topic_296']
+    # 273953397     ['273375412' '273614561' '273901583' '273953397' '277444788' '315561860' '315954107' '317579869' '317721234' '322535964' '323122567' 'topic_136' 'topic_175' 'topic_204' 'topic_23' 'topic_279' 'topic_68' 'topic_81']
+
+    res = [291106478, 315726604, 317462158, 323152249, 323944922, 'topic_104', 'topic_109', 'topic_117', 'topic_12', 'topic_212', 'topic_296']
+    bipart = [x for x,y in G.subgraph(res).nodes(data=True) if y['bipartite']==0]
+
+    print(G.edges(data=True))
+
+    pos = nx.bipartite_layout(G.subgraph(res), bipart, align='horizontal')  #setting the positions with respect to G, not k.
     k = G.subgraph(res)
 
+
+    edge_label_helper = nx.get_edge_attributes(G,'edge') # key is edge, pls check for your case
+    formatted_edge_label_helper = {(elem[0],elem[1]):edge_label_helper[elem] for elem in edge_label_helper} # use this to modify the tuple keyed dict if it has > 2 elements, else ignore
+    #nx.draw_networkx_edge_labels(G,pos,edge_labels=formatted_edge_label_helper,font_color='red')
+
+
+    edge_labels = dict([((n1, n2), round(float(list(w.values())[0]),3)) for n1, n2, w in G.subgraph(res).edges(data=True)])
+
     pl.figure()
-    nx.draw_networkx(k, pos=pos)
+    nx.draw_networkx(k, pos=pos, font_size=8)
+    #nx.draw_networkx_labels(k, pos=pos, font_size=8)
+    nx.draw_networkx_edge_labels(k, pos, edge_labels=edge_labels)
+
+    #othersubgraph = G.subgraph(range(6,G.order()))
+    #nx.draw_networkx(othersubgraph, pos=pos, node_color = 'b')
+
+    #pl.show()
 
 #--- Save Sliding Graphs ---#
 
