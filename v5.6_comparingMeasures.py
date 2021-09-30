@@ -120,109 +120,127 @@ if __name__ == '__main__':
 
 
 
-
 #--- Comparing Diffusion arrays ---#
 
-    # test if all diffusion arrays are of column length 330
-    list_of_allArrays = [pattern_array_reference_diff, diffusionArray_Topics_lp, diffusionArray_Topics_gm, diffusionArray_Topics_kc, diffusionArray_Topics_l2, diffusion_array_edgeWeight]
-    list_of_allArrays_names = ['pattern_array_reference_diff', 'diffusionArray_Topics_lp', 'diffusionArray_Topics_gm', 'diffusionArray_Topics_kc', 'diffusionArray_Topics_l2', 'diffusion_array_edgeWeight']
 
-    list_of_cdArrays = [diffusionArray_Topics_lp, diffusionArray_Topics_gm, diffusionArray_Topics_kc, diffusionArray_Topics_l2]
-    list_of_cdArrays_names = ['diffusionArray_Topics_lp', 'diffusionArray_Topics_gm', 'diffusionArray_Topics_kc', 'diffusionArray_Topics_l2']
+    list_allSCM = [pattern_array_reference_diff, diffusionArray_Topics_lp, diffusionArray_Topics_gm, diffusionArray_Topics_kc, diffusionArray_Topics_l2, diffusion_array_edgeWeight]
+    list_allSCM_names = ['pattern_array_reference_diff', 'diffusionArray_Topics_lp', 'diffusionArray_Topics_gm', 'diffusionArray_Topics_kc', 'diffusionArray_Topics_l2', 'diffusion_array_edgeWeight']
+
+    list_cdSCM = [diffusionArray_Topics_lp, diffusionArray_Topics_gm, diffusionArray_Topics_kc, diffusionArray_Topics_l2]
+    list_cdSCM_names = ['diffusionArray_Topics_lp', 'diffusionArray_Topics_gm', 'diffusionArray_Topics_kc', 'diffusionArray_Topics_l2']
+
 
     from utilities.my_comparative_utils import ComparativeMeasures
 
-    # for comparative example, choose the topics with the higest similarity between the arrays or between intuitive, link and 1 cd measure (to decide on the cd most suitable)
-    '''
-    ComparativeMeasures.check_dimensions(list_of_allArrays, diffusionArray_Topics_lp_columns)
+    # test if all SCMs have the appropriate column length
+    ComparativeMeasures.check_columnLength(list_allSCM, diffusionArray_Topics_lp_columns)
 
-    list_of_allArrays_threshold, list_of_allArrays_rowNorm = ComparativeMeasures.normalized_and_binarize(list_of_allArrays, threshold=0.01, leeway=True)
+    # transform all diffusion arrays to row normalized and threshold arrays
+    list_allSCM_threshold, list_allSCM_rowNorm = ComparativeMeasures.normalized_and_binarize(list_allSCM, threshold=0.01, leeway=True)
 
-
+    # for comparative example, choose the topics with the higest similarity between the arrays or between direct, link and 1 cd measure (to decide on the cd most suitable)
     # find diffusion position
     #modArray_dict = {}
-    diffusion_pos_list = []
-    diffusion_length_list = []
-    for i in range(len(list_of_allArrays_threshold)):
-        diffusion_pos = ComparativeMeasures.find_recombination(list_of_allArrays_threshold[i])
-        diffusion_pos_list.append(diffusion_pos)
+    
+    # find pattern start in SCM
+    pattern_start_list = []
+    for i in range(len(list_allSCM_threshold)):
+        pattern_start = ComparativeMeasures.find_patternStart(list_allSCM_threshold[i]) # [[row,column], ...]
+        pattern_start_list.append(pattern_start)    
 
-    # fine diffusion length
-    min_diffusion_threshold = 1
-    for i in range(len(list_of_allArrays_threshold)):
-        diffusion_length = ComparativeMeasures.find_diffusion(list_of_allArrays_threshold[i], diffusion_pos_list[i])
-        diffusion_length = [entry for entry in diffusion_length if entry[2] >= min_diffusion_threshold] # [row, column, diffusionDuration]
-        diffusion_length_list.append(diffusion_length)
+    # find pattern length
+    pattern_length_list = []
+    min_length_threshold = 1
+    for i in range(len(list_allSCM_threshold)):
+        pattern_length = ComparativeMeasures.find_pattern_length(list_allSCM_threshold[i], pattern_start_list[i]) # [[row, column, pattern_length], ...]
+        pattern_length = [entry for entry in pattern_length if entry[2] >= min_length_threshold] 
+        pattern_length_list.append(pattern_length)
 
 
-    # get descriptives
-    for i in range(len(list_of_allArrays_threshold)):
-        diff_count_per_topic, diff_duration_per_topic = ComparativeMeasures.get_nonSimilarity_descriptives(diffusionArray_Topics_lp_columns, diffusion_length_list[i])
-        avg_duration_withinTopic = []
-        for j in diff_duration_per_topic:
+    # Alligned SCM descriptives
+    for i in range(len(list_allSCM_threshold)):
+        patterns_perTopic, pattern_lengths_perTopic = ComparativeMeasures.alligned_SCM_descriptives(diffusionArray_Topics_lp_columns, pattern_length_list[i])
+        PatternLength_withinTopic_avg = []
+        for j in pattern_lengths_perTopic:
             if j != []:
-                avg_duration_withinTopic.append(np.mean(j))
+                PatternLength_withinTopic_avg.append(np.mean(j))
 
-        threshold_array = list_of_allArrays_threshold[i]
-        size_threshold_array = np.size(threshold_array)
-        sum_threshold_array = np.sum(threshold_array)
-        topic_sum_vec = np.sum(threshold_array, axis=0)
-        avg_entry_per_topic = np.mean(topic_sum_vec)
+        SCM_threshold = list_allSCM_threshold[i]
+        SCM_threshold_size = np.size(SCM_threshold)
+        SCM_threshold_sum = np.sum(SCM_threshold)
+        rowSum_vec = np.sum(SCM_threshold, axis=0)
+        patternStars_inTopics_avg = np.mean(rowSum_vec)
 
-        print('\n', list_of_allArrays_names[i])
-        print('Number of Diffusion Cycles total: ', len(diffusion_length_list[i]))
-        print('Average number of Diffusion Cycles per topic: ', (sum(diff_count_per_topic) / len(diff_count_per_topic)))
-        print('Number of diffusion entries total: ', sum_threshold_array, ' of ', size_threshold_array)
-        print('Average number of diffusion entries per topic: ', avg_entry_per_topic, ' of ', len(threshold_array))
-        print('Average diffusion length: ', np.mean(avg_duration_withinTopic), 'max: ', max(avg_duration_withinTopic), 'min: ',
-              min(avg_duration_withinTopic), 'median: ', np.median(avg_duration_withinTopic), 'mode: ', statistics.mode(avg_duration_withinTopic))
+        print('\n', list_allSCM_threshold[i])
+        print('Number of Diffusion Cycles total: ', len(pattern_length_list[i]))
+        print('Average number of Diffusion Cycles per topic: ', (sum(patterns_perTopic) / len(patterns_perTopic)))
+        print('Number of diffusion entries total: ', SCM_threshold_sum, ' of ', SCM_threshold_size)
+        print('Average number of diffusion entries per topic: ', patternStars_inTopics_avg, ' of ', len(SCM_threshold))
+        print('Average diffusion length: ', np.mean(PatternLength_withinTopic_avg), 'max: ', max(PatternLength_withinTopic_avg), 'min: ',
+              min(PatternLength_withinTopic_avg), 'median: ', np.median(PatternLength_withinTopic_avg), 'mode: ', statistics.mode(PatternLength_withinTopic_avg))
 
 
     # cosine focuses more on the similarity in diffusion instead of similarity in diffusion and non-diffusion. This is because of the
     # numinator in the fraction. a match 0-0 match in the lists, does not increase the numinator. it is treated as a mismatch. 0s have no
     # influence on the denominator. Better: 0-0 matches have no impact neither the numerator nor the denominator
 
+    '''
+    x = [0,0,1,1,1]
+    y = [0,0,0,1,1]
 
-    # get similarities between matrices and over all matrix similarity score
+    print(ComparativeMeasures.manhattan_sim_mod(x,y))
+    '''
+    # Similarities between SCM pairs
 
-    import itertools
-
-    namePair_list, similarityPair_list_cosine, similarityPair_list_manhattan = ComparativeMeasures.get_matrix_similarities_byTopic(list_of_allArrays_names, list_of_allArrays_threshold)
+    # namePair_list =                   [[patternArray1, patternArray2], [patternArray1, patternArray3], ...]
+    # similarityPair_list_cosine =      [[similarity score],              [similarity score],            ...]
+    # similarityPair_list_manhattan =   [[similarity score],              [similarity score],            ...]
+    namePair_list, similarityPair_list_cosine, similarityPair_list_manhattan = ComparativeMeasures.SCM_similarities_byColumn(list_allSCM_names, list_allSCM_threshold)
 
     print(namePair_list)
     print(similarityPair_list_cosine)
     print(similarityPair_list_manhattan)
 
+    # Similarities between all SCMs
+
+    # Initiallize
     matrixSimilarityScore_cosine = 0
     matrixSimilarityScore_manhattan = 0
 
+    # one similarity score
     if len(similarityPair_list_cosine) != 0:
         matrixSimilarityScore_cosine = sum(similarityPair_list_cosine) / len(similarityPair_list_cosine)
 
+    # one similarity score
     if len(similarityPair_list_manhattan) != 0:
         matrixSimilarityScore_manhattan = sum(similarityPair_list_manhattan) / len(similarityPair_list_manhattan)
 
 
-    print(
-        matrixSimilarityScore_cosine)  # position 1,9,10,11 are weird. do they correpsond to one array? all realted to gm. only lp + gm seems ok
+    print(matrixSimilarityScore_cosine)
+    # position 1,9,10,11 are weird. do they correpsond to one array? all realted to gm. only lp + gm seems ok
     # I will probably exclude gm, because 4 out of 5 gm combinations are outliers with similarity scores
     # two orders of magnitude smaller then the rest.
     print(matrixSimilarityScore_manhattan)
     # print(namePair_list)                    # 1,5,9,10,11
 
+    # New colculation with the exclution of the unfitting SCM (Greedy modularity)
     slices_toExclude = [1,5,9,10,11]
 
-    # 4 out of 5 similarities involving the gm approach are very bad, so we exclude them
+    # 4 out of 5 similarities involving the gm approach are very bad, so we exclude them ( similarity two magnitudes smaller)
+    # lp is 0, 5, 6, 7, 8
 
     similarityPair_list_cosine_withoutGM = list(np.delete(similarityPair_list_cosine, slices_toExclude, axis=0))
     similarityPair_list_manhattan_withoutGM = list(np.delete(similarityPair_list_manhattan, slices_toExclude, axis=0))
 
+    # Initialization
     matrixSimilarityScore_cosine_withoutGM = 0
     matrixSimilarityScore_manhattan_withoutGM = 0
 
+    # one similarity score
     if len(similarityPair_list_cosine_withoutGM) != 0:
         matrixSimilarityScore_cosine_withoutGM = sum(similarityPair_list_cosine_withoutGM) / len(similarityPair_list_cosine_withoutGM)
 
+    # one similarity score
     if len(similarityPair_list_manhattan_withoutGM) != 0:
         matrixSimilarityScore_manhattan_withoutGM = sum(similarityPair_list_manhattan_withoutGM) / len(similarityPair_list_manhattan_withoutGM)
 
@@ -231,18 +249,26 @@ if __name__ == '__main__':
 
 
 
+
+
+
 ###---------------------
 
     # get similarities between vectors of the same topic. max, min, avg, mode, media, distribution
 
-    simScores_withinTopic_list_cosine_avg, simScores_withinTopic_list_manhattan_avg = ComparativeMeasures.get_topic_similarity(list_of_allArrays_names, list_of_allArrays_threshold, slices_toExclude)
+    simScores_withinTopic_list_cosine_avg, simScores_withinTopic_list_manhattan_avg = ComparativeMeasures.SCM_topic_similarities(list_allSCM_names, list_allSCM_threshold, slices_toExclude)
 
         # calculate the following only with values that are not -9999
     # there are a lot topics falling through. check if this filter is correct
     # also check if there are really topics with similarity of 1 across all pairs
-    simScores_withinTopic_list_cosine_avg_clean =  [x for x in simScores_withinTopic_list_cosine_avg if x != -9999]
-    simScores_withinTopic_list_manhattan_avg_clean = [x for x in simScores_withinTopic_list_manhattan_avg if x != -9999]
+    #simScores_withinTopic_list_cosine_avg_clean = [x for x in simScores_withinTopic_list_cosine_avg if x != -9999]
+    #simScores_withinTopic_list_manhattan_avg_clean = [x for x in simScores_withinTopic_list_manhattan_avg if x != -9999]
 
+    # -9999 in cosine means: at least one column of all column pairs was always 0
+    # -9999 in manhattan means: both columns of all column pairs were always 0
+
+    simScores_withinTopic_list_cosine_avg_clean = simScores_withinTopic_list_cosine_avg
+    simScores_withinTopic_list_manhattan_avg_clean = simScores_withinTopic_list_manhattan_avg
 
 
     most_similarTopic_value_cosine = max(simScores_withinTopic_list_cosine_avg_clean)
@@ -267,6 +293,8 @@ if __name__ == '__main__':
     print('Lowest Similarity: ', least_similarTopic_value_cosine)
     print('Lowest Similarity Topic Id: ', least_similarTopic_pos_cosine[0])
     print('Average Similarity between all topics: ', avg_similarTopic_cosine)
+    #print('Number of columns excluded because at least one was column of each pair was always 0: ', len([x for x in simScores_withinTopic_list_cosine_avg if x == -9999]))
+    print('Number of columns excluded because at least one was column of each pair was always 0: ', len([x for x in simScores_withinTopic_list_cosine_avg if x == 0]))
 
     print('\n Topic Manhattan Similarities between approaches:')
     print('Highest Similarity: ', most_similarTopic_value_manhattan)
@@ -274,16 +302,19 @@ if __name__ == '__main__':
     print('Lowest Similarity: ', least_similarTopic_value_manhattan)
     print('Lowest Similarity Topic Id: ', least_similarTopic_pos_manhattan[0])
     print('Average Similarity between all topics: ', avg_similarTopic_manhattan)
+    #print('Number of columns excluded because both columns of each pair were always 0: ', len([x for x in simScores_withinTopic_list_manhattan_avg if x == -9999]))
+    print('Number of columns excluded because both columns of each pair were always 0: ', len([x for x in simScores_withinTopic_list_manhattan_avg if x == 0]))
+
 
     #print(len(list_of_allArrays_threshold[0]))
     #print(len(list_of_allArrays_threshold))
 
-    vialization_higestTopicSim = np.zeros((len(list_of_allArrays_threshold[0]), len(list_of_allArrays_threshold)), dtype=int)
+    vialization_higestTopicSim = np.zeros((len(list_allSCM_threshold[0]), len(list_allSCM_threshold)), dtype=int)
     #print(np.shape(vialization_higestTopicSim))
-    for i in range(len(list_of_allArrays_threshold)):
+    for i in range(len(list_allSCM_threshold)):
         #print(list_of_allArrays_threshold[i][:,23])
         #print(vialization_higestTopicSim[:,i])
-        vialization_higestTopicSim[:,i] = list_of_allArrays_threshold[i][:,23]
+        vialization_higestTopicSim[:,i] = list_allSCM_threshold[i][:,23]
 
     #print(vialization_higestTopicSim)
 
@@ -304,40 +335,44 @@ if __name__ == '__main__':
     #       pick examplary patent(s) for recombination and diffusion
 
 
-    '''
 
 
-###----------- Recombination ----------------
+
+
+
+
+
+###----------- Recombination ------------------------------------------------------------------------------
 #--- Comparing Recombination arrays ---#
 
 
 
-    column_lists = [columns_reference_reco, recombinationArray_Topics_lp_columns, recombinationArray_Topics_gm_columns, recombinationArray_Topics_kc_columns, recombinationArray_Topics_l2_columns, columns_recom_edgeWeight]
-    columns_list_names = ['columns_reference_reco', 'recombinationArray_Topics_lp_columns', 'recombinationArray_Topics_gm_columns', 'recombinationArray_Topics_kc_columns', 'recombinationArray_Topics_l2_columns', 'columns_recom_edgeWeight']
+    CCM_column_lists = [columns_reference_reco, recombinationArray_Topics_lp_columns, recombinationArray_Topics_gm_columns, recombinationArray_Topics_kc_columns, recombinationArray_Topics_l2_columns, columns_recom_edgeWeight]
+    CCM_column_list_names = ['columns_reference_reco', 'recombinationArray_Topics_lp_columns', 'recombinationArray_Topics_gm_columns', 'recombinationArray_Topics_kc_columns', 'recombinationArray_Topics_l2_columns', 'columns_recom_edgeWeight']
 
     print(len(recombinationDiffusion_edgeWeight.T))
     print(len(columns_recom_edgeWeight))
     print(len(np.unique(columns_recom_edgeWeight, axis=0)))
 
-    recoArrays_list = [pattern_array_reference_reco, recombinationArray_Topics_lp, recombinationArray_Topics_gm,
+    CCM_list = [pattern_array_reference_reco, recombinationArray_Topics_lp, recombinationArray_Topics_gm,
                        recombinationArray_Topics_kc, recombinationArray_Topics_l2, recombinationDiffusion_edgeWeight]
 
-    for array in recoArrays_list:
-        columSum_vec = np.sum(array, axis= 0)
+    for CCM in CCM_list:
+        columSum_vec = np.sum(CCM, axis= 0)
         print(np.where(columSum_vec == 0))
         #todo: why is this not empty for lp????
 
-    ComparativeMeasures.extend_cD_recombinationDiffuion(recoArrays_list, 12, 1, 5)
+    ComparativeMeasures.extend_cD_recombinationDiffuion(CCM_list, slidingWindow_size=12, cd_CCM_posStart=1, cd_CCM_posEnd=5)
 
-    #recoArrays_list_mod = [recoArrays_list[0], extend_cD_arrays[:], recoArrays_list[-1]]
+    #CCM_list_mod = [CCM_list[0], extend_cD_arrays[:], CCM_list[-1]]
 
-    recoArrays_threshold_list, recoArrays_rowNorm_list = ComparativeMeasures.normalized_and_binarize(recoArrays_list, threshold=0.01, leeway=True)
+    recoArrays_threshold_list, recoArrays_rowNorm_list = ComparativeMeasures.normalized_and_binarize(CCM_list, threshold=0.01, leeway=True)
 
     #print(sum(sum(recoArrays_threshold_list[0])))
     #print(sum(sum(recoArrays_threshold_list[1])))
 
-    extended_threshold_arrays = ComparativeMeasures.extend_recombination_columns(column_lists, recoArrays_threshold_list)
-    #extended_threshold_arrays = ComparativeMeasures.extend_recombination_columns(column_lists, recoArrays_list)
+    extended_threshold_arrays = ComparativeMeasures.extend_recombination_columns(CCM_column_lists, recoArrays_threshold_list)
+    #extended_threshold_arrays = ComparativeMeasures.extend_recombination_columns(CCM_column_lists, CCM_list)
 
     # delete collumns if they are 0 in all matrices
 
@@ -376,26 +411,26 @@ if __name__ == '__main__':
     # modArray_dict = {}
     recomb_pos_list = []
     recomb_length_list = []
-    for i in range(len(recoArrays_list)):
-        recomb_pos = ComparativeMeasures.find_recombination(recoArrays_list[i])
+    for i in range(len(CCM_list)):
+        recomb_pos = ComparativeMeasures.find_recombination(CCM_list[i])
         recomb_length_list.append(recomb_pos)
 
     # fine diffusion length
-    min_diffusion_threshold = 1
+    min_length_threshold = 1
     for i in range(len(list_of_allArrays_threshold)):
-        diffusion_length = ComparativeMeasures.find_diffusion(list_of_allArrays_threshold[i], diffusion_pos_list[i])
-        diffusion_length = [entry for entry in diffusion_length if
-                            entry[2] >= min_diffusion_threshold]  # [row, column, diffusionDuration]
-        diffusion_length_list.append(diffusion_length)
+        pattern_length = ComparativeMeasures.find_diffusion(list_of_allArrays_threshold[i], pattern_start_list[i])
+        pattern_length = [entry for entry in pattern_length if
+                            entry[2] >= min_length_threshold]  # [row, column, diffusionDuration]
+        pattern_length_list.append(pattern_length)
 
     # get descriptives
     for i in range(len(list_of_allArrays_threshold)):
-        diff_count_per_topic, diff_duration_per_topic = ComparativeMeasures.get_nonSimilarity_descriptives(
-            diffusionArray_Topics_lp_columns, diffusion_length_list[i])
-        avg_duration_withinTopic = []
-        for j in diff_duration_per_topic:
+        patterns_perTopic, pattern_lengths_perTopic = ComparativeMeasures.get_nonSimilarity_descriptives(
+            diffusionArray_Topics_lp_columns, pattern_length_list[i])
+        PatternLength_withinTopic_avg = []
+        for j in pattern_lengths_perTopic:
             if j != []:
-                avg_duration_withinTopic.append(np.mean(j))
+                PatternLength_withinTopic_avg.append(np.mean(j))
 
         threshold_array = list_of_allArrays_threshold[i]
         size_threshold_array = np.size(threshold_array)
@@ -404,12 +439,12 @@ if __name__ == '__main__':
         avg_entry_per_topic = np.mean(topic_sum_vec)
 
         print('\n', list_of_allArrays_names[i])
-        print('Number of Diffusion Cycles total: ', len(diffusion_length_list[i]))
-        print('Average number of Diffusion Cycles per topic: ', (sum(diff_count_per_topic) / len(diff_count_per_topic)))
+        print('Number of Diffusion Cycles total: ', len(pattern_length_list[i]))
+        print('Average number of Diffusion Cycles per topic: ', (sum(patterns_perTopic) / len(patterns_perTopic)))
         print('Number of diffusion entries total: ', sum_threshold_array, ' of ', size_threshold_array)
         print('Average number of diffusion entries per topic: ', avg_entry_per_topic, ' of ', len(threshold_array))
-        print('Average diffusion length: ', np.mean(avg_duration_withinTopic), 'max: ', max(avg_duration_withinTopic),
+        print('Average diffusion length: ', np.mean(PatternLength_withinTopic_avg), 'max: ', max(PatternLength_withinTopic_avg),
               'min: ',
-              min(avg_duration_withinTopic), 'median: ', np.median(avg_duration_withinTopic), 'mode: ',
-              statistics.mode(avg_duration_withinTopic))
+              min(PatternLength_withinTopic_avg), 'median: ', np.median(PatternLength_withinTopic_avg), 'mode: ',
+              statistics.mode(PatternLength_withinTopic_avg))
     '''

@@ -21,6 +21,11 @@ if __name__ == '__main__':
 
     from utilities.my_measure_utils import EdgeWeightMeasures
 
+    x = [1,2,3,4,5,6,7,8,9,10]
+    print(np.quantile(x, 0.25))
+    print(np.quantile(x, 0.5))
+    print(np.quantile(x, 0.75))
+
     diffusion_array_edgeWeight, diffusion_array_frac, diffusion_array_thresh, columns_diff_edgeWeight = EdgeWeightMeasures.create_diffusion_array(topicProject_graphs, 0.005, 0.25)
     recombinationDiffusion_edgeWeight, recombinationDiffusion_frac, pattern_array_thresh_reference, columns_recom_edgeWeight = EdgeWeightMeasures.create_recombination_array(topicProject_graphs, 0.005)
 

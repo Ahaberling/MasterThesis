@@ -92,10 +92,12 @@ class Transf_slidingWindow:
         array_time_unique = np.unique(array_time)  # 817
         array_time_unique_filled = np.arange(np.min(array_time_unique), np.max(array_time_unique))  # 6027
         array_time_unique_filled_windowSize = array_time_unique_filled[
-            array_time_unique_filled <= max(array_time_unique_filled) - windowSize]  # 5937
+            array_time_unique_filled <= max(array_time_unique_filled) - windowSize]  # 5662
 
         slidingWindow_dict = {}
-        len_window = []
+        patents_perWindow = []
+        topics_perWindow = []
+        uniqueTopics_inAllWindows = []
 
         c = 0
         pbar = tqdm.tqdm(total=len(array_time_unique_filled_windowSize))
@@ -108,7 +110,19 @@ class Transf_slidingWindow:
 
                 array_window = array_toBeSlized[(array_toBeSlized[:, 3].astype('datetime64') < upper_limit) & (
                         array_toBeSlized[:, 3].astype('datetime64') >= lower_limit)]
-                len_window.append(len(array_window))
+                patents_perWindow.append(len(array_window))
+
+                topics_perWindow_helper = []
+                for topic_list in array_window[:,9:23]:
+                    for column_id in range(0,len(topic_list.T),2):
+                        if topic_list[column_id] != None:
+                            topics_perWindow_helper.append(topic_list[column_id])
+
+                topics_perWindow_helper = np.unique(topics_perWindow_helper)
+
+
+                topics_perWindow.append(len(topics_perWindow_helper))
+                uniqueTopics_inAllWindows.append(topics_perWindow_helper)
 
                 slidingWindow_dict['window_{0}'.format(c)] = array_window
 
@@ -117,7 +131,10 @@ class Transf_slidingWindow:
 
         pbar.close()
 
-        return slidingWindow_dict
+        uniqueTopics_inAllWindows = [item for sublist in uniqueTopics_inAllWindows for item in sublist]
+        uniqueTopics_inAllWindows = np.unique(uniqueTopics_inAllWindows)
+
+        return slidingWindow_dict, patents_perWindow, topics_perWindow, uniqueTopics_inAllWindows
 
 
 class Transf_network:
@@ -128,6 +145,8 @@ class Transf_network:
         u_nbrs = set(G[u])      # Neighbors of Topic1 in set format for later intersection
         v_nbrs = set(G[v])      # Neighbors of Topic2 in set format for later intersection
         shared_nbrs = u_nbrs.intersection(v_nbrs)       # Shared neighbors of both topic nodes (intersection)
+        #if len(shared_nbrs) >= 2:
+            #print(1+1)
 
         list_of_poducts = []
         for i in shared_nbrs:

@@ -20,7 +20,7 @@ class ComparativeMeasures:
         return array_threshold, array_frac
 
     @staticmethod
-    def find_recombination(pattern_array_thresh):
+    def find_patternStart(pattern_array_thresh):
 
         recom_pos = []
         c = 0
@@ -41,9 +41,9 @@ class ComparativeMeasures:
         return recom_pos
 
     @staticmethod
-    def find_diffusion(pattern_array_thresh, recombinationPos):
+    def find_pattern_length(pattern_array_thresh, recombinationPos):
 
-        diff_list = []
+        diffu_list = []
         pbar = tqdm.tqdm(total=len(recombinationPos))
 
         for pos in recombinationPos:
@@ -57,7 +57,7 @@ class ComparativeMeasures:
                 if pos[0] + i == len(pattern_array_thresh):
                     break
 
-            diff_list.append(diffusion)
+            diffu_list.append(diffusion)
 
             pbar.update(1)
 
@@ -69,7 +69,7 @@ class ComparativeMeasures:
         # Merge both lists to get final data structure #
 
         for i in range(len(recombinationPos)):
-            recombinationPos[i].append(diff_list[i])
+            recombinationPos[i].append(diffu_list[i])
 
         return recombinationPos
 
@@ -86,7 +86,7 @@ class ComparativeMeasures:
         return pattern_array_thresh
 
     @staticmethod
-    def check_dimensions(list_of_allArrays, diffusionArray_Topics_lp_columns):
+    def check_columnLength(list_of_allArrays, diffusionArray_Topics_lp_columns):
         for i in range(len(list_of_allArrays)):
             if len(list_of_allArrays[i].T) != len((list(diffusionArray_Topics_lp_columns))):
                 raise Exception("Diffusion arrays vary in their columns")
@@ -97,20 +97,23 @@ class ComparativeMeasures:
         array_rowNorm_list = []
         array_binariz_list = []
         for i in range(len(list_of_allArrays)):
+            array_toBeMod = list_of_allArrays[i]
 
-            array_threshold, array_rowNorm = ComparativeMeasures.modify_arrays(list_of_allArrays[i], threshold)
+            array_threshold, array_rowNorm = ComparativeMeasures.modify_arrays(array_toBeMod, threshold)
+
             if leeway == True:
-                array_threshold = ComparativeMeasures.introcude_leeway(array_threshold, np.array([1, 0, 1]), 1)
+                array_threshold_leeway = ComparativeMeasures.introcude_leeway(array_threshold, np.array([1, 0, 1]), 1)
                 # if there is 101 this means that there was one year without a occurrence. 1001 is one year and one month ...
 
+
             array_rowNorm_list.append(array_rowNorm)
-            array_binariz_list.append(array_threshold)
+            array_binariz_list.append(array_threshold_leeway)
         return array_binariz_list, array_rowNorm_list
 
     @staticmethod
-    def get_nonSimilarity_descriptives(diffusionArray_Topics_lp_columns, diffusion_length_list):
-        diff_count_per_topic = []
-        diff_duration_per_topic = []
+    def alligned_SCM_descriptives(diffusionArray_Topics_lp_columns, diffusion_length_list):
+        diffu_count_per_topic = []
+        diffu_duration_per_topic = []
 
         for topic in range(len(diffusionArray_Topics_lp_columns)):
             diff_count = 0
@@ -120,10 +123,10 @@ class ComparativeMeasures:
                     diff_count = diff_count+1
                     diff_duration.append(entry[2])
 
-            diff_count_per_topic.append(diff_count)
-            diff_duration_per_topic.append(diff_duration)
+            diffu_count_per_topic.append(diff_count)
+            diffu_duration_per_topic.append(diff_duration)
 
-        return  diff_count_per_topic, diff_duration_per_topic
+        return  diffu_count_per_topic, diffu_duration_per_topic
 
     @staticmethod
     def cosine_sim_mod(List1, List2):
@@ -137,8 +140,9 @@ class ComparativeMeasures:
     def manhattan_sim_mod(List1, List2):
         return 1 - sum(abs(a - b) for a, b in zip(List1, List2)) / len(List1)
 
+
     @staticmethod
-    def get_matrix_similarities_byTopic(list_of_allArrays_names, list_of_allArrays_threshold):
+    def SCM_similarities_byColumn(list_of_allArrays_names, list_of_allArrays_threshold):
         # name_list = []
         # array_list = []
         namePair_list = []
@@ -157,7 +161,6 @@ class ComparativeMeasures:
 
         for matrixPair in arrayPair_list:
             patternArray1 = matrixPair[0]
-            # print(np.shape(matrixPair))
             patternArray2 = matrixPair[1]
 
             cosine_list = []
@@ -169,7 +172,10 @@ class ComparativeMeasures:
                 # when both are sum != 0 -> calculate normally
                 # when one is != 0 -> calculate normally (cosine = 0)
                 # when both are = 0 -> do not calculate anything
+
+                # the columns of both arrays have to sum to 0 in order to not proceed
                 if not (sum(patternArray1[:, column_id]) == 0 and sum(patternArray2[:, column_id]) == 0):
+
                     cosine = ComparativeMeasures.cosine_sim_mod(patternArray1[:, column_id],
                                                                 patternArray2[:, column_id])
                     manhattan = ComparativeMeasures.manhattan_sim_mod(patternArray1[:, column_id],
@@ -178,12 +184,12 @@ class ComparativeMeasures:
                     cosine_list.append(cosine)
                     manhattan_list.append(manhattan)
 
-            if len(cosine_list) != 0:
+            if len(cosine_list) != 0:               # this means: if at least in one column pair both columns were not completely 0
                 cosine_avg = sum(cosine_list) / len(cosine_list)
             else:
                 cosine_avg = 0
 
-            if len(manhattan_list) != 0:
+            if len(manhattan_list) != 0:            # this means: if at least in one column pair both columns were not completely 0
                 manhattan_avg = sum(manhattan_list) / len(manhattan_list)
             else:
                 manhattan_avg = 0
@@ -194,7 +200,7 @@ class ComparativeMeasures:
         return namePair_list, similarityPair_list_cosine, similarityPair_list_manhattan
 
     @staticmethod
-    def get_topic_similarity(list_of_allArrays_names, list_of_allArrays_threshold, slices_toExclude=None):
+    def SCM_topic_similarities(list_of_allArrays_names, list_of_allArrays_threshold, slices_toExclude=None):
         namePair_list = []
         arrayPair_list = []
         namePair_list.append(list(itertools.combinations(list_of_allArrays_names, r=2)))
@@ -229,20 +235,22 @@ class ComparativeMeasures:
                 simScores_withinTopic_list_cosine_avg.append(
                     sum(simScores_withinTopic_cosine) / len(simScores_withinTopic_cosine))
             else:
-                simScores_withinTopic_list_cosine_avg.append(-9999)
+                #simScores_withinTopic_list_cosine_avg.append(-9999)
+                simScores_withinTopic_list_cosine_avg.append(0)
 
             if len(simScores_withinTopic_manhattan) != 0:
                 simScores_withinTopic_list_manhattan_avg.append(
                     sum(simScores_withinTopic_manhattan) / len(simScores_withinTopic_manhattan))
             else:
-                simScores_withinTopic_list_manhattan_avg.append(-9999)
+                #simScores_withinTopic_list_manhattan_avg.append(-9999)
+                simScores_withinTopic_list_manhattan_avg.append(0)
 
         return simScores_withinTopic_list_cosine_avg, simScores_withinTopic_list_manhattan_avg
 
     @staticmethod
-    def extend_cD_recombinationDiffuion(cd_Arrays, slidingWindow_size, cD_pos_start, cD_pos_end):
+    def extend_cD_recombinationDiffuion(cd_Arrays, slidingWindow_size, cd_CCM_posStart, cd_CCM_posEnd):
         #modified_cDarrays = []
-        for cd_array in cd_Arrays[cD_pos_start:cD_pos_end]:
+        for cd_array in cd_Arrays[cd_CCM_posStart:cd_CCM_posEnd]:
 
             for j in range(len(cd_array.T)):
                 for i in range(len(cd_array) - 2, -1,

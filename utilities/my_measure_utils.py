@@ -21,9 +21,7 @@ class ReferenceMeasures:
         else:
             raise Exception("kC must be string value 'topic' or 'ipc'")
 
-        slidingWindow_kC_unite = {}
-
-
+        slidingWindow_kC_unit = {}
         pbar = tqdm.tqdm(total=len(slidingWindow_dict))
 
         for window_id, window in slidingWindow_dict.items():
@@ -50,13 +48,13 @@ class ReferenceMeasures:
             # dictionary with all singularly occuring ipc's within a window
             kC_list = [item for sublist in kC_list for item in sublist]
             #print(kC_list)
-            slidingWindow_kC_unite[window_id] = kC_list
+            slidingWindow_kC_unit[window_id] = kC_list
 
             pbar.update(1)
 
         pbar.close()
 
-        return slidingWindow_kC_unite
+        return slidingWindow_kC_unit
 
     @staticmethod
     def create_pattern_array(knowledgeComponent_dict):
@@ -502,7 +500,7 @@ class CommunityMeasures:
 
         # Create Arrays #
         community_tracing_array = np.zeros((len(patentProject_graphs), max_number_community), dtype=int)
-        community_size_array = np.zeros((len(patentProject_graphs), max_number_community), dtype=int)
+        #community_size_array = np.zeros((len(patentProject_graphs), max_number_community), dtype=int)
 
         for row in range(len(community_tracing_array)):
             current_window = community_dict_topD['window_{0}'.format(row * 30)]
@@ -517,11 +515,11 @@ class CommunityMeasures:
 
                                                  # community[1][0][0] = TopD of community                             community[0] = set of id's of community
                     current_topD_candidate      = [community[1][0][0] for community in current_window if prev_topD in community[0]]
-                    current_topD_candidate_size = [len(community[0]) for community in current_window if prev_topD in community[0]]
+                    #current_topD_candidate_size = [len(community[0]) for community in current_window if prev_topD in community[0]]
 
                     if len(current_topD_candidate) == 1:  # >=2 only possible for overlapping CD
                         community_tracing_array[row, column] = current_topD_candidate[0]
-                        community_size_array[row, column] = current_topD_candidate_size[0]
+                        #community_size_array[row, column] = current_topD_candidate_size[0]
 
                     else:  # (e.g. 0 because the node disappears or 2 because it is in two communities)
                         community_candidate = [community[0] for community in prev_window if prev_topD in community[0]]
@@ -546,7 +544,7 @@ class CommunityMeasures:
 
                                 if len(next_topk_candidate) == 1:
                                     community_tracing_array[row, column] = next_topk_candidate[0]
-                                    community_size_array[row, column] = next_topk_candidate_size[0]
+                                    #community_size_array[row, column] = next_topk_candidate_size[0]
                                     break
 
             # Part2: Create new communitiy entries if tracing did not create them #
@@ -562,7 +560,7 @@ class CommunityMeasures:
                                column_id]) == 0:  # RuntimeWarning: overflow encountered in long_scalars
 
                             community_tracing_array[row, column_id] = community[1][0][0]
-                            community_size_array[row, column_id] = len(community[0])
+                            #community_size_array[row, column_id] = len(community[0])
                             break
 
 
@@ -573,61 +571,68 @@ class CommunityMeasures:
                 break
 
         community_tracing_array = community_tracing_array[:, 0:cutoff]
-        community_size_array = community_size_array[:, 0:cutoff]
+        #community_size_array = community_size_array[:, 0:cutoff]
 
-        return community_tracing_array, community_size_array
+        return community_tracing_array #, community_size_array
 
 
     @staticmethod
     def community_labeling(tracingArray, community_dict_topD, patentProject_graphs):
 
-        ### Create dict with all unique topD per window
-        #the recombination dict indicates, that topD_dic should contain community 119 and 37 in window 89 aka 2670.
-        #Otherwise recombination dict is faulty
+        ### Create dict with all topD per window and the community sequences aka columns they are associated with
+                    #the recombination dict indicates, that topD_dic should contain community 119 and 37 in window 89 aka 2670.
+                    #Otherwise recombination dict is faulty
         topD_dic = {}
-        topD_dic_unique = {}
+        #topD_dic_unique = {}
 
         for row in range(len(tracingArray)):
-            if row == 89:
-                print(1 + 1)
-            topD_dic_unique['window_{0}'.format(row * 30)] = np.unique(tracingArray[row, :])[1:]
+            #if row == 89:
+                #print(1 + 1)
+            #topD_dic_unique['window_{0}'.format(row * 30)] = np.unique(tracingArray[row, :])[1:]       #[1:] to exclude the 0s
 
-            # ---------#
-            # new approach #
             topD_pos = {}
-            for i in range(len(tracingArray[row, :])):
+            for j in range(len(tracingArray[row, :])):
 
-                if tracingArray[row,i] != 0:
-                    if tracingArray[row,i] in topD_pos.keys():
-                        topD_pos[tracingArray[row,i]].append(i)
+                # find for every topD the community sequences (columns) topD is identifying.
+                if tracingArray[row,j] != 0:
+                    if tracingArray[row,j] in topD_pos.keys():
+                        topD_pos[tracingArray[row,j]].append(j)
                     else:
-                        topD_pos[tracingArray[row, i]] = [i]
+                        topD_pos[tracingArray[row, j]] = [j]
 
             #print(topD_pos)
             topD_dic['window_{0}'.format(row * 30)] = topD_pos
 
-            #---------#
+            #print(topD_dic_unique['window_{0}'.format(row * 30)])
+            #print(list(topD_dic['window_{0}'.format(row * 30)].keys()))
+
 
         ### Create dict that associates a topD identifier with a stable community id (column number) for each window ###
         topD_associ = {}
 
-        for i in range(len(topD_dic_unique)):
+        #for i in range(len(topD_dic_unique)):
+        for i in range(len(topD_dic)):
             #if i * 30 == 4470:
                 #print(1+1)
 
             tuple_list = []
             #                             (412413192, 337)  (412862058, 338)  (413103388, 328)  (416974172, 330)  (418775075, 339)  (419259320, 330)
 
-            for topD in topD_dic_unique['window_{0}'.format(i * 30)]:
+            #for topD in topD_dic_unique['window_{0}'.format(i * 30)]:
+            for topD, column_pos in topD_dic['window_{0}'.format(i * 30)].items():
 
-                column_pos = np.where(tracingArray[i, :] == topD)
+                #column_pos = np.where(tracingArray[i, :] == topD)
 
                 # if topD is present in more then 1 column of a row:
-                if len(column_pos[0]) != 1:
+                #if len(column_pos[0]) != 1:
+                if len(column_pos) != 1:        # this can never be 0
+                    #print(i)
+                    #print(column_pos)
 
                     prev_id_list = []
 
-                    for column in column_pos[0]:
+                    #for column in column_pos[0]:
+                    for column in column_pos:
 
                         prev_topD = tracingArray[i-1, column]
 
@@ -635,33 +640,59 @@ class CommunityMeasures:
 
                     prev_id_list_unique = np.unique([prev_id[0] for prev_id in prev_id_list])
 
+                    # wouldnt there be cases where 0 is added to the list as well? No, this is never 0 because: new columns (community sequences)
+                    # are only opened, if a topD appears, that is not linkable to previous topDs. if one of the pos in column_pos is linked to a previous id
+                    # then the other one is as well. Casesin which two identical topDs appear in two columns/sequences are not possible, because they would
+                    # just be subsumed in one sequence/one topD
+                    # THIS MEANS SOME COMMUNITIES MUST HAVEMERGED.
+                    #Now has to be decided how to label this merged community. Which column id is chosen?
+                    # we take the previous topDs and ... see below
+
+                    # if the current multiple occuring topD was already a topD in the previous window, then simply take the same column id as in the last window
+                    # this is never ambigious, because topDs are always only associated with one column/ sequence id per window.
                     if topD in prev_id_list_unique:
 
+                        #print(1+1)
                         column_pos = [prev_topD[1] for prev_topD in topD_associ['window_{0}'.format((i-1) * 30)] if prev_topD[0] == topD]
+                        # first row does not have to be accounted for, because ambigious topDs could only occure in Lais2, but 'After all core are identified, communities with the same core are merged.'
 
                     #elif len(np.unique(prev_id_list_unique)) == 1:
                     #    column_pos = [topD[1] for prev_topD in topD_associ['window_{0}'.format((i-1) * 30)] if prev_topD[0] == prev_id_list[0][0]]
 
+
+                    # case: ambigious topD, but topD not observed in any previous sequence points
                     else:
-                        prev_topDs_withColumn = []
+                        #prev_topDs_withColumn = []
                         multi_community_edgeCase = []
 
-                        for column in column_pos[0]:
-                            prev_topDs_withColumn.append((tracingArray[i-1,column], column))
+                        #for column in column_pos[0]:
+                        #for column in column_pos:
+                            #prev_topDs_withColumn.append((tracingArray[i-1,column], column))
 
                         prev_topD_communities_withColumn = []
 
-                        for prev_topD in prev_topDs_withColumn:
+                        #for prev_topD in prev_topDs_withColumn:
+                        for prev_topD in prev_id_list:
+                            print(prev_topD)
                             #communities = [(community, prev_topD[1]) for community in cd_topD['window_{0}'.format((i-1) * 30)] if prev_topD[0] in community[0]]
                             communities = [(community, prev_topD[1]) for community in community_dict_topD['window_{0}'.format((i-1) * 30)] if prev_topD[0] == community[1][0][0]]
+                            # if selected previous topD was in more then one community...
+                            # this is never the case, if two communities would have the same topD, then either antohe one would have been chosen
+                            # or in the case for total subsets in lais2, the communities would have been merged -> one community
+                            #print(1+1)
+                            #if len(communities) >= 2:
+                                #print(1+1)
+                                #for community in communities:
+                                    #prev_topD_communities_withColumn.append([community])
+                            #else:
+                                #prev_topD_communities_withColumn.append(communities)
 
-                            if len(communities) >= 2:
-                                for community in communities:
-                                    prev_topD_communities_withColumn.append([community])
-                            else:
-                                prev_topD_communities_withColumn.append(communities)
+                            # MAYBE DELETE THIS AND JUST WORK WITH 'communties' aka community later
+                            prev_topD_communities_withColumn.append(communities)
 
+                        # 'current_community' is always just 1 community
                         current_community = [community for community in community_dict_topD['window_{0}'.format(i * 30)] if topD in community[1][0]]
+
 
                         #Assumption. if topD is identifier for a community, the it is the identifier for only that community and not for multiple
 
@@ -673,27 +704,29 @@ class CommunityMeasures:
 
                         for candidate in current_community_degree_list:
                             checklist_inMultipleCommunities = []
+                            #maybe i can delete the prev_community[1] aka the column pos from prev_topD_communities_withColumn
+
+                            # get me all communities of previous topDs
+                            #print(prev_topD_communities_withColumn)
                             prev_topD_communities_withColumn_mod = [prev_community[0][0] for prev_community in prev_topD_communities_withColumn]
 
+                            # get me only the unqiue ones.
                             community_helper_list = []
                             for community_helper in prev_topD_communities_withColumn_mod:
                                 if community_helper not in community_helper_list:
                                     community_helper_list.append(community_helper)
-
                             prev_topD_communities_withColumn_unique = community_helper_list
 
+                            # check if my candidate node is in one and only one community
                             for prev_community in prev_topD_communities_withColumn_unique:
                                 if candidate[0] in prev_community[0]:       # (290444528, 5)
                                     checklist_inMultipleCommunities.append(prev_community)
 
+                            # if the node is in one and only one of the previous communities of topD, then get the topD of this previous community
+                            # and the previous column position. This one is used then.
                             if len(checklist_inMultipleCommunities) == 1:
 
-                                #print(checklist_inMultipleCommunities)
-                                #print(checklist_inMultipleCommunities[0])
-                                #print(checklist_inMultipleCommunities[0][1])
-                                #print(checklist_inMultipleCommunities[0][1][0])
-                                #print(checklist_inMultipleCommunities[0][1][0][0])
-
+                                # is this is the case:
                                 new_topD = checklist_inMultipleCommunities[0][1][0][0]
 
                                 #if new_topD not in topD_dic['window_{0}'.format((i+1) * 30)]:
@@ -709,43 +742,48 @@ class CommunityMeasures:
                             elif len(checklist_inMultipleCommunities) >= 2:
                                 multi_community_edgeCase.append(checklist_inMultipleCommunities)
 
-                        if isinstance(column_pos[0], int) == False:
-                            if len(column_pos[0]) != 1:
-                                multi_community_edgeCase = [item for sublist in multi_community_edgeCase for item in sublist]
+                        # if column_pos has not be narrowed down, but is still a list (multiple colum pos) then:
+                        #if isinstance(column_pos[0], int) == False:
+                        #if isinstance(column_pos, int) == False:
 
-                                multi_community_edgeCase_unique = []
-                                for community in multi_community_edgeCase:
-                                    if community not in multi_community_edgeCase_unique:
-                                        multi_community_edgeCase_unique.append(community)
 
-                                multi_community_edgeCase_count = []
+                        # multi_community_edgeCase_unique now equals all communties that inhibit node candidates that are not
+                        # unique to one community
+                        #if len(column_pos[0]) != 1:
+                        if len(column_pos) != 1:
+                            multi_community_edgeCase = [item for sublist in multi_community_edgeCase for item in sublist]
 
-                                for unique_item in multi_community_edgeCase_unique:
-                                    c = 0
-                                    for item in multi_community_edgeCase:
-                                        if unique_item == item:
-                                            c = c + 1
+                            # get only the unique communities
+                            multi_community_edgeCase_unique = []
+                            for community in multi_community_edgeCase:
+                                if community not in multi_community_edgeCase_unique:
+                                    multi_community_edgeCase_unique.append(community)
 
-                                    multi_community_edgeCase_count.append((unique_item, c))
+                            multi_community_edgeCase_count = []
 
-                                multi_community_edgeCase_count.sort(key=operator.itemgetter(1), reverse=True)
+                            # get the most frequent communities in this list
+                            for unique_item in multi_community_edgeCase_unique:
+                                c = 0
+                                for item in multi_community_edgeCase:
+                                    if unique_item == item:
+                                        c = c + 1
 
-                                #print(multi_community_edgeCase_count)
-                                #print(multi_community_edgeCase_count[0])
-                                #print(multi_community_edgeCase_count[0][0])
-                                #print(multi_community_edgeCase_count[0][0][1])
-                                #print(multi_community_edgeCase_count[0][0][1][0])
-                                #print(multi_community_edgeCase_count[0][0][1][0][0])
-                                new_topD = multi_community_edgeCase_count[0][0][1][0][0]
+                                multi_community_edgeCase_count.append((unique_item, c))
 
-                                column_pos = [prev_topD[1] for prev_topD in topD_associ['window_{0}'.format((i - 1) * 30)] if prev_topD[0] == new_topD]
+                            multi_community_edgeCase_count.sort(key=operator.itemgetter(1), reverse=True)
 
+                            # chose column of the community with the highest count as new label
+                            new_topD = multi_community_edgeCase_count[0][0][1][0][0]
+
+                            column_pos = [prev_topD[1] for prev_topD in topD_associ['window_{0}'.format((i - 1) * 30)] if prev_topD[0] == new_topD]
+
+                #tuple_list.append((topD, int(column_pos[0])))
                 tuple_list.append((topD, int(column_pos[0])))
 
-            topD_associ['window_{0}'.format(i * 30)] = tuple_list  # list of tuples (topk, community_id)
+            topD_associ['window_{0}'.format(i * 30)] = tuple_list  # list of tuples (topD, community_id)
+
 
         ### Relabel all communities in cd_topD with static community id instead of dynamic TopD ###
-
         cd_labeled = {}
 
         for window_id, window in community_dict_topD.items():
@@ -1028,8 +1066,8 @@ class CommunityMeasures:
         # window 1140 should contain 37 and 90
         for i in range(len(topD_communityID_association_accumulated) - 1):
 
-            if i == 89:
-                print(1+1)
+            #if i == 89:
+                #print(1+1)
             #if i == 25:
                 #print(1 + 1)
             #if i == 185:
@@ -1048,8 +1086,8 @@ class CommunityMeasures:
                 # if i == 12:
                 # print(1+1)
 
+                # get all topDs and check if they are present in the next window as well
                 for topD in window.keys():
-
                     if topD not in next_window.keys():
 
                         next_community_lists = list(next_window.values())
@@ -1268,10 +1306,10 @@ class CommunityMeasures:
                     #print(i*30)
 
                 if recombination_count != 0:
-                    if j == 89:
-                        print(recombinations_all[j])
-                        print(recombinations_dic['window_{0}'.format(i * 30)])
-                        print(1 + 1)
+                    #if j == 89:
+                        #print(recombinations_all[j])
+                        #print(recombinations_dic['window_{0}'.format(i * 30)])
+                        #print(1 + 1)
                     # this count has to be placed in all columns that are the same recombination under different community ids
                     # (e.g. because of a community merge where the dominant id overwrite the original one used in the prior recombination
 
@@ -1478,7 +1516,7 @@ class CommunityMeasures:
         for window_id, window in community_dict_labeled.items():
             size_list = []
             for community in window:
-                size_list.append(len(community))
+                size_list.append(len(community[0]))
             if size_list != []:
                 community_size_dic[window_id] = max(size_list)
             else:
@@ -1505,6 +1543,8 @@ class CommunityMeasures:
                         if community_topics[row, int(topic_list[i])] == 0:
                             community_topics[row, int(topic_list[i])] = topic_list[i + 1]
                             break
+                        #else:
+                            #print(1+1)
 
                 community_topics = np.sum(community_topics, axis=0)
                 window_list.append([community[1][0], list(community_topics)])
@@ -1742,13 +1782,15 @@ class EdgeWeightMeasures:
 
             weight_threshold = np.quantile(weight_list, edge_threshold_quantil)
 
-            for j in range(len(diffusion_array.T)):
 
-                all_edgeNodes = []
-                for (u, v, wt) in topicProject_graphs['window_{0}'.format(i * 30)].edges.data('weight'):
-                    if wt >= weight_threshold:
-                        all_edgeNodes.append(int(u[6:]))
-                        all_edgeNodes.append(int(v[6:]))
+            all_edgeNodes = []
+            for (u, v, wt) in topicProject_graphs['window_{0}'.format(i * 30)].edges.data('weight'):
+                # to get rid of noice
+                if wt >= weight_threshold:
+                    all_edgeNodes.append(int(u[6:]))
+                    all_edgeNodes.append(int(v[6:]))
+
+            for j in range(len(diffusion_array.T)):
 
                 diffusion_array[i, j] = all_edgeNodes.count(all_nodes_unique[j])
 

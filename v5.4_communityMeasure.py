@@ -106,16 +106,23 @@ if __name__ == '__main__':
 
     ### Tracing arrays ###
 
-    tracingArray_lp, tracingArraySize_lp = CommunityMeasures.create_tracing_array(max_number_community_lp, community_dict_topD_lp, patentProject_graphs)
-    tracingArray_gm, tracingArraySize_gm = CommunityMeasures.create_tracing_array(max_number_community_gm, community_dict_topD_gm, patentProject_graphs)
-    tracingArray_kc, tracingArraySize_kc = CommunityMeasures.create_tracing_array(max_number_community_kc, community_dict_topD_kc, patentProject_graphs)
-    tracingArray_l2, tracingArraySize_l2 = CommunityMeasures.create_tracing_array(max_number_community_l2, community_dict_topD_l2, patentProject_graphs)
+    #tracingArray_lp, tracingArraySize_lp = CommunityMeasures.create_tracing_array(max_number_community_lp, community_dict_topD_lp, patentProject_graphs)
+    #tracingArray_gm, tracingArraySize_gm = CommunityMeasures.create_tracing_array(max_number_community_gm, community_dict_topD_gm, patentProject_graphs)
+    #tracingArray_kc, tracingArraySize_kc = CommunityMeasures.create_tracing_array(max_number_community_kc, community_dict_topD_kc, patentProject_graphs)
+    #tracingArray_l2, tracingArraySize_l2 = CommunityMeasures.create_tracing_array(max_number_community_l2, community_dict_topD_l2, patentProject_graphs)
+
+    # CORRECT
+    tracingArray_lp = CommunityMeasures.create_tracing_array(max_number_community_lp, community_dict_topD_lp, patentProject_graphs)
+    tracingArray_gm = CommunityMeasures.create_tracing_array(max_number_community_gm, community_dict_topD_gm, patentProject_graphs)
+    tracingArray_kc = CommunityMeasures.create_tracing_array(max_number_community_kc, community_dict_topD_kc, patentProject_graphs)
+    tracingArray_l2 = CommunityMeasures.create_tracing_array(max_number_community_l2, community_dict_topD_l2, patentProject_graphs)
 
 
 
 #---  Community Labeling ---#
 
     # Label Propagation #
+    # CORRECT. 'topD_communityID_association_accumulated' PROBABLY USELESS
     community_dict_labeled_lp, topD_communityID_association_perWindow_lp, topD_communityID_association_accumulated_lp = CommunityMeasures.community_labeling(tracingArray_lp, community_dict_topD_lp, patentProject_graphs)
     community_dict_labeled_gm, topD_communityID_association_perWindow_gm, topD_communityID_association_accumulated_gm = CommunityMeasures.community_labeling(tracingArray_gm, community_dict_topD_gm, patentProject_graphs)
     community_dict_labeled_kc, topD_communityID_association_perWindow_kc, topD_communityID_association_accumulated_kc = CommunityMeasures.community_labeling(tracingArray_kc, community_dict_topD_kc, patentProject_graphs)
@@ -123,14 +130,15 @@ if __name__ == '__main__':
 
     # --- Make sure community ids are unique in each window ---#
 
+    # CORRECT
     CommunityMeasures.is_community_id_unique(community_dict_labeled_lp)
     CommunityMeasures.is_community_id_unique(community_dict_labeled_gm)
     CommunityMeasures.is_community_id_unique(community_dict_labeled_kc)
     CommunityMeasures.is_community_id_unique(community_dict_labeled_l2)
 
 #--- Community Visualization ---#
-    # NOT REALLY NECESSARY
 
+    # CORRECT
     visualizationArray_lp = CommunityMeasures.create_visualization_array(tracingArray_lp, topD_communityID_association_perWindow_lp)
     visualizationArray_gm = CommunityMeasures.create_visualization_array(tracingArray_gm, topD_communityID_association_perWindow_gm)
     visualizationArray_kc = CommunityMeasures.create_visualization_array(tracingArray_kc, topD_communityID_association_perWindow_kc)
@@ -143,21 +151,22 @@ if __name__ == '__main__':
 
     ### Create Recombination dict - crisp ###
 
+    # CORRECT
     recombination_dict_lp = CommunityMeasures.find_recombinations_crisp(community_dict_labeled_lp, patentProject_graphs)
     recombination_dict_gm = CommunityMeasures.find_recombinations_crisp(community_dict_labeled_gm, patentProject_graphs)
     recombination_dict_kc = CommunityMeasures.find_recombinations_overlapping(community_dict_labeled_kc, patentProject_graphs)
     recombination_dict_l2 = CommunityMeasures.find_recombinations_overlapping(community_dict_labeled_l2, patentProject_graphs)
 
     ### Recombination Threshold ###
-    # NOT REALLY NECESSARY
 
+    # # CORRECT BUT MAYBE NOT REALLY NECESSARY
     recombination_dict_threshold_lp = CommunityMeasures.recombination_threshold_crisp(recombination_dict_lp, patentProject_graphs, 0.005)
     recombination_dict_threshold_gm = CommunityMeasures.recombination_threshold_crisp(recombination_dict_gm, patentProject_graphs, 0.005)
     recombination_dict_threshold_kc = CommunityMeasures.recombination_threshold_overlapping(recombination_dict_kc, patentProject_graphs, 0.005)
     recombination_dict_threshold_l2 = CommunityMeasures.recombination_threshold_overlapping(recombination_dict_l2, patentProject_graphs, 0.005)
 
     ###  ###
-    # NOT REALLY NECESSARY
+    # # CORRECT BUT MAYBE NOT REALLY NECESSARY
         # a dict like cd_recombination_dic, but with an additional entry per recombination list. the additional entry indicates if a threshold was meet
 
     recombination_dict_enriched_lp = CommunityMeasures.enrich_recombinations_dic_with_thresholds_crips(recombination_dict_lp, recombination_dict_threshold_lp)
@@ -167,9 +176,10 @@ if __name__ == '__main__':
 
 ### NEW FILE cDMeasureArrayTransform #########
 
-
+    # PROBABLY DONT NEED THIS
     # ---  cleaning topD_dic ---#
-
+    # PROBABLY USELESS
+    '''
     topD_communityID_association_accumulated_cleanID_lp = CommunityMeasures.create_cleaningIndex_associationAccumulated(topD_communityID_association_accumulated_lp, community_dict_topD_lp, patentProject_graphs)
     topD_communityID_association_accumulated_cleanID_gm = CommunityMeasures.create_cleaningIndex_associationAccumulated(topD_communityID_association_accumulated_gm, community_dict_topD_gm, patentProject_graphs)
     topD_communityID_association_accumulated_cleanID_kc = CommunityMeasures.create_cleaningIndex_associationAccumulated(topD_communityID_association_accumulated_kc, community_dict_topD_kc, patentProject_graphs)
@@ -179,16 +189,18 @@ if __name__ == '__main__':
     topD_communityID_association_accumulated_clean_gm = CommunityMeasures.cleaning_associationAccumulated(topD_communityID_association_accumulated_gm, topD_communityID_association_accumulated_cleanID_gm)
     topD_communityID_association_accumulated_clean_kc = CommunityMeasures.cleaning_associationAccumulated(topD_communityID_association_accumulated_kc, topD_communityID_association_accumulated_cleanID_kc)
     topD_communityID_association_accumulated_clean_l2 = CommunityMeasures.cleaning_associationAccumulated(topD_communityID_association_accumulated_l2, topD_communityID_association_accumulated_cleanID_l2)
-
+    '''
 
     # --- Constructing Diffusion Array ---#
-
+    # PROBABLY USELESS
+    '''
     lp_singleDiffusion_v2 = CommunityMeasures.single_diffusion_v2(topD_communityID_association_accumulated_clean_lp)
     gm_singleDiffusion_v2 = CommunityMeasures.single_diffusion_v2(topD_communityID_association_accumulated_clean_gm)
     kclique_singleDiffusion_v2 = CommunityMeasures.single_diffusion_v2(topD_communityID_association_accumulated_clean_kc)
     lais2_singleDiffusion_v2 = CommunityMeasures.single_diffusion_v2(topD_communityID_association_accumulated_clean_l2)
-
-
+    '''
+    #PROBABLY USELESS
+    '''
     lp_recombination_diffusion_crip_count_v2, lp_recombination_diffusion_crip_fraction_v2, lp_recombination_diffusion_crip_threshold_v2, lp_recombination_diffusion_crip_columns = \
         CommunityMeasures.recombination_diffusion_crip_v2(topD_communityID_association_accumulated_clean_lp, recombination_dict_lp, patentProject_graphs)
 
@@ -207,7 +219,7 @@ if __name__ == '__main__':
 
     lais2_recombination_diffusion_overlapping_count_v2, lais2_recombination_diffusion_overlapping_fraction_v2, lais2_recombination_diffusion_overlapping_threshold_v2, lais2_recombination_diffusion_crip_columns = \
         CommunityMeasures.recombination_diffusion_overlapping_v2(topD_communityID_association_accumulated_clean_l2, recombination_dict_l2, patentProject_graphs)
-
+    '''
     '''
     filename = 'lp_singleDiffusion_v2'
     outfile = open(filename, 'wb')
@@ -266,17 +278,20 @@ if __name__ == '__main__':
     patent_lda_ipc = patent_lda_ipc.to_numpy()
 
 
-
+    # CORRECT
+    #window: [community id [topic distribution], community id [...], ... window: ...
     topicDistriburionOfCommunities_dict_lp = CommunityMeasures.creat_dict_topicDistriburionOfCommunities(community_dict_labeled_lp, patent_lda_ipc)
     topicDistriburionOfCommunities_dict_gm = CommunityMeasures.creat_dict_topicDistriburionOfCommunities(community_dict_labeled_gm, patent_lda_ipc)
     topicDistriburionOfCommunities_dict_kc = CommunityMeasures.creat_dict_topicDistriburionOfCommunities(community_dict_labeled_kc, patent_lda_ipc)
     topicDistriburionOfCommunities_dict_l2 = CommunityMeasures.creat_dict_topicDistriburionOfCommunities(community_dict_labeled_l2, patent_lda_ipc)
 
+    # CORRECT
+    # COMMUNITY ID , MOST DOMINANT TOPIC, CONFIDENCE
     communityTopicAssociation_dict_lp, avg_confidence_lp = CommunityMeasures.create_dict_communityTopicAssociation(topicDistriburionOfCommunities_dict_lp)
     communityTopicAssociation_dict_gm, avg_confidence_gm = CommunityMeasures.create_dict_communityTopicAssociation(topicDistriburionOfCommunities_dict_gm)
     communityTopicAssociation_dict_kc, avg_confidence_kc = CommunityMeasures.create_dict_communityTopicAssociation(topicDistriburionOfCommunities_dict_kc)
     communityTopicAssociation_dict_l2, avg_confidence_l2 = CommunityMeasures.create_dict_communityTopicAssociation(topicDistriburionOfCommunities_dict_l2)
-
+    # CORRECT
     diffusionArray_Topics_lp, diffusionArray_Topics_lp_columns = CommunityMeasures.create_diffusionArray_Topics(communityTopicAssociation_dict_lp)
     diffusionArray_Topics_gm, diffusionArray_Topics_gm_columns = CommunityMeasures.create_diffusionArray_Topics(communityTopicAssociation_dict_gm)
     diffusionArray_Topics_kc, diffusionArray_Topics_kc_columns = CommunityMeasures.create_diffusionArray_Topics(communityTopicAssociation_dict_kc)
@@ -285,12 +300,12 @@ if __name__ == '__main__':
     # they cant be the same, because lp_singleDiffusion_v2 measure the lifetime of communities and not topic diffusion.
     # in lp_singleDiffusion_v2 subset of communities are listed as well, if they were swallowed by bigger communities.
     # this is irrelevant for topics.
-
+    # CORRECT
     recombination_dict_Topics_lp = CommunityMeasures.created_recombination_dict_Topics_crisp(communityTopicAssociation_dict_lp, recombination_dict_lp)
     recombination_dict_Topics_gm = CommunityMeasures.created_recombination_dict_Topics_crisp(communityTopicAssociation_dict_gm, recombination_dict_gm)
     recombination_dict_Topics_kc = CommunityMeasures.created_recombination_dict_Topics_overlap(communityTopicAssociation_dict_kc, recombination_dict_kc)
     recombination_dict_Topics_l2 = CommunityMeasures.created_recombination_dict_Topics_overlap(communityTopicAssociation_dict_l2, recombination_dict_l2)
-
+    # CORRECT
     CommunityMeasures.doubleCheck_recombination_dict_Topics_crisp(recombination_dict_Topics_lp, recombination_dict_lp, communityTopicAssociation_dict_lp)
     CommunityMeasures.doubleCheck_recombination_dict_Topics_crisp(recombination_dict_Topics_gm, recombination_dict_gm, communityTopicAssociation_dict_gm)
     CommunityMeasures.doubleCheck_recombination_dict_Topics_overlap(recombination_dict_Topics_kc, recombination_dict_kc, communityTopicAssociation_dict_kc)
