@@ -242,8 +242,8 @@ class ComparativeMeasures:
                 simScores_withinTopic_list_manhattan_avg.append(
                     sum(simScores_withinTopic_manhattan) / len(simScores_withinTopic_manhattan))
             else:
-                #simScores_withinTopic_list_manhattan_avg.append(-9999)
-                simScores_withinTopic_list_manhattan_avg.append(0)
+                simScores_withinTopic_list_manhattan_avg.append(-9999)
+                #simScores_withinTopic_list_manhattan_avg.append(0)
 
         return simScores_withinTopic_list_cosine_avg, simScores_withinTopic_list_manhattan_avg
 
@@ -269,14 +269,16 @@ class ComparativeMeasures:
     @staticmethod
     def extend_recombination_columns(column_lists, recoArrays_threshold_list):
         all_recombs = [item for sublist in column_lists for item in sublist]
-        # print(len(all_recombs))
+        #print(len(all_recombs))
 
         all_recombs = np.unique(all_recombs, axis=0)
-        # print(len(all_recombs))
+        #print(len(all_recombs))
 
         all_recombs = [tuple(x) for x in all_recombs]
 
         extended_arrays = []
+
+        pbar = tqdm.tqdm(total=len(column_lists))
         for i in range(len(column_lists)):
             extended_array = recoArrays_threshold_list[i]
             #recomb_pos_list = []
@@ -293,6 +295,9 @@ class ComparativeMeasures:
 
             extended_array = extended_array.astype(int)
 
+            pbar.update(1)
+
             extended_arrays.append(extended_array)
+        pbar.close()
         return extended_arrays
 

@@ -25,7 +25,8 @@ if __name__ == '__main__':
     community_dict_gm = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='greedy_modularity')
     community_dict_kc = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='k_clique', k_clique_size=3)
     community_dict_l2 = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='lais2')
-    
+
+
     filename = 'community_dict_lp'
     outfile = open(filename, 'wb')
     pk.dump(community_dict_lp, outfile)
@@ -62,11 +63,33 @@ if __name__ == '__main__':
     #'''
 
     community_dict_transf_lp = CommunityMeasures.align_cD_dataStructure(community_dict_lp, cD_algorithm='label_propagation')
+    #[1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 38 39 40 44 45 48 53 55]
+    #[6806 1992 1340  930  684  480  351  249  198  160  104  101   72   58 64   34   32   29   22    9   16   10    6    8    8    1    9    6 7    3    3    3    2    2    5    1    2    1    1    1    1    1 1    1]
     community_dict_transf_gm = CommunityMeasures.align_cD_dataStructure(community_dict_gm, cD_algorithm='greedy_modularity')
+    #[1 2 3 4 5]
+    #[30216  4767   829    48    13]
     community_dict_transf_kc = CommunityMeasures.align_cD_dataStructure(community_dict_kc, cD_algorithm='k_clique')
+    #[  0   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19 20  21  22  23  24  25  26  27  28  29  31  32  33  34  36  37  39  40 42  53  54  64  66  73  77  78  80  81  86  87  90  91 102 104 111 112 117 125 128 130 135 136 137 139 140 146 152 156 166 201]
+    #[3 24 21 46 53 74 61 67 39 48 43 29 16 16 12 19 16  7  7 10 10  8  7 12 12  5  1  1  1  2  1  2  1  2  1  2  1  3  1  1  2  1  1  1  1  1  1  1 2  1  1  1  1  1  1  1  1  1  1  1  1  3  1  1  1  1  1  1]
     community_dict_transf_l2 = CommunityMeasures.align_cD_dataStructure(community_dict_l2, cD_algorithm='lais2')
+    # [ 3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 36 37 38 39 40 45 49 50]
+    # [  2  24  21  20  43  65  95 103  86  76  77  57  52  72  56  59  33  39 23  26  26  16  21  17   9  15   5   6   3   6   3   3   3   2   1   2  1   2   1   2]
 
+    '''
+    lengthList = []
+    for windowid, window in community_dict_transf_lp.items():
+        for community in window:
+            lengthList.append(len(community))
+            if len(community) <= 2:
+                print(windowid)
+                print(community)
 
+    print(lengthList)
+    import numpy as np
+    val, count = np.unique(lengthList, return_counts=True)
+    print(val)
+    print(count)
+    '''
 
     # --- Clean Communties ---#
 
@@ -158,22 +181,22 @@ if __name__ == '__main__':
     recombination_dict_l2 = CommunityMeasures.find_recombinations_overlapping(community_dict_labeled_l2, patentProject_graphs)
 
     ### Recombination Threshold ###
-
+    '''
     # # CORRECT BUT MAYBE NOT REALLY NECESSARY
     recombination_dict_threshold_lp = CommunityMeasures.recombination_threshold_crisp(recombination_dict_lp, patentProject_graphs, 0.005)
     recombination_dict_threshold_gm = CommunityMeasures.recombination_threshold_crisp(recombination_dict_gm, patentProject_graphs, 0.005)
     recombination_dict_threshold_kc = CommunityMeasures.recombination_threshold_overlapping(recombination_dict_kc, patentProject_graphs, 0.005)
     recombination_dict_threshold_l2 = CommunityMeasures.recombination_threshold_overlapping(recombination_dict_l2, patentProject_graphs, 0.005)
-
+    '''
     ###  ###
     # # CORRECT BUT MAYBE NOT REALLY NECESSARY
         # a dict like cd_recombination_dic, but with an additional entry per recombination list. the additional entry indicates if a threshold was meet
-
+    '''
     recombination_dict_enriched_lp = CommunityMeasures.enrich_recombinations_dic_with_thresholds_crips(recombination_dict_lp, recombination_dict_threshold_lp)
     recombination_dict_enriched_gm = CommunityMeasures.enrich_recombinations_dic_with_thresholds_crips(recombination_dict_gm, recombination_dict_threshold_gm)
     recombination_dict_enriched_kc = CommunityMeasures.enrich_recombinations_dic_with_thresholds_overlapping(recombination_dict_kc, recombination_dict_threshold_kc)
     recombination_dict_enriched_l2 = CommunityMeasures.enrich_recombinations_dic_with_thresholds_overlapping(recombination_dict_l2, recombination_dict_threshold_l2)
-
+    '''
 ### NEW FILE cDMeasureArrayTransform #########
 
     # PROBABLY DONT NEED THIS
@@ -316,6 +339,19 @@ if __name__ == '__main__':
     recombinationArray_Topics_kc, recombinationArray_Topics_kc_columns = CommunityMeasures.create_recombinationArray_Topics(recombination_dict_Topics_kc)
     recombinationArray_Topics_l2, recombinationArray_Topics_l2_columns = CommunityMeasures.create_recombinationArray_Topics(recombination_dict_Topics_l2)
 
+    print(np.shape(recombinationArray_Topics_lp))
+    print(np.shape(recombinationArray_Topics_gm))
+    print(np.shape(recombinationArray_Topics_kc))
+    print(np.shape(recombinationArray_Topics_l2))
+
+    columSum_vec = np.sum(recombinationArray_Topics_lp, axis= 0)
+    print(len(np.where(columSum_vec == 0)[0]))
+
+    #(189, 3061) 154 empty columns
+    #(189, 42)
+    #(189, 128)
+    #(189, 454)
+
     filename = 'diffusionArray_Topics_lp'
     outfile = open(filename, 'wb')
     pk.dump(diffusionArray_Topics_lp, outfile)
@@ -395,11 +431,6 @@ if __name__ == '__main__':
     outfile = open(filename, 'wb')
     pk.dump(recombinationArray_Topics_l2_columns, outfile)
     outfile.close()
-
-    print(1+1)
-    print(1+1)
-    print(1+1)
-    print(1+1)
 
     #2. compute average change of confidence in a community id
     #3. compute average confidence in window

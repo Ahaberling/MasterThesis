@@ -835,15 +835,15 @@ class CommunityMeasures:
 
     @staticmethod
     def find_recombinations_crisp(community_dict_labeled, patentProject_graphs):
-        cd_recombination_dic = {}
+        cd_recombination_dic = {}   # community_dict_labeled = window: [{member ids}, [community id]]
 
         for i in range(len(patentProject_graphs)):
             window_list = []
 
             if i != 0:
-                t = set(patentProject_graphs['window_{0}'.format((i-1) * 30)].nodes())
-                t_plus1 = set(patentProject_graphs['window_{0}'.format(i * 30)].nodes())
-                new_patents = t_plus1.difference(t)
+                t_minus1 = set(patentProject_graphs['window_{0}'.format((i-1) * 30)].nodes())
+                t = set(patentProject_graphs['window_{0}'.format(i * 30)].nodes())
+                new_patents = t.difference(t_minus1)
 
                 for patent in new_patents:
                     neighbor_list = list(patentProject_graphs['window_{0}'.format(i * 30)].neighbors(patent))
@@ -1591,8 +1591,8 @@ class CommunityMeasures:
 
     @staticmethod
     def created_recombination_dict_Topics_crisp(communityTopicAssociation_dict, recombination_dict):
-        recombination_dict_mod_lp = {}
-        for i in range(len(recombination_dict)):
+        recombination_dict_mod_lp = {}      # communityTopicAssociation_dict =  window: [community id, topic, confidence]
+        for i in range(len(recombination_dict)): #recombination_dict =          window: [broker patent id((neighbor id, community id),(neighbor id, community id)]
             new_window = []
             for recombination in recombination_dict['window_{}'.format(i*30)]:
                 new_recombination = []
@@ -1716,23 +1716,43 @@ class CommunityMeasures:
     # [(121, 121), (65, 144), (8, 65), (8, 144), (121, 316), [14, 21], [22, 23], [22, 24], [23, 24]]
 
     @staticmethod
-    def create_recombinationArray_Topics(recombination_dict_Topics):
+    def create_recombinationArray_Topics(recombination_dict_Topics): # recombination_dict_Topics = window: [(topic id, topic id), ...]
         all_recombinations = []
         for window_id, window in recombination_dict_Topics.items():
             for recombination in window:
-                all_recombinations.append(recombination)
+                all_recombinations.append(recombination) # 6779 in total
+
+        for recombination in all_recombinations:
+            if recombination[0] >= recombination[1]:
+                print('problem')
+                print(recombination)
 
         all_recombinations = np.unique(all_recombinations, axis=0)
+
+        for recombination in all_recombinations:
+            if recombination[0] >= recombination[1]:
+                print('problem')
+                print(recombination)
+
         #print(len(all_recombinations))  # 3061
         all_recombinations.sort()
+
+        for recombination in all_recombinations:
+            if recombination[0] >= recombination[1]:
+                print('problem')
+                print(recombination)
 
         all_recombinations_tuple = []
         for recombination in all_recombinations:
             all_recombinations_tuple.append(tuple(recombination))
 
+        for recombination in all_recombinations_tuple:
+            if recombination[0] >= recombination[1]:
+                print('problem')
+                print(recombination)
+
         topic_recombination_array = np.zeros((len(recombination_dict_Topics), len(all_recombinations_tuple)), dtype=int)
-        topic_recombination_array_frac = np.zeros((len(recombination_dict_Topics), len(all_recombinations_tuple)),
-                                                  dtype=float)
+        #topic_recombination_array_frac = np.zeros((len(recombination_dict_Topics), len(all_recombinations_tuple)), dtype=float)
         # print(np.shape(lp_recombination_diffusion_crip_count_v2))   # 3710 --> 550 rekombinations are merged in other recombinations
 
         for i in range(len(topic_recombination_array)):
@@ -1740,14 +1760,15 @@ class CommunityMeasures:
                 count = recombination_dict_Topics['window_{}'.format(i * 30)].count(all_recombinations_tuple[j])
                 topic_recombination_array[i, j] = count
 
-            rowsum = topic_recombination_array[i, :].sum()
+            #rowsum = topic_recombination_array[i, :].sum()
 
-            if rowsum != 0:
-                topic_recombination_array_frac[i, :] = topic_recombination_array[i, :] / rowsum
+            #if rowsum != 0:
+                #topic_recombination_array_frac[i, :] = topic_recombination_array[i, :] / rowsum
 
-        topic_recombination_array_threshold = np.where(topic_recombination_array_frac < 0.005, 0, 1)
+        #topic_recombination_array_threshold = np.where(topic_recombination_array_frac < 0.005, 0, 1)
 
-        return topic_recombination_array_threshold, all_recombinations
+        #return topic_recombination_array_threshold, all_recombinations
+        return topic_recombination_array, all_recombinations
 
 
 

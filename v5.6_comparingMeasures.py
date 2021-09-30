@@ -262,13 +262,13 @@ if __name__ == '__main__':
     # there are a lot topics falling through. check if this filter is correct
     # also check if there are really topics with similarity of 1 across all pairs
     #simScores_withinTopic_list_cosine_avg_clean = [x for x in simScores_withinTopic_list_cosine_avg if x != -9999]
-    #simScores_withinTopic_list_manhattan_avg_clean = [x for x in simScores_withinTopic_list_manhattan_avg if x != -9999]
+    simScores_withinTopic_list_manhattan_avg_clean = [x for x in simScores_withinTopic_list_manhattan_avg if x != -9999]
 
     # -9999 in cosine means: at least one column of all column pairs was always 0
     # -9999 in manhattan means: both columns of all column pairs were always 0
 
     simScores_withinTopic_list_cosine_avg_clean = simScores_withinTopic_list_cosine_avg
-    simScores_withinTopic_list_manhattan_avg_clean = simScores_withinTopic_list_manhattan_avg
+    #simScores_withinTopic_list_manhattan_avg_clean = simScores_withinTopic_list_manhattan_avg
 
 
     most_similarTopic_value_cosine = max(simScores_withinTopic_list_cosine_avg_clean)
@@ -360,7 +360,10 @@ if __name__ == '__main__':
     for CCM in CCM_list:
         columSum_vec = np.sum(CCM, axis= 0)
         print(np.where(columSum_vec == 0))
+        print(len(np.where(columSum_vec == 0)[0]))
         #todo: why is this not empty for lp????
+
+        # 0 154 0 0 0 0
 
     ComparativeMeasures.extend_cD_recombinationDiffuion(CCM_list, slidingWindow_size=12, cd_CCM_posStart=1, cd_CCM_posEnd=5)
 
@@ -370,6 +373,29 @@ if __name__ == '__main__':
 
     #print(sum(sum(recoArrays_threshold_list[0])))
     #print(sum(sum(recoArrays_threshold_list[1])))
+
+    for ccm in CCM_column_lists:
+        print(np.shape(ccm))
+
+        #(5668, 2)
+        #(3061, 2)
+        #(42, 2)
+        #(128, 2)
+        #(454, 2)
+        #(4305, 2)
+
+    print('+++++++++++++')
+    for ccm in recoArrays_threshold_list:
+        print(np.shape(ccm))
+
+        #(189, 5668)
+        #(189, 3061)
+        #(189, 42)
+        #(189, 128)
+        #(189, 454)
+        #(189, 4305)
+
+        # todo maybe dont restrict to communities of size 3 or bigger, maybe do idk
 
     extended_threshold_arrays = ComparativeMeasures.extend_recombination_columns(CCM_column_lists, recoArrays_threshold_list)
     #extended_threshold_arrays = ComparativeMeasures.extend_recombination_columns(CCM_column_lists, CCM_list)
@@ -385,6 +411,8 @@ if __name__ == '__main__':
     columSum_vec_summed = np.sum(columSum_vec_list, axis=0)
     topicExclusionPosition = np.where(columSum_vec_summed == 0)
     print(topicExclusionPosition)
+    print(len(topicExclusionPosition[0])) # 7119 are deleted from 8157 -> 1038 left
+    # todo why are these so many? maybe because a lot is lost in binarization. maybe extend befor binarizing
 
     resized_threshold_arrays = []
     for array in extended_threshold_arrays:
@@ -393,8 +421,140 @@ if __name__ == '__main__':
     for array in resized_threshold_arrays:
         print(np.shape(array))
 
+    #todo: possible reason for the lp mistake of finding "to little" recombiantions. in the beginning al communitys of size 1 and 2 are excluded. check if
+    # the dicts used later account for that or if they access the graph directly.
 
     #todo either community labeling or the recombination dict is wrong. the later indicates that the former should have  community id 37 and 119 in window 89 aka 2670
+
+    for ccm in resized_threshold_arrays:
+        print('new')
+        print(np.size(ccm))
+        print(np.count_nonzero(ccm))            # 694 3858 340 1667 3418 2197
+        print(np.size(ccm)-np.count_nonzero(ccm))
+
+
+    namePair_list, similarityPair_list_cosine, similarityPair_list_manhattan = ComparativeMeasures.SCM_similarities_byColumn(
+        CCM_column_list_names, resized_threshold_arrays)
+    # probably better to just compare direct and edgeweight and seperatly compare all the cd measures.
+    print(namePair_list)    # cosine: gm is not usefull at all. maybe try it with more then just the 3 biggest topics for network creation.
+    print(similarityPair_list_cosine)   # 0 = 0 1 2 ((3)) 5 (6) (7) ((8)) 9 10 11 (12) ((13)) ((14)) Only direct and edge weigth are similar
+    print(similarityPair_list_manhattan)
+
+    # Similarities between all SCMs
+
+    # Initiallize
+    matrixSimilarityScore_cosine = 0
+    matrixSimilarityScore_manhattan = 0
+
+    # one similarity score
+    if len(similarityPair_list_cosine) != 0:
+        matrixSimilarityScore_cosine = sum(similarityPair_list_cosine) / len(similarityPair_list_cosine)
+
+    # one similarity score
+    if len(similarityPair_list_manhattan) != 0:
+        matrixSimilarityScore_manhattan = sum(similarityPair_list_manhattan) / len(similarityPair_list_manhattan)
+
+    print(matrixSimilarityScore_cosine)
+    # position 1,9,10,11 are weird. do they correpsond to one array? all realted to gm. only lp + gm seems ok
+    # I will probably exclude gm, because 4 out of 5 gm combinations are outliers with similarity scores
+    # two orders of magnitude smaller then the rest.
+    print(matrixSimilarityScore_manhattan)
+    # print(namePair_list)                    # 1,5,9,10,11
+
+    # New colculation with the exclution of the unfitting SCM (Greedy modularity)
+    slices_toExclude = [1, 5, 9, 10, 11]
+
+    # 4 out of 5 similarities involving the gm approach are very bad, so we exclude them ( similarity two magnitudes smaller)
+    # lp is 0, 5, 6, 7, 8
+
+    similarityPair_list_cosine_withoutGM = list(np.delete(similarityPair_list_cosine, slices_toExclude, axis=0))
+    similarityPair_list_manhattan_withoutGM = list(np.delete(similarityPair_list_manhattan, slices_toExclude, axis=0))
+
+    # Initialization
+    matrixSimilarityScore_cosine_withoutGM = 0
+    matrixSimilarityScore_manhattan_withoutGM = 0
+
+    # one similarity score
+    if len(similarityPair_list_cosine_withoutGM) != 0:
+        matrixSimilarityScore_cosine_withoutGM = sum(similarityPair_list_cosine_withoutGM) / len(
+            similarityPair_list_cosine_withoutGM)
+
+    # one similarity score
+    if len(similarityPair_list_manhattan_withoutGM) != 0:
+        matrixSimilarityScore_manhattan_withoutGM = sum(similarityPair_list_manhattan_withoutGM) / len(
+            similarityPair_list_manhattan_withoutGM)
+
+    print('\n', matrixSimilarityScore_cosine_withoutGM)
+    print(matrixSimilarityScore_manhattan_withoutGM)
+
+    ###---------------------
+
+    # get similarities between vectors of the same topic. max, min, avg, mode, media, distribution
+
+    simScores_withinTopic_list_cosine_avg, simScores_withinTopic_list_manhattan_avg = ComparativeMeasures.SCM_topic_similarities(
+        CCM_column_list_names, resized_threshold_arrays, slices_toExclude)
+
+
+    # calculate the following only with values that are not -9999
+    # there are a lot topics falling through. check if this filter is correct
+    # also check if there are really topics with similarity of 1 across all pairs
+    # simScores_withinTopic_list_cosine_avg_clean = [x for x in simScores_withinTopic_list_cosine_avg if x != -9999]
+    simScores_withinTopic_list_manhattan_avg_clean = [x for x in simScores_withinTopic_list_manhattan_avg if x != -9999]
+
+    # -9999 in cosine means: at least one column of all column pairs was always 0
+    # -9999 in manhattan means: both columns of all column pairs were always 0
+
+    simScores_withinTopic_list_cosine_avg_clean = simScores_withinTopic_list_cosine_avg
+    #simScores_withinTopic_list_manhattan_avg_clean = simScores_withinTopic_list_manhattan_avg
+
+    most_similarTopic_value_cosine = max(simScores_withinTopic_list_cosine_avg_clean)
+    most_similarTopic_value_manhattan = max(simScores_withinTopic_list_manhattan_avg_clean)
+
+    most_similarTopic_pos_cosine = np.where(simScores_withinTopic_list_cosine_avg == most_similarTopic_value_cosine)
+    most_similarTopic_pos_manhattan = np.where(
+        simScores_withinTopic_list_manhattan_avg == most_similarTopic_value_manhattan)
+
+    least_similarTopic_value_cosine = min(simScores_withinTopic_list_cosine_avg_clean)
+    least_similarTopic_value_manhattan = min(simScores_withinTopic_list_manhattan_avg_clean)
+
+    least_similarTopic_pos_cosine = np.where(simScores_withinTopic_list_cosine_avg == least_similarTopic_value_cosine)
+    least_similarTopic_pos_manhattan = np.where(
+        simScores_withinTopic_list_manhattan_avg == least_similarTopic_value_manhattan)
+
+    avg_similarTopic_cosine = sum(simScores_withinTopic_list_cosine_avg_clean) / len(
+        simScores_withinTopic_list_cosine_avg_clean)
+    avg_similarTopic_manhattan = sum(simScores_withinTopic_list_manhattan_avg_clean) / len(
+        simScores_withinTopic_list_manhattan_avg_clean)
+
+    print('\n Topic Cosine Similarities between approaches:')
+    print('Highest Similarity: ', most_similarTopic_value_cosine)
+    print('Highest Similarity combination id: ', most_similarTopic_pos_cosine[0])
+    print('Lowest Similarity: ', least_similarTopic_value_cosine)
+    print('Lowest Similarity combination Id: ', least_similarTopic_pos_cosine[0])
+    print('Average Similarity between all topic combination: ', avg_similarTopic_cosine)
+    # print('Number of columns excluded because at least one was column of each pair was always 0: ', len([x for x in simScores_withinTopic_list_cosine_avg if x == -9999]))
+    print('Number of columns excluded because at least one was column of each pair was always 0: ',
+          len([x for x in simScores_withinTopic_list_cosine_avg if x == 0]))
+
+    print('\n Topic Manhattan Similarities between approaches:')
+    print('Highest Similarity: ', most_similarTopic_value_manhattan)
+    print('Highest Similarity Topic Id: ', most_similarTopic_pos_manhattan[0])
+    print('Lowest Similarity: ', least_similarTopic_value_manhattan)
+    print('Lowest Similarity Topic Id: ', least_similarTopic_pos_manhattan[0])
+    print('Average Similarity between all topics: ', avg_similarTopic_manhattan)
+    # print('Number of columns excluded because both columns of each pair were always 0: ', len([x for x in simScores_withinTopic_list_manhattan_avg if x == -9999]))
+    print('Number of columns excluded because both columns of each pair were always 0: ',
+          len([x for x in simScores_withinTopic_list_manhattan_avg if x == 0]))
+
+    print('end')
+
+    # print(len(list_of_allArrays_threshold[0]))
+    # print(len(list_of_allArrays_threshold))
+
+
+
+
+
 
 
 
