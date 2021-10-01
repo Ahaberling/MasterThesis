@@ -19,6 +19,24 @@ if __name__ == '__main__':
     ### Creating dictionaries to save communities ###
 
     from utilities.my_measure_utils import CommunityMeasures
+    '''
+    import numpy as np
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+
+    f, ax = plt.subplots()
+    sns.heatmap(np.zeros((3,3)), cbar_kws={'label': 'Component Count in Window', 'ticks': [0, 1]}, vmax=1,
+            vmin=0) #, cmap="YlGnBu") #, annot=True, fmt="d", linewidths=.5, ax=ax)
+    #colorbar = ax.collections[0].colorbar
+    #colorbar.set_ticks([0,1,0.2])
+    #plt.yticks(range(0,80,10))
+    #ax.set_xticklabels(range(20,30))
+    #ax.set_yticklabels(range(0,80,10))
+    plt.xlabel("Knowledge Component ID")
+    plt.ylabel("Sliding Window ID ")
+    plt.show()
+    plt.close()
+    '''
 
     '''
     community_dict_lp = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='label_propagation', weight_bool=True)
@@ -51,7 +69,7 @@ if __name__ == '__main__':
     #'''
     with open('community_dict_lp', 'rb') as handle:
         community_dict_lp = pk.load(handle)
-    
+
     with open('community_dict_gm', 'rb') as handle:
         community_dict_gm = pk.load(handle)
 
@@ -320,6 +338,76 @@ if __name__ == '__main__':
     diffusionArray_Topics_kc, diffusionArray_Topics_kc_columns = CommunityMeasures.create_diffusionArray_Topics(communityTopicAssociation_dict_kc)
     diffusionArray_Topics_l2, diffusionArray_Topics_l2_columns = CommunityMeasures.create_diffusionArray_Topics(communityTopicAssociation_dict_l2)
 
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
+    fig, axes = plt.subplots(1, 2)  # , figsize=(15, 5), sharey=True)
+    # fig.suptitle('test')
+    sns.heatmap(recombinationArray_Topics_lp[100:180, 5:11], ax=axes[0], cbar=True, cmap="bone_r", cbar_kws={
+        'ticks': [0, 0.2, 0.4, 0.6, 0.8, 1]}, vmax=1,
+                vmin=0)
+    sns.heatmap(recombinationArray_Topics_gm[100:180, 5:11], ax=axes[1], cbar=True,
+                cmap="bone_r")
+
+    axes[0].set_title('lp')
+    axes[1].set_title('gm')
+    axes[0].set_xticklabels(range(5, 11))
+    axes[0].set_yticks(range(0, 80, 10))
+    axes[0].set_yticklabels(range(100, 180, 10))
+    axes[1].set_xticklabels(range(5, 11))
+    axes[1].set_yticks(range(0, 80, 10))
+    axes[1].set_yticklabels(range(100, 180, 10))
+
+    plt.tight_layout()
+    plt.show()
+    plt.close()
+
+
+    f, ax = plt.subplots()
+    sns.heatmap(diffusionArray_Topics_lp[0:80,20:30], cbar_kws={'label': 'Component Count in Window'}) #, cmap="YlGnBu") #, annot=True, fmt="d", linewidths=.5, ax=ax)
+    plt.yticks(range(0,80,10))
+    ax.set_xticklabels(range(20,30))
+    ax.set_yticklabels(range(0,80,10))
+    plt.xlabel("Knowledge Component ID")
+    plt.ylabel("Sliding Window ID ")
+    #plt.show()
+    plt.close()
+
+    f, ax = plt.subplots()
+    sns.heatmap(diffusionArray_Topics_gm[0:80,20:30], cbar_kws={'label': 'Component Count in Window'}) #, cmap="YlGnBu") #, annot=True, fmt="d", linewidths=.5, ax=ax)
+    plt.yticks(range(0,80,10))
+    ax.set_xticklabels(range(20,30))
+    ax.set_yticklabels(range(0,80,10))
+    plt.xlabel("Knowledge Component ID")
+    plt.ylabel("Sliding Window ID ")
+    #plt.show()
+    plt.close()
+
+    print(diffusionArray_Topics_kc[0:80,20:30])
+
+    f, ax = plt.subplots()
+    #sns.heatmap(diffusionArray_Topics_kc[0:80,20:30], cbar_kws={'label': 'Component Count in Window', 'boundaries': range(0,1)}) #, cmap="YlGnBu") #, annot=True, fmt="d", linewidths=.5, ax=ax)
+    sns.heatmap(diffusionArray_Topics_kc[0:80,20:30], cbar_kws={'label': 'Component Count in Window', 'ticks': [0, 0.2, 0.4, 0.6, 0.8, 1]}, vmax=1, vmin=0)
+    #colorbar = ax.collections[0].colorbar
+    #colorbar.set_ticks([0,1,0.2])
+    plt.yticks(range(0,80,10))
+    ax.set_xticklabels(range(20,30))
+    ax.set_yticklabels(range(0,80,10))
+    plt.xlabel("Knowledge Component ID")
+    plt.ylabel("Sliding Window ID ")
+    #plt.show()
+    plt.close()
+
+    f, ax = plt.subplots()
+    sns.heatmap(diffusionArray_Topics_l2[0:80,20:30], cbar_kws={'label': 'Component Count in Window'}) #, cmap="YlGnBu") #, annot=True, fmt="d", linewidths=.5, ax=ax)
+    plt.yticks(range(0,80,10))
+    ax.set_xticklabels(range(20,30))
+    ax.set_yticklabels(range(0,80,10))
+    plt.xlabel("Knowledge Component ID")
+    plt.ylabel("Sliding Window ID ")
+    #plt.show()
+    plt.close()
+
     # they cant be the same, because lp_singleDiffusion_v2 measure the lifetime of communities and not topic diffusion.
     # in lp_singleDiffusion_v2 subset of communities are listed as well, if they were swallowed by bigger communities.
     # this is irrelevant for topics.
@@ -338,6 +426,100 @@ if __name__ == '__main__':
     recombinationArray_Topics_gm, recombinationArray_Topics_gm_columns = CommunityMeasures.create_recombinationArray_Topics(recombination_dict_Topics_gm)
     recombinationArray_Topics_kc, recombinationArray_Topics_kc_columns = CommunityMeasures.create_recombinationArray_Topics(recombination_dict_Topics_kc)
     recombinationArray_Topics_l2, recombinationArray_Topics_l2_columns = CommunityMeasures.create_recombinationArray_Topics(recombination_dict_Topics_l2)
+    '''
+    f, ax = plt.subplots()
+    sns.heatmap(recombinationArray_Topics_lp[100:180,0:11], cbar_kws={'label': 'Component Combination Count in Window'}) #, cmap="YlGnBu") #, annot=True, fmt="d", linewidths=.5, ax=ax)
+    plt.yticks(range(0,80,10))
+    ax.set_xticklabels(range(0,11))
+    ax.set_yticklabels(range(100,180,10))
+    plt.xlabel("Knowledge Component Combination ID")
+    plt.ylabel("Sliding Window ID ")
+    #plt.show()
+    plt.close()
+
+    f, ax = plt.subplots()
+    sns.heatmap(recombinationArray_Topics_gm[100:180,0:11], cbar_kws={'label': 'Component Combination Count in Window'}) #, cmap="YlGnBu") #, annot=True, fmt="d", linewidths=.5, ax=ax)
+    plt.yticks(range(0,80,10))
+    ax.set_xticklabels(range(0,11))
+    ax.set_yticklabels(range(100,180,10))
+    plt.xlabel("Knowledge Component Combination ID")
+    plt.ylabel("Sliding Window ID ")
+    #plt.show()
+    plt.close()
+
+    f, ax = plt.subplots()
+    sns.heatmap(recombinationArray_Topics_kc[100:180,0:11], cbar_kws={'label': 'Component Combination Count in Window'}) #, cmap="YlGnBu") #, annot=True, fmt="d", linewidths=.5, ax=ax)
+    plt.yticks(range(0,80,10))
+    ax.set_xticklabels(range(0,11))
+    ax.set_yticklabels(range(100,180,10))
+    plt.xlabel("Knowledge Component Combination ID")
+    plt.ylabel("Sliding Window ID ")
+    #plt.show()
+    plt.close()
+
+    f, ax = plt.subplots()
+    sns.heatmap(recombinationArray_Topics_l2[100:180,0:11], cbar_kws={'label': 'Component Combination Count in Window', 'ticks': [0, 0.2, 0.4, 0.6, 0.8, 1]}, vmax=1, vmin=0) #, cmap="YlGnBu") #, annot=True, fmt="d", linewidths=.5, ax=ax)
+    plt.yticks(range(0,80,10))
+    ax.set_xticklabels(range(0,11))
+    ax.set_yticklabels(range(100,180,10))
+    plt.xlabel("Knowledge Component Combination ID")
+    plt.ylabel("Sliding Window ID ")
+    #plt.show()
+    plt.close()
+    '''
+
+    fig, axes = plt.subplots(1, 2)  # , figsize=(15, 5), sharey=True)
+    # fig.suptitle('test')
+    sns.heatmap(recombinationArray_Topics_lp[100:180, 5:11], ax=axes[0], cbar=True, cmap="bone_r", cbar_kws={
+        'ticks': [0, 0.2, 0.4, 0.6, 0.8, 1]}, vmax=1,
+                vmin=0)
+    sns.heatmap(recombinationArray_Topics_gm[100:180, 5:11], ax=axes[1], cbar=True,
+                cmap="bone_r")
+
+    axes[0].set_title('lp')
+    axes[1].set_title('gm')
+    axes[0].set_xticklabels(range(5, 11))
+    axes[0].set_yticks(range(0, 80, 10))
+    axes[0].set_yticklabels(range(100, 180, 10))
+    axes[1].set_xticklabels(range(5, 11))
+    axes[1].set_yticks(range(0, 80, 10))
+    axes[1].set_yticklabels(range(100, 180, 10))
+
+    plt.tight_layout()
+    plt.show()
+    plt.close()
+
+
+
+
+
+    fig, axes = plt.subplots(1, 2)  # , figsize=(15, 5), sharey=True)
+    # fig.suptitle('test')
+
+    sns.heatmap(recombinationArray_Topics_kc[100:180, 5:11], ax=axes[0], cbar=True, cmap="bone_r") #, cbar_kws={'label': 'Component Combination Count in Window'})  # , cmap="YlGnBu") #, annot=True, fmt="d", linewidths=.5, ax=ax)
+    sns.heatmap(recombinationArray_Topics_l2[100:180, 5:11], ax=axes[1], cbar=True,
+                cmap = "bone_r",
+                cbar_kws={
+                            #'label': 'Component Combination Count in Window',
+                            'ticks': [0, 1, 2, 3, 4, 5, 6]}, vmax=6, vmin=0)  # , cmap="YlGnBu") #, annot=True, fmt="d", linewidths=.5, ax=ax)
+
+    axes[0].set_title('kc')
+    axes[1].set_title('l2')
+    #axes[1, 0].set_title('kc')
+    # axes[1, 1].set_title('l2')
+
+    axes[0].set_xticklabels(range(5, 11))
+    axes[0].set_yticks(range(0, 80, 10))
+    axes[0].set_yticklabels(range(100, 180, 10))
+
+    axes[1].set_xticklabels(range(5, 11))
+    axes[1].set_yticks(range(0, 80, 10))
+    axes[1].set_yticklabels(range(100, 180, 10))
+
+    plt.tight_layout()
+    plt.show()
+    plt.close()
+
 
     print(np.shape(recombinationArray_Topics_lp))
     print(np.shape(recombinationArray_Topics_gm))
