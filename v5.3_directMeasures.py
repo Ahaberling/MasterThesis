@@ -9,7 +9,7 @@ if __name__ == '__main__':
     import pickle as pk
 
     import os
-
+    import statistics
 
     # --- Initialization --#
     print('\n#--- Initialization ---#\n')
@@ -32,17 +32,123 @@ if __name__ == '__main__':
 
     ### Create dictionaries containing ALL ipc/topic singles/pairs/triples for a window ###
 
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    '''
+    flights_long = sns.load_dataset("flights")
+    flights = flights_long.pivot("month", "year", "passengers")
+    print(flights)
+    print(np.shape(flights)) #(12, 12)
+
+    # Draw a heatmap with the numeric values in each cell
+    #f, ax = plt.subplots(figsize=(9, 6))
+    f, ax = plt.subplots()
+    sns.heatmap(flights, annot=True, fmt="d", linewidths=.5, ax=ax)
+    plt.show()
+    '''
+
+
+    #sns.set_theme()
+    #uniform_data = np.random.rand(10, 12)
+    #print(uniform_data)
+    #print(np.shape(uniform_data))   # (10, 12)
+    #ax = sns.heatmap(uniform_data)
+
+
+
     from utilities.my_measure_utils import ReferenceMeasures
 
     knowledgeComponent_dict_diff = ReferenceMeasures.extract_knowledgeComponent_per_window(slidingWindow_dict, kC='topic', unit=1)
     knowledgeComponent_dict_reco = ReferenceMeasures.extract_knowledgeComponent_per_window(slidingWindow_dict, kC='topic', unit=2)
 
+    all_components = []
+    component_perWindow = []
+    component_perWindow_unique = []
+    for i in knowledgeComponent_dict_diff.values():
+        all_components.append(i)
+        component_perWindow.append(len(i))
+        component_perWindow_unique.append(len(np.unique(i)))
+    all_components = [item for sublist in all_components for item in sublist]
+    print('Number of retrieved components: ', len(all_components))
+    print('Number of unique retrieved components: ', len(np.unique(all_components)))
+
+    print('Average Number retrieved components per window: ', np.mean(component_perWindow))
+    print('Median Number retrieved components per window: ', np.median(component_perWindow))
+    print('Mode Number retrieved components per window: ', statistics.mode(component_perWindow))
+    print('Max Number retrieved components per window: ', max(component_perWindow))
+    print('Min Number retrieved components per window: ', min(component_perWindow))
+
+    print('Average Number unique retrieved components per window: ', np.mean(component_perWindow_unique))
+    print('Median Number unique retrieved components per window: ', np.median(component_perWindow_unique))
+    print('Mode Number unique retrieved components per window: ', statistics.mode(component_perWindow_unique))
+    print('Max Number unique retrieved components per window: ', max(component_perWindow_unique))
+    print('Min Number unique retrieved components per window: ', min(component_perWindow_unique))
+
+
+    all_components = []
+    component_perWindow = []
+    component_perWindow_unique = []
+    for i in knowledgeComponent_dict_reco.values():
+        all_components.append(i)
+        component_perWindow.append(len(i))
+        component_perWindow_unique.append(len(np.unique(i, axis=0)))
+    all_components = [item for sublist in all_components for item in sublist]
+    print('Number of retrieved component combinations: ', len(all_components))
+    print('Number of unique retrieved component combinations: ', len(np.unique(all_components, axis=0)))
+
+    print('Average Number retrieved components per window: ', np.mean(component_perWindow))
+    print('Median Number retrieved components per window: ', np.median(component_perWindow))
+    print('Mode Number retrieved components per window: ', statistics.mode(component_perWindow))
+    print('Max Number retrieved components per window: ', max(component_perWindow))
+    print('Min Number retrieved components per window: ', min(component_perWindow))
+
+    print('Average Number unique retrieved components per window: ', np.mean(component_perWindow_unique))
+    print('Median Number unique retrieved components per window: ', np.median(component_perWindow_unique))
+    print('Mode Number unique retrieved components per window: ', statistics.mode(component_perWindow_unique))
+    print('Max Number unique retrieved components per window: ', max(component_perWindow_unique))
+    print('Min Number unique retrieved components per window: ', min(component_perWindow_unique))
 
     # --- Constructing pattern arrays (IPC\'s, topics) x (singular, pair, tripple) ---#
     print('\n#--- Constructing pattern arrays (IPC\'s, topics) x (singular, pair, tripple) ---#\n')
 
     pattern_array_reference_diff, columns_reference_diff = ReferenceMeasures.create_pattern_array(knowledgeComponent_dict_diff)
+
+    f, ax = plt.subplots()
+    sns.heatmap(pattern_array_reference_diff[0:80,20:30], cbar_kws={'label': 'Component Count in Window'}) #, cmap="YlGnBu") #, annot=True, fmt="d", linewidths=.5, ax=ax)
+    plt.yticks(range(0,80,10))
+    ax.set_xticklabels(range(20,30))
+    ax.set_yticklabels(range(0,80,10))
+    plt.xlabel("Knowledge Component ID")
+    plt.ylabel("Sliding Window ID ")
+    #plt.show()
+    plt.close()
+
     pattern_array_reference_reco, columns_reference_reco = ReferenceMeasures.create_pattern_array(knowledgeComponent_dict_reco)
+
+    f, ax = plt.subplots()
+    sns.heatmap(pattern_array_reference_reco[100:180,635:645], cbar_kws={'label': 'Component Combination Count in Window'}) #, cmap="YlGnBu") #, annot=True, fmt="d", linewidths=.5, ax=ax)
+    plt.yticks(range(0,80,10))
+    ax.set_xticklabels(range(635,645))
+    ax.set_yticklabels(range(100,180,10))
+    plt.xlabel("Knowledge Component Combination ID")
+    plt.ylabel("Sliding Window ID ")
+    plt.show()
+    plt.close()
+
+    print('Dimensions of the SCM: ', np.shape(pattern_array_reference_diff))
+    print('Number of cells SCM: ', np.size(pattern_array_reference_diff))
+    print('Number of non zero cells SCM: ', np.count_nonzero(pattern_array_reference_diff))
+    print('Number of zero cells SCM: ', np.size(pattern_array_reference_diff) - np.count_nonzero(pattern_array_reference_diff))
+    print('Sum of cells SCM: ', sum(sum(pattern_array_reference_diff)))
+
+
+
+
+    print('Dimensions of the CCM: ', np.shape(pattern_array_reference_reco))
+    print('Number of cells CCM: ', np.size(pattern_array_reference_reco))
+    print('Number of non zero cells CCM: ', np.count_nonzero(pattern_array_reference_reco))
+    print('Number of zero cells CCM: ', np.size(pattern_array_reference_reco) - np.count_nonzero(pattern_array_reference_reco))
+    print('Sum of cells CCM: ', sum(sum(pattern_array_reference_reco)))
 
 
     filename = 'pattern_array_reference_diff'
