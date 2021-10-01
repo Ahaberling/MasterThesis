@@ -897,6 +897,8 @@ class CommunityMeasures:
                         recombinations.append([patent, community_id])
 
                 if len(recombinations) >= 2:
+                    if recombinations[0][1][0] == recombinations[1][1][0]:
+                        print('problem')
 
                     community_id_list = []
                     for tuple in recombinations:
@@ -904,6 +906,8 @@ class CommunityMeasures:
                         community_id_list.append(tuple[1][0])
 
                     community_id_list.sort()
+                    if community_id_list[0] == community_id_list[1]:
+                        print('problem')
 
                     #if len(community_id_list) >= 3:
                         #print(community_id_list)
@@ -912,13 +916,22 @@ class CommunityMeasures:
 
                     for i in community_id_list_comb:
                         recombination_list.append((recombinations[0][0], i))
-
+                        if i[0] == i[1]:
+                            print('problem')
+            '''
             helper = []
             for j in recombination_list:
                 if j not in helper:
                     helper.append(j)
 
+            for k in helper:
+                if k[1][0] == k[1][1]:
+                    print('problem')
+            '''
             cd_recombination_dic[window_id] = recombination_list
+            for l in recombination_list:
+                if l[1][0] == l[1][1]:
+                    print(1+1)
 
         return cd_recombination_dic
 
@@ -1502,6 +1515,12 @@ class CommunityMeasures:
     @staticmethod
     def creat_dict_topicDistriburionOfCommunities(community_dict_labeled, patent_lda_ipc):
 
+
+        # [[288819596, 290037188, 290234572, 290442502, 290654268], [0]]
+        # [[289977822, 290076304, 291383952, 291465230],            [1]]
+        # [[           290076304, 291383952, 291465230, 290720988], [2]]
+        # [[289702254, 290011409, 291482760, 291599695],            [3]]
+
         community_ids_all = []
         for window_id, window in community_dict_labeled.items():
             for community in window:
@@ -1556,9 +1575,43 @@ class CommunityMeasures:
 
         # 1. create dic with: each window, list of tuple with (communityID, highest topic)
 
+        community_topicDist_dic_aggregated = {}
+        for window_id, window in community_topicDist_dic.items():
+
+            topTopic_index_list = []
+            for community in window:
+                topTopic_index = community[1].index(max(community[1]))
+                topTopic_index_list.append(topTopic_index)
+
+            if len(topTopic_index_list) == len(np.unique(topTopic_index_list)):
+
+                community_topicDist_dic_aggregated[window_id] = window
+
+            else:
+                communityAggregate_list = []
+                for topTopic_index in np.unique(topTopic_index_list):
+
+                    positions = np.where(np.array(topTopic_index_list) == topTopic_index)
+                    id_aggregate = []
+                    topicDistribution_aggregate = []
+                    for pos in positions[0]:
+                        id_aggregate.append(window[pos][0])
+                        topicDistribution_aggregate.append(window[pos][1])
+
+                    topicDistribution_aggregate = list(np.sum(topicDistribution_aggregate, axis=0))
+
+                    communityAggregate_list.append([id_aggregate[0], topicDistribution_aggregate])
+
+
+                community_topicDist_dic_aggregated[window_id] = communityAggregate_list
+
+                # [[0, [0.0, ..., 0.0]], [1, [0.0, ... ]], ... ]
+                #  [1, [0.0, ...     ]], 0.0]]
+
+
         community_topTopic_dic = {}
         confidence_list = []
-        for window_id, window in community_topicDist_dic.items():
+        for window_id, window in community_topicDist_dic_aggregated.items():
             community_list = []
             for community in window:
                 topTopic = max(community[1])
@@ -1618,15 +1671,20 @@ class CommunityMeasures:
             for recombination in recombination_dict['window_{}'.format(i*30)]:
                 new_recombination = []
                 #if i != 0:
-                for community in communityTopicAssociation_dict['window_{}'.format(i*30)]:  # todo does this have to be i or i-1?
+                for community in communityTopicAssociation_dict['window_{}'.format(i*30)]:
                     if recombination[1][0] == community[0]:
                         new_recombination.append(community[1])
                     if recombination[1][1] == community[0]:
                         new_recombination.append(community[1])
                     if len(new_recombination) >= 2:
+                        if new_recombination[0] == new_recombination[1]:
+                            print(new_recombination)
                         break
+
+
                 new_recombination.sort()
-                new_window.append(tuple(new_recombination))
+                if len(new_recombination) == 2:
+                    new_window.append(tuple(new_recombination))
             recombination_dict_mod_lp['window_{}'.format(i*30)] = new_window
 
         return recombination_dict_mod_lp
@@ -1720,8 +1778,10 @@ class CommunityMeasures:
         all_recombinations = []
         for window_id, window in recombination_dict_Topics.items():
             for recombination in window:
-                if recombination[0] != recombination[1]:
-                    all_recombinations.append(recombination) # 6779 in total
+                all_recombinations.append(recombination) # 6779 in total
+                print(recombination)
+                if recombination[0] == recombination[1]:
+                    print(1+1)
 
         for recombination in all_recombinations:
             if recombination[0] >= recombination[1]:
