@@ -117,102 +117,120 @@ if __name__ == '__main__':
     print(np.count_nonzero(pattern_array_reference_diff))
     print(np.sum(pattern_array_reference_diff[np.nonzero(pattern_array_reference_diff)]) / np.count_nonzero(pattern_array_reference_diff))
 
-    diff_pos = []
-    c = 0
-    for column in pattern_array_reference_diff.T:
-        for row in range(len(pattern_array_reference_diff)):
-            if row != 0:
-                if column[row] != 0:
-                    if column[row - 1] == 0:
-                        diff_pos.append([row, c])
-            else:
-                if column[row] != 0:
-                    diff_pos.append([row, c])
-        c = c + 1
+    from utilities.my_measure_utils import Misc
+
+    diffusionPatternPos_SCM = Misc.find_diffusionPatterns(pattern_array_reference_diff)
 
     #print('diffusion count scm: ', len(diff_pos))
 
-    diff_sequence_list = []
-    diff_list = []
-    for pos in diff_pos:
-        diffusion = 0
-        diff_sequence = []
-        i = 0
-        #diff_sequence.append(pattern_array_reference_diff[pos[0],pos[1]])
+    diffusionPatternPos_SCM, diff_sequence_list_SCM = Misc.find_diffusionSequenceAndLength(diffusionPatternPos_SCM, pattern_array_reference_diff)
 
-        while pattern_array_reference_diff[pos[0] + i, pos[1]] != 0:
-            diffusion = diffusion + 1
-            diff_sequence.append(pattern_array_reference_diff[pos[0] + i, pos[1]])
+    print(diffusionPatternPos_SCM)
+    #print('avg pattern len: ', np.mean(diff_list))
 
-            i = i + 1
-            if pos[0] + i == len(pattern_array_reference_diff):
-                break
+    # diff_pos = [ pos1, pos2, diffLength, diffSteps, patentsInDiff ]
+    diffusionPatternPos_SCM = Misc.find_diffusionStepsAndPatternPerDiffusion(diffusionPatternPos_SCM, diff_sequence_list_SCM)
 
-        diff_list.append(diffusion)
-        diff_sequence_list.append(diff_sequence)
-
-    # Merge both lists to get final data structure #
-
-    for i in range(len(diff_pos)):
-        diff_pos[i].append(diff_list[i])
-
-    print(diff_pos)
-    print(diff_list)
-    print('avg pattern len: ', np.mean(diff_list))
-
-    diffusion_counter_list = []
-    PatentsPerDiffPattern_list = []
-
-    for diff_seq in diff_sequence_list:
-        indicator_list = []
-        diff_seq_mod = []
-
-        indicator_list.append(0)
-        diff_seq_mod.append(0)
-
-        for i in diff_seq:
-            indicator_list.append(0)
-            diff_seq_mod.append(i)
-
-        for i in range(len(indicator_list)):
-            if i != 0:
-                if indicator_list[i] == 0:
-                    if (diff_seq_mod[i] - diff_seq_mod[i-1]) >= 1:
-                        indicator_list[i] = diff_seq_mod[i] - diff_seq_mod[i-1]
-                        if i+12 <= len(indicator_list)-1:
-                            indicator_list[i+12] = (diff_seq_mod[i] - diff_seq_mod[i-1]) * (-1)
-
-                elif indicator_list[i] <= -1:
-                    if diff_seq_mod[i] == (diff_seq_mod[i-1] - indicator_list[i]):
-                        indicator_list[i] = 0
-                    else:
-                        indicator_list[i] = diff_seq_mod[i] - (diff_seq_mod[i-1] - indicator_list[i])
-                        if indicator_list[i] <= -1:
-                            print(1+1)
-                            raise Exception('current diff_seq_mod[i] is smaller then expected ')
-                else:
-                    raise Exception('indicator_list[i] was positive before referencing')
-
-        DiffsInDiffPattern = 0
-        for i in indicator_list:
-            if i <= -1:
-                raise Exception('indicator_list contains negative element after process')
-
-            if i >= 1:
-                DiffsInDiffPattern = DiffsInDiffPattern + 1
-
-        numPatentsInDiffPattern = sum(indicator_list)
-
-        diffusion_counter_list.append(DiffsInDiffPattern)
-        PatentsPerDiffPattern_list.append(numPatentsInDiffPattern)
+    #diffusionPatternPos_SCM = np.array([np.array(i) for i in diffusionPatternPos_SCM])
+    # diff_pos = [ row, column, diffLength, diffSteps, patentsInDiff ]
+    diffusionPatternPos_SCM = np.array(diffusionPatternPos_SCM)
 
 
-    for i in range(len(diff_pos)):
-        diff_pos[i].append(diffusion_counter_list[i])
-        diff_pos[i].append(PatentsPerDiffPattern_list[i])
+    print('Average diffusion pattern length: ', np.mean(diffusionPatternPos_SCM[:,2]))
 
-        # diff_pos = [ pos1, pos2, diffLength, diffSteps, patentsInDiff ]
-    print(diff_pos[0])
+
+    print('Number of diffusion cycles / patterns in the scm: ', len(diffusionPatternPos_SCM))
+    print('Number of diffusion cycles / patterns in the scm: ', len(diffusionPatternPos_SCM))
+
+    diffPatternLength_perTopic = []
+    diffPatternSteps_perTopic = []
+    diffPatternPatents_perTopic = []
+    diff_perTopic = []
+
+    #print(np.max(diffusionPatternPos_SCM[:,1]))
+
+    for topic in range(np.max(diffusionPatternPos_SCM[:,1])):
+        diffPatternLength_helper = []
+        diffPatternSteps_helper = []
+        diffPatternPatents_helper = []
+        diff_perTopic_helper = []
+
+        for diffPattern in diffusionPatternPos_SCM:
+            if diffPattern[1] == topic:
+                diffPatternLength_helper.append(diffPattern[2])
+                diffPatternSteps_helper.append(diffPattern[3])
+                diffPatternPatents_helper.append(diffPattern[4])
+                diff_perTopic_helper.append(1)
+
+        diffPatternLength_perTopic.append(np.mean(diffPatternLength_helper))
+        diffPatternSteps_perTopic.append(np.mean(diffPatternSteps_helper))
+        diffPatternPatents_perTopic.append(np.mean(diffPatternPatents_helper))
+        diff_perTopic.append(sum(diff_perTopic_helper))
+
+
+    print('Average of the average topic diffusion length: ', np.mean(diffPatternLength_perTopic))
+    print('Median of the average topic diffusion length: ', np.median(diffPatternLength_perTopic))
+    print('Mode of the average topic diffusion length: ', statistics.mode(diffPatternLength_perTopic))
+    print('Max of the average topic diffusion length: ', max(diffPatternLength_perTopic))
+    print('Min of the average topic diffusion length: ', min(diffPatternLength_perTopic))
+
+    print('Average of the average topic diffusion steps: ', np.mean(diffPatternSteps_perTopic))
+    print('Median of the average topic diffusion steps: ', np.median(diffPatternSteps_perTopic))
+    print('Mode of the average topic diffusion steps: ', statistics.mode(diffPatternSteps_perTopic))
+    print('Max of the average topic diffusion steps: ', max(diffPatternSteps_perTopic))
+    print('Min of the average topic diffusion steps: ', min(diffPatternSteps_perTopic))
+
+    print('Average of the average topic diffusion patents: ', np.mean(diffPatternPatents_perTopic))
+    print('Median of the average topic diffusion patents: ', np.median(diffPatternPatents_perTopic))
+    print('Mode of the average topic diffusion patents: ', statistics.mode(diffPatternPatents_perTopic))
+    print('Max of the average topic diffusion patents: ', max(diffPatternPatents_perTopic))
+    print('Min of the average topic diffusion patents: ', min(diffPatternPatents_perTopic))
+
+    print('Average number of cycles/patterns per topic: ', np.mean(diff_perTopic))
+    print('Median number of cycles/patterns per topic: ', np.median(diff_perTopic))
+    print('Mode number of cycles/patterns per topic: ', statistics.mode(diff_perTopic))
+    print('Max number of cycles/patterns per topic: ', max(diff_perTopic))
+    print('Min number of cycles/patterns per topic: ', min(diff_perTopic))
+
+    topicWithMostDiffSteps = []
+    topicWithLeastDiffSteps = []
+    for diffPattern in diffusionPatternPos_SCM:
+        if diffPattern[3] == max(diffPatternSteps_perTopic):
+            topicWithMostDiffSteps.append(diffPattern[2])
+        if diffPattern[3] == min(diffPatternSteps_perTopic):
+            topicWithLeastDiffSteps.append(diffPattern[2])
+
+    topicWithMostDiffSteps = np.unique(topicWithMostDiffSteps)
+    topicWithLeastDiffSteps = np.unique(topicWithLeastDiffSteps)
+
+    print('topic with most diff steps: ', topicWithMostDiffSteps)
+    print('topic with elast diff steps: ', topicWithLeastDiffSteps)
+
+    Max
+    of
+    the
+    average
+    topic
+    diffusion
+    patents: 76.0
+
+    Max
+    of
+    the
+    average
+    topic
+    diffusion
+    steps: 54.0
+
+    maybe also get the top 3 to compare later? or maybe just in the comparative later
+
+    #print(diffusionPatternPos_SCM[0])
+    #print(diffusionPatternPos_SCM[:,2])
+
+
+
+
+
 
     '''
     for diff_seq in diff_sequence_list:

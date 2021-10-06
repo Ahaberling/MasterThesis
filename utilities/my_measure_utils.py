@@ -1896,3 +1896,120 @@ class EdgeWeightMeasures:
         recombinationDiffusion_thresh = np.where(recombinationDiffusion_frac < threshold, 0, 1)
 
         return recombinationDiffusion, recombinationDiffusion_frac, recombinationDiffusion_thresh, all_edges_unique
+
+class Misc:
+
+    @staticmethod
+    def find_diffusionPatterns(CM):
+        diff_pos = []
+        c = 0
+        for column in CM.T:
+            for row in range(len(CM)):
+                if row != 0:
+                    if column[row] != 0:
+                        if column[row - 1] == 0:
+                            diff_pos.append([row, c])
+                else:
+                    if column[row] != 0:
+                        diff_pos.append([row, c])
+            c = c + 1
+        return diff_pos
+
+    @staticmethod
+    def find_diffusionSequenceAndLength(diffusionPatternPos, CM):
+        diff_sequence_list = []
+        diff_list = []
+        for pos in diffusionPatternPos:
+            diffusion = 0
+            diff_sequence = []
+            i = 0
+            # diff_sequence.append(pattern_array_reference_diff[pos[0],pos[1]])
+
+            while CM[pos[0] + i, pos[1]] != 0:
+                diffusion = diffusion + 1
+                diff_sequence.append(CM[pos[0] + i, pos[1]])
+
+                i = i + 1
+                if pos[0] + i == len(CM):
+                    break
+
+            diff_list.append(diffusion)
+            diff_sequence_list.append(diff_sequence)
+
+        # Merge both lists to get final data structure #
+
+        for i in range(len(diffusionPatternPos)):
+            diffusionPatternPos[i].append(diff_list[i])
+        return diffusionPatternPos, diff_sequence_list
+
+    @staticmethod
+    def find_diffusionStepsAndPatternPerDiffusion(diffusionPatternPos, diff_sequence_list):
+        diffusion_counter_list = []
+        PatentsPerDiffPattern_list = []
+
+        for diff_seq in diff_sequence_list:
+            indicator_list = []
+            diff_seq_mod = []
+
+            # if diff_seq == [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 1, 3, 3, 3, 3, 3, 4, 4, 5, 5, 5, 5, 5, 3, 4, 4, 5, 5, 4, 3, 2, 3, 3, 3, 5, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 10, 9, 8, 10, 10, 8, 8, 8, 8, 7, 6, 6, 5, 4, 4, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3]:
+            # print(1+1)
+
+            indicator_list.append(0)
+            diff_seq_mod.append(0)
+
+            for i in diff_seq:
+                indicator_list.append(0)
+                diff_seq_mod.append(i)
+
+            # if diff_seq_mod == [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 1, 3, 3, 3, 3, 3, 4, 4, 5, 5, 5, 5, 5, 3, 4, 4, 5, 5, 4, 3, 2, 3, 3, 3, 5, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 10, 9, 8, 10, 10, 8, 8, 8, 8, 7, 6, 6, 5, 4, 4, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3]:
+            # print(1+1)
+
+            for i in range(len(indicator_list)):
+                # if i == 74-12-12:
+                # print(1+1)   # indicator pos 50 jumps from -1 to 1
+                # if i == 74-12:
+                # print(1+1)
+                # if i == 74:
+                # print(1+1)
+                if i != 0:
+                    if indicator_list[i] == 0:
+                        if (diff_seq_mod[i] - diff_seq_mod[i - 1]) >= 1:
+                            indicator_list[i] = diff_seq_mod[i] - diff_seq_mod[i - 1]
+                            if i + 12 <= len(indicator_list) - 1:
+                                indicator_list[i + 12] = (diff_seq_mod[i] - diff_seq_mod[i - 1]) * (-1)
+
+                    elif indicator_list[i] <= -1:
+                        if diff_seq_mod[i] == (diff_seq_mod[i - 1] + indicator_list[i]):
+                            indicator_list[i] = 0
+                        else:
+                            # print(indicator_list[i-12])
+                            # print(diff_seq_mod[i])
+                            # print(diff_seq_mod[i-1])
+                            # print(indicator_list[i])
+                            indicator_list[i] = diff_seq_mod[i] - (diff_seq_mod[i - 1] + indicator_list[i])
+                            if i + 12 <= len(indicator_list) - 1:
+                                indicator_list[i + 12] = indicator_list[i] * (-1)
+                            if indicator_list[i] <= -1:
+                                # print(diff_seq_mod)
+                                raise Exception('current diff_seq_mod[i] is smaller then expected ')
+                    else:
+                        raise Exception('indicator_list[i] was positive before referencing')
+
+            DiffsInDiffPattern = -1
+            for i in indicator_list:
+                if i <= -1:
+                    raise Exception('indicator_list contains negative element after process')
+
+                if i >= 1:
+                    DiffsInDiffPattern = DiffsInDiffPattern + 1
+
+            numPatentsInDiffPattern = sum(indicator_list)
+
+            diffusion_counter_list.append(DiffsInDiffPattern)
+            PatentsPerDiffPattern_list.append(numPatentsInDiffPattern)
+
+        for i in range(len(diffusionPatternPos)):
+            diffusionPatternPos[i].append(diffusion_counter_list[i])
+            diffusionPatternPos[i].append(PatentsPerDiffPattern_list[i])
+
+        return diffusionPatternPos
