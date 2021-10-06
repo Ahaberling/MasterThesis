@@ -97,32 +97,39 @@ class Transf_slidingWindow:
         slidingWindow_dict = {}
         patents_perWindow = []
         topics_perWindow = []
-        uniqueTopics_inAllWindows = []
+        topics_perWindow_unique = []
+        #uniqueTopics_inAllWindows = []
 
         c = 0
         pbar = tqdm.tqdm(total=len(array_time_unique_filled_windowSize))
+
+        test = []
+        test2 = []
 
         for i in array_time_unique_filled_windowSize:
 
             if c % slidingInterval == 0:
                 lower_limit = i
                 upper_limit = i + windowSize
+                test.append(lower_limit)
+                test2.append(upper_limit)
 
                 array_window = array_toBeSlized[(array_toBeSlized[:, 3].astype('datetime64') < upper_limit) & (
                         array_toBeSlized[:, 3].astype('datetime64') >= lower_limit)]
                 patents_perWindow.append(len(array_window))
 
                 topics_perWindow_helper = []
+                #topics_perWindow_unique_helper = []
                 for topic_list in array_window[:,9:23]:
                     for column_id in range(0,len(topic_list.T),2):
                         if topic_list[column_id] != None:
                             topics_perWindow_helper.append(topic_list[column_id])
 
-                topics_perWindow_helper = np.unique(topics_perWindow_helper)
+                #topics_perWindow_unique_helper = np.unique(topics_perWindow_helper)
 
 
                 topics_perWindow.append(len(topics_perWindow_helper))
-                uniqueTopics_inAllWindows.append(topics_perWindow_helper)
+                topics_perWindow_unique.append(len(np.unique(topics_perWindow_helper)))
 
                 slidingWindow_dict['window_{0}'.format(c)] = array_window
 
@@ -131,10 +138,13 @@ class Transf_slidingWindow:
 
         pbar.close()
 
-        uniqueTopics_inAllWindows = [item for sublist in uniqueTopics_inAllWindows for item in sublist]
-        uniqueTopics_inAllWindows = np.unique(uniqueTopics_inAllWindows)
+        print(test)
+        print(test2)
 
-        return slidingWindow_dict, patents_perWindow, topics_perWindow, uniqueTopics_inAllWindows
+        #uniqueTopics_inAllWindows = [item for sublist in uniqueTopics_inAllWindows for item in sublist]
+        #uniqueTopics_inAllWindows = np.unique(uniqueTopics_inAllWindows)
+
+        return slidingWindow_dict, patents_perWindow, topics_perWindow, topics_perWindow_unique
 
 
 class Transf_network:

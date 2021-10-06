@@ -113,6 +113,141 @@ if __name__ == '__main__':
 
     pattern_array_reference_diff, columns_reference_diff = ReferenceMeasures.create_pattern_array(knowledgeComponent_dict_diff)
 
+    print(np.sum(pattern_array_reference_diff))
+    print(np.count_nonzero(pattern_array_reference_diff))
+    print(np.sum(pattern_array_reference_diff[np.nonzero(pattern_array_reference_diff)]) / np.count_nonzero(pattern_array_reference_diff))
+
+    diff_pos = []
+    c = 0
+    for column in pattern_array_reference_diff.T:
+        for row in range(len(pattern_array_reference_diff)):
+            if row != 0:
+                if column[row] != 0:
+                    if column[row - 1] == 0:
+                        diff_pos.append([row, c])
+            else:
+                if column[row] != 0:
+                    diff_pos.append([row, c])
+        c = c + 1
+
+    #print('diffusion count scm: ', len(diff_pos))
+
+    diff_sequence_list = []
+    diff_list = []
+    for pos in diff_pos:
+        diffusion = 0
+        diff_sequence = []
+        i = 0
+        #diff_sequence.append(pattern_array_reference_diff[pos[0],pos[1]])
+
+        while pattern_array_reference_diff[pos[0] + i, pos[1]] != 0:
+            diffusion = diffusion + 1
+            diff_sequence.append(pattern_array_reference_diff[pos[0] + i, pos[1]])
+
+            i = i + 1
+            if pos[0] + i == len(pattern_array_reference_diff):
+                break
+
+        diff_list.append(diffusion)
+        diff_sequence_list.append(diff_sequence)
+
+    # Merge both lists to get final data structure #
+
+    for i in range(len(diff_pos)):
+        diff_pos[i].append(diff_list[i])
+
+    print(diff_pos)
+    print(diff_list)
+    print('avg pattern len: ', np.mean(diff_list))
+
+    diffusion_counter_list = []
+    PatentsPerDiffPattern_list = []
+
+    for diff_seq in diff_sequence_list:
+        indicator_list = []
+        diff_seq_mod = []
+
+        indicator_list.append(0)
+        diff_seq_mod.append(0)
+
+        for i in diff_seq:
+            indicator_list.append(0)
+            diff_seq_mod.append(i)
+
+        for i in range(len(indicator_list)):
+            if i != 0:
+                if indicator_list[i] == 0:
+                    if (diff_seq_mod[i] - diff_seq_mod[i-1]) >= 1:
+                        indicator_list[i] = diff_seq_mod[i] - diff_seq_mod[i-1]
+                        if i+12 <= len(indicator_list)-1:
+                            indicator_list[i+12] = (diff_seq_mod[i] - diff_seq_mod[i-1]) * (-1)
+
+                elif indicator_list[i] <= -1:
+                    if diff_seq_mod[i] == (diff_seq_mod[i-1] - indicator_list[i]):
+                        indicator_list[i] = 0
+                    else:
+                        indicator_list[i] = diff_seq_mod[i] - (diff_seq_mod[i-1] - indicator_list[i])
+                        if indicator_list[i] <= -1:
+                            print(1+1)
+                            raise Exception('current diff_seq_mod[i] is smaller then expected ')
+                else:
+                    raise Exception('indicator_list[i] was positive before referencing')
+
+        DiffsInDiffPattern = 0
+        for i in indicator_list:
+            if i <= -1:
+                raise Exception('indicator_list contains negative element after process')
+
+            if i >= 1:
+                DiffsInDiffPattern = DiffsInDiffPattern + 1
+
+        numPatentsInDiffPattern = sum(indicator_list)
+
+        diffusion_counter_list.append(DiffsInDiffPattern)
+        PatentsPerDiffPattern_list.append(numPatentsInDiffPattern)
+
+
+    for i in range(len(diff_pos)):
+        diff_pos[i].append(diffusion_counter_list[i])
+        diff_pos[i].append(PatentsPerDiffPattern_list[i])
+
+        # diff_pos = [ pos1, pos2, diffLength, diffSteps, patentsInDiff ]
+    print(diff_pos[0])
+
+    '''
+    for diff_seq in diff_sequence_list:
+        
+        
+        diff_seq_mod = []
+        expected_value_list = []
+        difference_value_list = []
+
+        for i in range(12):
+            diff_seq_mod.append(0)
+        for i in diff_seq:
+            diff_seq_mod.append(i)
+
+        for i in range(len(diff_seq_mod)):
+            if diff_seq_mod[i] == 0:
+                expected_value_list.append(0)
+            else:
+                expected_value = abs(diff_seq_mod[i-1] - diff_seq_mod[i-12])
+                expected_value_list.append(expected_value)
+
+            difference_value_list.append(diff_seq_mod[i] - expected_value_list[i])
+
+        diffusion = -1
+        for i in difference_value_list:
+            if i != 0:
+                diffusion = diffusion + 1
+            elif i <= -1:
+                raise Exception('faulty expected value of difference value computation')
+
+        diffusion_counter_list.append(diffusion)
+
+    for i in range(len(diff_pos)):
+        diff_pos[i].append(diffusion_counter_list[i])
+    '''
     f, ax = plt.subplots()
     sns.heatmap(pattern_array_reference_diff[0:80,20:30],
                 #cmap='plasma_r',

@@ -133,7 +133,58 @@ if __name__ == '__main__':
     print('The value of 20 is chosen rather arbitrary for now. More domain knowledge might advise otherwise')
 
     # Remove non-alphabetic characters and single character terms; make all terms lower case
+
+    xdf = patents_english_cleaned[:, 6]
+
+    helper = []
+    helper_unique = []
+    xdf = [nltk.word_tokenize(abstract) for abstract in xdf]
+    token_list = []
+    for i in xdf:
+        for token in i:
+            token_list.append(token)
+        helper.append(len(i))
+        i_unique = np.unique(i)
+        helper_unique.append(len(np.unique(i)))
+
+
+    print('Number of all tokens before removing non-alphabetic characters, single letter terms and uppercasing: ', len(token_list))
+    print('Vocabulary size before " : ', len(np.unique(token_list))) # keep this
+
+
     abs_intermed_preproc = AbstractCleaning.vectorize_preprocessing(patents_english_cleaned[:, 6])
+
+    helper = []
+    helper_unique = []
+    xdf = [nltk.word_tokenize(abstract) for abstract in abs_intermed_preproc]
+    token_list = []
+
+    for i in xdf:
+        for token in i:
+            token_list.append(token)
+        helper.append(len(i))
+        i_unique = np.unique(i)
+        helper_unique.append(len(np.unique(i)))
+
+    print('Number of all tokens after removing non-alphabetic characters, single letter terms and uppercasing: ', len(token_list)) # keep this
+    print('Vocabulary size after " : ', len(np.unique(token_list))) # keep this
+
+    print(len(token_list))
+    print(len(xdf))
+    #print('Average Number of tokens per abstract after step 1: ', len(token_list) / len(xdf))
+    print('Average Number of tokens per abstract after step 1: ', sum(helper) / len(xdf))
+    print('Median Number of tokens per abstract after step 1: ', np.median(helper))
+    print('Mode Number of tokens per abstract after step 1: ', statistics.mode(helper))
+    print('Max Number of tokens per abstract after step 1: ', max(helper))
+    print('Min Number of tokens per abstract after step 1: ', min(helper))
+
+    print('Average Number of unique tokens per abstract after step 1: ', sum(helper_unique) / len(xdf))
+    print('Median Number of unique tokens per abstract after step 1: ', np.median(helper_unique))
+    print('Mode Number of unique tokens per abstract after step 1: ', statistics.mode(helper_unique))
+    print('Max Number of unique tokens per abstract after step 1: ', max(helper_unique))
+    print('Min Number of unique tokens per abstract after step 1: ', min(helper_unique))
+
+
 
     # Apply tokenization
     abst_tokenized = [nltk.word_tokenize(abstract) for abstract in abs_intermed_preproc]
@@ -142,6 +193,20 @@ if __name__ == '__main__':
     filter = list(itertools.chain(nltk_filter, numbers_filter, highConfidence_filter, mediumConfidence_filter))
     abst_nostops = [AbstractCleaning.remove_stopwords(abstract, filter) for abstract in abst_tokenized]
     print('Number of words in filter: ', len(filter))
+
+    helper = []
+    helper_unique = []
+    #xdf = [nltk.word_tokenize(abstract) for abstract in abst_nostops]
+    token_list = []
+
+    for i in abst_nostops:
+        for token in i:
+            token_list.append(token)
+        #helper.append(len(i))
+        #i_unique = np.unique(i)
+        #helper_unique.append(len(np.unique(i)))
+
+    print('Vocabulary size after " : ', len(np.unique(token_list))) # keep this
 
     # Build bigrams
     bigram = gensim_models.Phrases(abst_nostops, min_count=10, threshold=100)  # higher threshold fewer phrases.
@@ -156,8 +221,38 @@ if __name__ == '__main__':
     spacy_en = spacy.load("en_core_web_sm", disable=['parser', 'ner'])
     abst_lemmatized = AbstractCleaning.lemmatization(abst_bigrams, spacy_en, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV'])
 
+    helper = []
+    helper_unique = []
+    # xdf = [nltk.word_tokenize(abstract) for abstract in abst_nostops]
+    token_list = []
+
+    for i in abst_lemmatized:
+        for token in i:
+            token_list.append(token)
+        # helper.append(len(i))
+        # i_unique = np.unique(i)
+        # helper_unique.append(len(np.unique(i)))
+
+    print('Vocabulary size after " : ', len(np.unique(token_list)))  # keep this
+
     # Apply term filters again on lemmatized abstracts
     abst_clean = [AbstractCleaning.remove_stopwords(abstract, filter) for abstract in abst_lemmatized]
+
+    helper = []
+    helper_unique = []
+    # xdf = [nltk.word_tokenize(abstract) for abstract in abst_nostops]
+    token_list = []
+
+    for i in abst_clean:
+        for token in i:
+            token_list.append(token)
+        # helper.append(len(i))
+        # i_unique = np.unique(i)
+        # helper_unique.append(len(np.unique(i)))
+    print('Number of all tokens after removing non-alphabetic characters, single letter terms and uppercasing: ',
+          len(token_list))  # keep this
+
+    print('Vocabulary size after " : ', len(np.unique(token_list)))  # keep this
 
     # todo check if bigrams (and everything else) at right place. Do we want 'an_independent_claim' and
     #  'also_included' to be tokens? (Assuming they are not cleaned by lemmatization)

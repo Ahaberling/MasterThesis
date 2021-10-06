@@ -24,6 +24,7 @@ class ReferenceMeasures:
         slidingWindow_kC_unit = {}
         pbar = tqdm.tqdm(total=len(slidingWindow_dict))
 
+        i = 0
         for window_id, window in slidingWindow_dict.items():
 
             kC_list = []
@@ -37,7 +38,14 @@ class ReferenceMeasures:
                 else:
                     raise Exception("kC must be string value 'topic' or 'ipc'")
 
+                #print(kC_inPatent)
+                #if 0 in kC_inPatent:
+                    #print(patent)
+
                 kC_inPatent = np.unique(kC_inPatent)
+
+                #if 0 in kC_inPatent:
+                    #print(patent)
 
                 if unit == 1:
                     kC_list.append(tuple(kC_inPatent))
@@ -47,11 +55,26 @@ class ReferenceMeasures:
 
             # dictionary with all singularly occuring ipc's within a window
             kC_list = [item for sublist in kC_list for item in sublist]
+
+            #if 0 in kC_list:
+                #print(1+1)
+            '''
             #print(kC_list)
+            if 0 in kC_list:
+                print(i)
+                #print(kC_list)
+                print('\t', kC_list.count(0))
+                for patent in window:
+                    #print(patent[position])
+                    if '0' in patent[position]:
+                        print(patent[0])
+            # 276807342 was in 13 sliding windows
+            '''
+
             slidingWindow_kC_unit[window_id] = kC_list
 
             pbar.update(1)
-
+            i = i+1
         pbar.close()
 
         return slidingWindow_kC_unit
@@ -580,14 +603,12 @@ class CommunityMeasures:
     def community_labeling(tracingArray, community_dict_topD, patentProject_graphs):
 
         ### Create dict with all topD per window and the community sequences aka columns they are associated with
-                    #the recombination dict indicates, that topD_dic should contain community 119 and 37 in window 89 aka 2670.
-                    #Otherwise recombination dict is faulty
+
         topD_dic = {}
         #topD_dic_unique = {}
 
         for row in range(len(tracingArray)):
-            #if row == 89:
-                #print(1 + 1)
+
             #topD_dic_unique['window_{0}'.format(row * 30)] = np.unique(tracingArray[row, :])[1:]       #[1:] to exclude the 0s
 
             topD_pos = {}
@@ -1579,7 +1600,7 @@ class CommunityMeasures:
     @staticmethod
     def create_diffusionArray_Topics(communityTopicAssociation_dict):
         topic_diffusion_array = np.zeros((len(communityTopicAssociation_dict), 330), dtype=int)
-
+        # community id, topic id, confidence
         for i in range(len(topic_diffusion_array)):
             window = communityTopicAssociation_dict['window_{}'.format(i * 30)]
 

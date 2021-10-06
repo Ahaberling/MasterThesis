@@ -67,6 +67,7 @@ if __name__ == '__main__':
     print(sum(coverageFrequency_list))
     print(len(coverageFrequency_list))
 
+    print(sum(coverageFrequency_list))
     print('Average coverage of topics: ', sum(coverageFrequency_list) / len(coverageFrequency_list))
     print('median coverage of topics: ', np.median(coverageFrequency_list))
     print('mode coverage of topics: ', statistics.mode(coverageFrequency_list))
@@ -271,7 +272,7 @@ if __name__ == '__main__':
 
     ### Declare sliding window approach ###
 
-    windowSize =  365
+    windowSize =  360
     slidingInterval = 30
 
 
@@ -296,7 +297,7 @@ if __name__ == '__main__':
 
     from utilities.my_transform_utils import Transf_slidingWindow
 
-    slidingWindow_dict, patents_perWindow, topics_perWindow, uniqueTopics_inAllWindows = Transf_slidingWindow.sliding_window_slizing(windowSize, slidingInterval, patent_lda_ipc,)
+    slidingWindow_dict, patents_perWindow, topics_perWindow, topics_perWindow_unique = Transf_slidingWindow.sliding_window_slizing(windowSize, slidingInterval, patent_lda_ipc,)
 
     #print(slidingWindow_dict.keys())
     #print(slidingWindow_dict['window_5640'][:,3])
@@ -308,33 +309,43 @@ if __name__ == '__main__':
     print('Max number of patents per window : ', max(patents_perWindow))
     print('Min number of patents per window : ', min(patents_perWindow))
 
-    print('Average number of unique topics per window : ', np.average(topics_perWindow))
-    print('Median number of unique topics per window : ', np.median(topics_perWindow))
-    print('Mode number of unique topics per window : ', statistics.mode(topics_perWindow))
-    print('Max number of unique topics per window : ', max(topics_perWindow))
-    print('Min number of unique topics per window : ', min(topics_perWindow))
+    print('Average number of topics per window : ', np.average(topics_perWindow))
+    print('Median number of topics per window : ', np.median(topics_perWindow))
+    print('Mode number of topics per window : ', statistics.mode(topics_perWindow))
+    print('Max number of topics per window : ', max(topics_perWindow))
+    print('Min number of topics per window : ', min(topics_perWindow))
 
-    print('Number of topics represented in at least one window: ', len(uniqueTopics_inAllWindows))
+    print('Average number of unique topics per window : ', np.average(topics_perWindow_unique))
+    print('Median number of unique topics per window : ', np.median(topics_perWindow_unique))
+    print('Mode number of unique topics per window : ', statistics.mode(topics_perWindow_unique))
+    print('Max number of unique topics per window : ', max(topics_perWindow_unique))
+    print('Min number of unique topics per window : ', min(topics_perWindow_unique))
 
-    x = range(len(patents_perWindow))
-    y = patents_perWindow
+    #print('Number of topics represented in at least one window: ', len(uniqueTopics_inAllWindows))
+
+    x_patent = range(len(patents_perWindow))
+    y_patent = patents_perWindow
+
+    x_topic = range(len(topics_perWindow))
+    y_topic = topics_perWindow
 
     fig, ax = plt.subplots()
-    ax.plot(x, y, color='darkblue')
+    ax.plot(x_patent, y_patent, color='darkblue', label='Patents')
+    ax.plot(x_topic, y_topic, color='darkred', label='Unique Topics')
+    plt.legend(loc='upper left')
     plt.xlabel("Sliding Windows")
-    plt.ylabel("Number of patents")
+    plt.ylabel("Frequency")
     #plt.show()
     os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Plots')
-    plt.savefig('Patents_perWindow.png')
+    plt.savefig('PatentsAndUniqueTopics_perWindow.png')
     os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots/GridSearch')
     plt.close()
 
 
-    x = range(len(topics_perWindow))
-    y = topics_perWindow
+
 
     fig, ax = plt.subplots()
-    ax.plot(x, y, color='darkblue')
+    ax.plot(x_topic, y_topic, color='darkgreen')
     plt.xlabel("Sliding Windows")
     plt.ylabel("Number of unique topics")
     #plt.show()
@@ -343,11 +354,12 @@ if __name__ == '__main__':
     os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots/GridSearch')
     plt.close()
 
-
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
     filename = 'slidingWindow_dict'
     outfile = open(filename, 'wb')
     pk.dump(slidingWindow_dict, outfile)
     outfile.close()
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots/GridSearch')
 
 
 ### New File ################################
@@ -411,6 +423,7 @@ if __name__ == '__main__':
         ipc_position = np.r_[range(30,np.shape(patent_lda_ipc)[1]-1,3)]             # right now, this has to be adjusted manually depending on the LDA results #todo adjust
         topic_position = np.r_[range(9,(9+int(max_topics*2)),2)]                                       # right now, this has to be adjusted manually depending on the LDA results #todo adjust
 
+        # this just puts every topic as node. no restriction on top 3 topics
         topicNode_list = Transf_network.prepare_topicNodes_Networkx(window, topic_position)
 
         sliding_graph.add_nodes_from(topicNode_list, bipartite=0)
@@ -457,6 +470,9 @@ if __name__ == '__main__':
     centralityPatents_distribution = []
     centralityTopics_distribution = []
     density_distribution = []
+    active_topicNode_distribution = []
+    helper = []
+    allTopicNodes_bipart = []
 
     for window_id, graph in bipartite_graphs.items():
         topicNode_distribution.append(len([n for n, d in graph.nodes(data=True) if d["bipartite"] == 0]))
@@ -465,11 +481,32 @@ if __name__ == '__main__':
         centralityTopics_distribution.append(np.average([graph.degree[n] for n, d in graph.nodes(data=True) if d["bipartite"] == 0]))
         density_distribution.append(nx.density(graph))
 
+        active_topicNode_distribution.append(len(np.unique([v for u, v in graph.edges(data=False)])))
+
+        allTopicNodes_bipart.append([n for n, d in graph.nodes(data=True) if d["bipartite"] == 0])
+        allTopicNodes = ([n for n, d in graph.nodes(data=True) if d["bipartite"] == 0])
+        allActiveTopicNodes = (np.unique([v for u, v in graph.edges(data=False)]))
+
+        for topicN in allTopicNodes:
+            if topicN not in allActiveTopicNodes:
+                helper.append(window_id)
+
+    if len(helper) == 0:
+        print('Every topic node in every window is active')
+
+    #print('active_topicNode_distribution :', active_topicNode_distribution)
+
     print('Average number of topic nodes per window : ', np.average(topicNode_distribution))
     print('Median number of topic nodes per window : ', np.median(topicNode_distribution))
     print('Mode number of topic nodes per window : ', statistics.mode(topicNode_distribution))
     print('Max number of topic nodes per window : ', max(topicNode_distribution))
     print('Min number of topic nodes per window : ', min(topicNode_distribution))
+
+    print('Average number of active topic nodes per window : ', np.average(active_topicNode_distribution))
+    print('Median number of active topic nodes per window : ', np.median(active_topicNode_distribution))
+    print('Mode number of active topic nodes per window : ', statistics.mode(active_topicNode_distribution))
+    print('Max number of active topic nodes per window : ', max(active_topicNode_distribution))
+    print('Min number of active topic nodes per window : ', min(active_topicNode_distribution))
 
     print('Average of average edgeWeight per window : ', np.average(edgeWeight_distribution))
     print('Median of average edgeWeight per window : ', np.median(edgeWeight_distribution))
@@ -495,19 +532,10 @@ if __name__ == '__main__':
     print('Max network density in window : ', max(density_distribution))
     print('Min network density in window : ', min(density_distribution))
 
-    x = range(len(density_distribution))
-    y = density_distribution
+    x_bipart = range(len(density_distribution))
+    y_bipart = density_distribution
 
-    fig, ax = plt.subplots()
-    ax.plot(x, y, color='darkblue')
-    ax.set_ylim([0, 0.025])
-    plt.xlabel("Sliding Window Bipartite Networks")
-    plt.ylabel("Density")
-    #plt.show()
-    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Plots')
-    plt.savefig('Density_bipartite.png')
-    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots/GridSearch')
-    plt.close()
+
 
 
 
@@ -538,9 +566,9 @@ if __name__ == '__main__':
     print('Max patent network density in window : ', max(density_distribution_patentNetwork))
     print('Min patent network density in window : ', min(density_distribution_patentNetwork))
 
-    x = range(len(density_distribution_patentNetwork))
-    y = density_distribution_patentNetwork
-
+    x_patent = range(len(density_distribution_patentNetwork))
+    y_patent = density_distribution_patentNetwork
+    '''
     fig, ax = plt.subplots()
     ax.plot(x, y, color='darkblue')
     ax.set_ylim([0, 0.025])
@@ -551,17 +579,30 @@ if __name__ == '__main__':
     plt.savefig('Density_patent.png')
     os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots/GridSearch')
     plt.close()
-
+    '''
 
     edgeWeight_distribution_topicNetwork = []
     centrality_distribution_topicNetwork = []
     density_distribution_topicNetwork = []
+    allTopicNodes_inPatentNet = []
 
     for window_id, graph in topicProject_graphs.items():
         edgeWeight_distribution_topicNetwork.append(
             np.average([float(list(w.values())[0]) for (u, v, w) in graph.edges(data=True)]))
         centrality_distribution_topicNetwork.append(np.average([graph.degree[n] for n in graph.nodes()]))
         density_distribution_topicNetwork.append(nx.density(graph))
+        allTopicNodes_inPatentNet.append([n for n in graph.nodes(data=False)])
+
+    for i in range(len(allTopicNodes_bipart)):
+        if allTopicNodes_bipart[i].sort() != allTopicNodes_inPatentNet[i].sort():
+            print(len(allTopicNodes_bipart))
+            print(len(allTopicNodes_inPatentNet))
+            print(i)
+            print(len(allTopicNodes_bipart[i]))
+            print(len(allTopicNodes_inPatentNet[i]))
+            print(allTopicNodes_bipart[i])
+            print(allTopicNodes_inPatentNet[i])
+            raise Exception('not all topic nodes were transfered')
 
     print('Average topic network edge weight per window : ', np.average(edgeWeight_distribution_topicNetwork))
     print('Median topic network edge weight per window : ', np.median(edgeWeight_distribution_topicNetwork))
@@ -581,9 +622,9 @@ if __name__ == '__main__':
     print('Max topic network density in window : ', max(density_distribution_topicNetwork))
     print('Min topic network density in window : ', min(density_distribution_topicNetwork))
 
-    x = range(len(density_distribution_topicNetwork))
-    y = density_distribution_topicNetwork
-
+    x_topic = range(len(density_distribution_topicNetwork))
+    y_topic = density_distribution_topicNetwork
+    '''
     fig, ax = plt.subplots()
     ax.plot(x, y, color='darkblue')
     ax.set_ylim([0, 0.025])
@@ -594,6 +635,21 @@ if __name__ == '__main__':
     plt.savefig('Density_topic.png')
     os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots/GridSearch')
     plt.close()
+    '''
+    fig, ax = plt.subplots()
+    ax.plot(x_bipart, y_bipart, color='darkblue', label='Bipartite Networks')
+    ax.plot(x_patent, y_patent, color='darkred', label='Patent Networks')
+    ax.plot(x_topic, y_topic, color='darkgreen', label='Topic Networks')
+    plt.legend(loc='upper left')
+    ax.set_ylim([0, 0.03])
+    plt.xlabel("Network Representations of Sliding Windows")
+    plt.ylabel("Density")
+    # plt.show()
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Plots')
+    plt.savefig('Density_All_networks.png')
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots/GridSearch')
+    plt.close()
+
 
 #--- visualization ---#
 
