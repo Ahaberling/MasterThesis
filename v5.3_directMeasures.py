@@ -206,23 +206,7 @@ if __name__ == '__main__':
     print('topic with most diff steps: ', topicWithMostDiffSteps)
     print('topic with elast diff steps: ', topicWithLeastDiffSteps)
 
-    Max
-    of
-    the
-    average
-    topic
-    diffusion
-    patents: 76.0
 
-    Max
-    of
-    the
-    average
-    topic
-    diffusion
-    steps: 54.0
-
-    maybe also get the top 3 to compare later? or maybe just in the comparative later
 
     #print(diffusionPatternPos_SCM[0])
     #print(diffusionPatternPos_SCM[:,2])
@@ -270,8 +254,8 @@ if __name__ == '__main__':
     sns.heatmap(pattern_array_reference_diff[0:80,20:30],
                 #cmap='plasma_r',
                 #cmap='magma_r',
-                #cmap='mako_r',
-                cmap='bone_r',
+                cmap='mako_r',
+                #cmap='bone_r',
                 cbar_kws={'label': 'Component Count in Window'}) #, cmap="YlGnBu") #, annot=True, fmt="d", linewidths=.5, ax=ax)
     plt.yticks(range(0,80,10))
     ax.set_xticklabels(range(20,30))
@@ -280,20 +264,24 @@ if __name__ == '__main__':
     plt.ylabel("Sliding Window ID ")
     #plt.show()
     os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Plots')
-    plt.savefig('bone_r.png')
-    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots/GridSearch')
+    plt.savefig('SCM_direct.png')
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
     plt.close()
 
     pattern_array_reference_reco, columns_reference_reco = ReferenceMeasures.create_pattern_array(knowledgeComponent_dict_reco)
 
     f, ax = plt.subplots()
-    sns.heatmap(pattern_array_reference_reco[100:180,635:645], cbar_kws={'label': 'Component Combination Count in Window'}) #, cmap="YlGnBu") #, annot=True, fmt="d", linewidths=.5, ax=ax)
+    sns.heatmap(pattern_array_reference_reco[100:180,635:645], cmap='mako_r',
+                cbar_kws={'label': 'Component Combination Count in Window'}) #, cmap="YlGnBu") #, annot=True, fmt="d", linewidths=.5, ax=ax)
     plt.yticks(range(0,80,10))
     ax.set_xticklabels(range(635,645))
     ax.set_yticklabels(range(100,180,10))
     plt.xlabel("Knowledge Component Combination ID")
     plt.ylabel("Sliding Window ID ")
-    plt.show()
+    #plt.show()
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Plots')
+    plt.savefig('CCM_direct.png')
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
     plt.close()
 
     #'Accent', 'Accent_r', 'Blues', 'Blues_r', 'BrBG', 'BrBG_r', 'BuGn', 'BuGn_r', 'BuPu', 'BuPu_r', 'CMRmap', 'CMRmap_r',
