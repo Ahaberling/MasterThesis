@@ -38,13 +38,47 @@ if __name__ == '__main__':
     plt.close()
     '''
 
-    '''
-    community_dict_lp = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='label_propagation', weight_bool=True)
+
+    import numpy as np
+    
+    community_dict_lp, modularity_dict_lp = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='label_propagation', weight_bool=True)
+    print(modularity_dict_lp['window_0'])                   # 0.8547171828975307
+    print(np.mean(list(modularity_dict_lp.values())))       # 0.7322156796307513
+
+    community_dict_gm, modularity_dict_gm = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='greedy_modularity')
+    print(modularity_dict_gm['window_0'])                   # -0.05733820147057286
+    helper = []
+    for i in modularity_dict_gm.values():
+        helper.append(i[2])
+    print(helper[0])
+    print(np.mean(helper))                                  # 0.06982563520602868
+
+    community_dict_kc, modularity_dict_kc = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='k_clique', k_clique_size=3)
+    print(modularity_dict_kc['window_0'])                   # 0.19167160178624776 newman_girvan_modularity
+    helper = []                                             # 0.048218915888596885 link
+    for i in modularity_dict_kc.values():
+        helper.append(i[2])
+    print(helper[0])
+    print(np.mean(helper))                                  # 0.3798751013811473  newman_girvan_modularity
+                                                            # 0.09104628306679274 link
+
+    community_dict_l2, modularity_dict_l2 = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='lais2')
+    print(modularity_dict_l2['window_0'])                   # 0.796357503685926 newman_girvan_modularity
+    helper = []                                             # 0.1350135445281584 link
+    for i in modularity_dict_l2.values():
+        helper.append(i[2])
+    print(helper[0])
+    print(np.mean(helper))                                  # 0.4571296942392671 newman_girvan_modularity
+                                                            # 0.1041329499095561 link
+    
+    community_dict_lp = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='label_propagation', weight_bool=True)    
     community_dict_gm = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='greedy_modularity')
     community_dict_kc = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='k_clique', k_clique_size=3)
     community_dict_l2 = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='lais2')
 
 
+
+    '''
     filename = 'community_dict_lp'
     outfile = open(filename, 'wb')
     pk.dump(community_dict_lp, outfile)
@@ -115,6 +149,7 @@ if __name__ == '__main__':
     community_dict_clean_gm = CommunityMeasures.community_cleaning(community_dict_transf_gm,min_community_size=3)
     community_dict_clean_kc = CommunityMeasures.community_cleaning(community_dict_transf_kc,min_community_size=3)
     community_dict_clean_l2 = CommunityMeasures.community_cleaning(community_dict_transf_l2,min_community_size=3)
+
 
 ### New File ###
 

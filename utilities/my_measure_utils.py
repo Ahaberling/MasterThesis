@@ -3,7 +3,9 @@ import tqdm
 import itertools
 import scipy.signal as sciSignal
 from cdlib import algorithms
+from cdlib import evaluation
 import networkx as nx
+import networkx.algorithms.community as nx_comm
 import operator
 import copy
 
@@ -258,6 +260,7 @@ class CommunityMeasures:
     def detect_communities(patentProject_graphs, cD_algorithm, weight_bool=None, k_clique_size=None):
 
         community_dict = {}
+        modularity_dict = {}
 
         if cD_algorithm == 'label_propagation':
             c = 0
@@ -267,6 +270,7 @@ class CommunityMeasures:
                 for window_id, window in patentProject_graphs.items():
                     lp = nx.algorithms.community.label_propagation.asyn_lpa_communities(window, weight='weight', seed=123)
                     community_dict[window_id] = list(lp)
+                    modularity_dict[window_id] = nx_comm.modularity(window, nx.algorithms.community.label_propagation.asyn_lpa_communities(window, weight='weight', seed=123))
                     pbar.update(1)
                 pbar.close()
             else:
@@ -283,7 +287,12 @@ class CommunityMeasures:
             for window_id, window in patentProject_graphs.items():
                 gm = algorithms.greedy_modularity(window)  # , weight='weight')                               # no seed needed i think, weights yield less communities (right now)
                 community_dict[window_id] = gm.to_node_community_map()
+                modularity_dict[window_id] = evaluation.newman_girvan_modularity(window, gm)
                 pbar.update(1)
+
+
+
+
 
             pbar.close()
 
@@ -292,7 +301,8 @@ class CommunityMeasures:
             pbar = tqdm.tqdm(total=len(patentProject_graphs))
             for window_id, window in patentProject_graphs.items():
                 kclique = algorithms.kclique(window, k=k_clique_size)  # no seed needed i think
-                community_dict[window_id] = kclique.to_node_community_map()
+                community_dict[window_id] = kclique.to_node_community_map()           # link_mod 0.048218915888596885
+                modularity_dict[window_id] = evaluation.newman_girvan_modularity(window, kclique)
                 pbar.update(1)
 
             pbar.close()
@@ -302,7 +312,8 @@ class CommunityMeasures:
             pbar = tqdm.tqdm(total=len(patentProject_graphs))
             for window_id, window in patentProject_graphs.items():
                 lais2 = algorithms.lais2(window)  # no seed needed i think
-                community_dict[window_id] = lais2.to_node_community_map()
+                community_dict[window_id] = lais2.to_node_community_map()           # link_mod 0.1350135445281584
+                modularity_dict[window_id] = modularity_dict[window_id] = evaluation.newman_girvan_modularity(window, lais2)
                 pbar.update(1)
 
             pbar.close()
@@ -310,7 +321,7 @@ class CommunityMeasures:
         else:
             raise Exception("cD_algorithm must be 'label_propagation','greedy_modularity','k_clique' or 'lais2'")
 
-        return community_dict
+        return community_dict , modularity_dict
 
     @staticmethod
     def align_cD_dataStructure(community_dict, cD_algorithm):
