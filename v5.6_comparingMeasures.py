@@ -132,6 +132,7 @@ if __name__ == '__main__':
 
     from utilities.my_comparative_utils import ComparativeMeasures
 
+
     # test if all SCMs have the appropriate column length
     ComparativeMeasures.check_columnLength(list_allSCM, diffusionArray_Topics_lp_columns)
 
@@ -156,9 +157,22 @@ if __name__ == '__main__':
         pattern_length = [entry for entry in pattern_length if entry[2] >= min_length_threshold] 
         pattern_length_list.append(pattern_length)
 
+    from utilities.my_measure_utils import Misc
 
     # Alligned SCM descriptives
     for i in range(len(list_allSCM_threshold)):
+
+        diffusionPatternPos_SCM = Misc.find_diffusionPatterns(list_allSCM_threshold[i])
+        diffusionPatternPos_SCM, diff_sequence_list_SCM, irrelevant = Misc.find_diffusionSequenceAndLength(diffusionPatternPos_SCM, list_allSCM_threshold[i])
+        # diffusionPatternPos_CCM = Misc.find_diffusionStepsAndPatternPerDiffusion(diffusionPatternPos_CCM, diff_sequence_list_SCM)
+        # diff_pos = [ row, column, diffLength, diffSteps, patentsInDiff ]
+        diffusionPatternPos_SCM = np.array(diffusionPatternPos_SCM)
+
+        print(list_allSCM_names[i])
+        print('Number of diffusion cycles / patterns in the scm: ', len(diffusionPatternPos_SCM))
+        print('Average diffusion pattern length: ', np.mean(diffusionPatternPos_SCM[:, 2]))
+
+        '''
         patterns_perTopic, pattern_lengths_perTopic = ComparativeMeasures.alligned_SCM_descriptives(diffusionArray_Topics_lp_columns, pattern_length_list[i])
         PatternLength_withinTopic_avg = []
         for j in pattern_lengths_perTopic:
@@ -178,7 +192,7 @@ if __name__ == '__main__':
         print('Average number of diffusion entries per topic: ', patternStars_inTopics_avg, ' of ', len(SCM_threshold))
         print('Average diffusion length: ', np.mean(PatternLength_withinTopic_avg), 'max: ', max(PatternLength_withinTopic_avg), 'min: ',
               min(PatternLength_withinTopic_avg), 'median: ', np.median(PatternLength_withinTopic_avg), 'mode: ', statistics.mode(PatternLength_withinTopic_avg))
-
+        '''
 
     # cosine focuses more on the similarity in diffusion instead of similarity in diffusion and non-diffusion. This is because of the
     # numinator in the fraction. a match 0-0 match in the lists, does not increase the numinator. it is treated as a mismatch. 0s have no
@@ -222,7 +236,7 @@ if __name__ == '__main__':
     # two orders of magnitude smaller then the rest.
     print(matrixSimilarityScore_manhattan)
     # print(namePair_list)                    # 1,5,9,10,11
-
+    '''
     # New colculation with the exclution of the unfitting SCM (Greedy modularity)
     slices_toExclude = [1,5,9,10,11]
 
@@ -246,7 +260,7 @@ if __name__ == '__main__':
 
     print('\n', matrixSimilarityScore_cosine_withoutGM)
     print(matrixSimilarityScore_manhattan_withoutGM)
-
+    '''
 
 
 
@@ -256,35 +270,58 @@ if __name__ == '__main__':
 
     # get similarities between vectors of the same topic. max, min, avg, mode, media, distribution
 
-    simScores_withinTopic_list_cosine_avg, simScores_withinTopic_list_manhattan_avg = ComparativeMeasures.SCM_topic_similarities(list_allSCM_names, list_allSCM_threshold, slices_toExclude)
+    simScores_withinTopic_list_cosine_avg, simScores_withinTopic_list_manhattan_avg = ComparativeMeasures.SCM_topic_similarities(list_allSCM_names, list_allSCM_threshold) #, slices_toExclude)
 
         # calculate the following only with values that are not -9999
     # there are a lot topics falling through. check if this filter is correct
     # also check if there are really topics with similarity of 1 across all pairs
     #simScores_withinTopic_list_cosine_avg_clean = [x for x in simScores_withinTopic_list_cosine_avg if x != -9999]
-    simScores_withinTopic_list_manhattan_avg_clean = [x for x in simScores_withinTopic_list_manhattan_avg if x != -9999]
+    #simScores_withinTopic_list_manhattan_avg_clean = [x for x in simScores_withinTopic_list_manhattan_avg if x != -9999]
 
     # -9999 in cosine means: at least one column of all column pairs was always 0
     # -9999 in manhattan means: both columns of all column pairs were always 0
 
-    simScores_withinTopic_list_cosine_avg_clean = simScores_withinTopic_list_cosine_avg
+    #simScores_withinTopic_list_cosine_avg_clean = simScores_withinTopic_list_cosine_avg
     #simScores_withinTopic_list_manhattan_avg_clean = simScores_withinTopic_list_manhattan_avg
 
 
-    most_similarTopic_value_cosine = max(simScores_withinTopic_list_cosine_avg_clean)
-    most_similarTopic_value_manhattan = max(simScores_withinTopic_list_manhattan_avg_clean)
+    most_similarTopic_value_cosine = max(simScores_withinTopic_list_cosine_avg)
+    most_similarTopic_value_manhattan = max(simScores_withinTopic_list_manhattan_avg)
 
     most_similarTopic_pos_cosine = np.where(simScores_withinTopic_list_cosine_avg == most_similarTopic_value_cosine)
     most_similarTopic_pos_manhattan = np.where(simScores_withinTopic_list_manhattan_avg == most_similarTopic_value_manhattan)
 
-    least_similarTopic_value_cosine = min(simScores_withinTopic_list_cosine_avg_clean)
-    least_similarTopic_value_manhattan = min(simScores_withinTopic_list_manhattan_avg_clean)
+    least_similarTopic_value_cosine = min(simScores_withinTopic_list_cosine_avg)
+    least_similarTopic_value_manhattan = min(simScores_withinTopic_list_manhattan_avg)
 
     least_similarTopic_pos_cosine = np.where(simScores_withinTopic_list_cosine_avg == least_similarTopic_value_cosine)
     least_similarTopic_pos_manhattan = np.where(simScores_withinTopic_list_manhattan_avg == least_similarTopic_value_manhattan)
 
-    avg_similarTopic_cosine = sum(simScores_withinTopic_list_cosine_avg_clean) / len(simScores_withinTopic_list_cosine_avg_clean)
-    avg_similarTopic_manhattan = sum(simScores_withinTopic_list_manhattan_avg_clean) / len(simScores_withinTopic_list_manhattan_avg_clean)
+    avg_similarTopic_cosine = sum(simScores_withinTopic_list_cosine_avg) / len(simScores_withinTopic_list_cosine_avg)
+    avg_similarTopic_manhattan = sum(simScores_withinTopic_list_manhattan_avg) / len(simScores_withinTopic_list_manhattan_avg)
+
+    import matplotlib.pyplot as plt
+
+    print(len(range(100)))
+    print(len(simScores_withinTopic_list_cosine_avg[0:99]))
+    fig, ax = plt.subplots()
+    #plt.bar(range(len(simScores_withinTopic_list_cosine_avg)), simScores_withinTopic_list_cosine_avg, width=1.0, color='white', label='Cosine Similarity')
+    #plt.bar(range(len(simScores_withinTopic_list_cosine_avg)), simScores_withinTopic_list_manhattan_avg, width=1.0, color='darkblue', label='Manhattan Similarity', alpha=0.5)
+    plt.bar(range(100), simScores_withinTopic_list_cosine_avg[0:100], width=1.0, color='black', label='Cosine Similarity')
+    plt.bar(range(100), simScores_withinTopic_list_manhattan_avg[0:100], width=1.0, color='darkblue', label='Manhattan Similarity', alpha=0.5)
+    #plt.legend(loc='upper left')
+    plt.legend(loc='center left', bbox_to_anchor=(0.5,0.6))
+    #ax.set_ylim([0, 1.2])
+    #plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    plt.xlabel("Topic IDs")
+    plt.ylabel("Similarity")
+    #plt.show()
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Plots')
+    plt.savefig('TopicSimilarities_SCM.png')
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
+    plt.close()
+
+
 
 
     print('\n Topic Cosine Similarities between approaches:')
@@ -414,9 +451,24 @@ if __name__ == '__main__':
     print(len(topicExclusionPosition[0])) # 7119 are deleted from 8157 -> 1038 left
     # todo why are these so many? maybe because a lot is lost in binarization. maybe extend befor binarizing
 
+
     resized_threshold_arrays = []
     for array in extended_threshold_arrays:
         resized_threshold_arrays.append(np.delete(array, topicExclusionPosition, 1))
+
+    for i in range(len(resized_threshold_arrays)):
+        diffusionPatternPos_SCM = Misc.find_diffusionPatterns(resized_threshold_arrays[i])
+        diffusionPatternPos_SCM, diff_sequence_list_SCM, irrelevant = Misc.find_diffusionSequenceAndLength(
+            diffusionPatternPos_SCM, resized_threshold_arrays[i])
+        # diffusionPatternPos_CCM = Misc.find_diffusionStepsAndPatternPerDiffusion(diffusionPatternPos_CCM, diff_sequence_list_SCM)
+        # diff_pos = [ row, column, diffLength, diffSteps, patentsInDiff ]
+        diffusionPatternPos_SCM = np.array(diffusionPatternPos_SCM)
+
+        print(CCM_column_list_names[i])
+        print('Number of diffusion cycles / patterns in the ccm: ', len(diffusionPatternPos_SCM))
+        print('Average diffusion pattern length: ', np.mean(diffusionPatternPos_SCM[:, 2]))
+
+
 
     for array in resized_threshold_arrays:
         print(np.shape(array))
@@ -460,7 +512,7 @@ if __name__ == '__main__':
     # two orders of magnitude smaller then the rest.
     print(matrixSimilarityScore_manhattan)
     # print(namePair_list)                    # 1,5,9,10,11
-
+    '''
     # New colculation with the exclution of the unfitting SCM (Greedy modularity)
     slices_toExclude = [1, 5, 9, 10, 11]
 
@@ -486,45 +538,65 @@ if __name__ == '__main__':
 
     print('\n', matrixSimilarityScore_cosine_withoutGM)
     print(matrixSimilarityScore_manhattan_withoutGM)
-
+    '''
     ###---------------------
 
     # get similarities between vectors of the same topic. max, min, avg, mode, media, distribution
 
     simScores_withinTopic_list_cosine_avg, simScores_withinTopic_list_manhattan_avg = ComparativeMeasures.SCM_topic_similarities(
-        CCM_column_list_names, resized_threshold_arrays, slices_toExclude)
+        CCM_column_list_names, resized_threshold_arrays) #, slices_toExclude)
 
 
     # calculate the following only with values that are not -9999
     # there are a lot topics falling through. check if this filter is correct
     # also check if there are really topics with similarity of 1 across all pairs
     # simScores_withinTopic_list_cosine_avg_clean = [x for x in simScores_withinTopic_list_cosine_avg if x != -9999]
-    simScores_withinTopic_list_manhattan_avg_clean = [x for x in simScores_withinTopic_list_manhattan_avg if x != -9999]
+    #simScores_withinTopic_list_manhattan_avg_clean = [x for x in simScores_withinTopic_list_manhattan_avg if x != -9999]
 
     # -9999 in cosine means: at least one column of all column pairs was always 0
     # -9999 in manhattan means: both columns of all column pairs were always 0
 
-    simScores_withinTopic_list_cosine_avg_clean = simScores_withinTopic_list_cosine_avg
+    #simScores_withinTopic_list_cosine_avg_clean = simScores_withinTopic_list_cosine_avg
     #simScores_withinTopic_list_manhattan_avg_clean = simScores_withinTopic_list_manhattan_avg
 
-    most_similarTopic_value_cosine = max(simScores_withinTopic_list_cosine_avg_clean)
-    most_similarTopic_value_manhattan = max(simScores_withinTopic_list_manhattan_avg_clean)
+    most_similarTopic_value_cosine = max(simScores_withinTopic_list_cosine_avg)
+    most_similarTopic_value_manhattan = max(simScores_withinTopic_list_manhattan_avg)
 
     most_similarTopic_pos_cosine = np.where(simScores_withinTopic_list_cosine_avg == most_similarTopic_value_cosine)
     most_similarTopic_pos_manhattan = np.where(
         simScores_withinTopic_list_manhattan_avg == most_similarTopic_value_manhattan)
 
-    least_similarTopic_value_cosine = min(simScores_withinTopic_list_cosine_avg_clean)
-    least_similarTopic_value_manhattan = min(simScores_withinTopic_list_manhattan_avg_clean)
+    least_similarTopic_value_cosine = min(simScores_withinTopic_list_cosine_avg)
+    least_similarTopic_value_manhattan = min(simScores_withinTopic_list_manhattan_avg)
 
     least_similarTopic_pos_cosine = np.where(simScores_withinTopic_list_cosine_avg == least_similarTopic_value_cosine)
     least_similarTopic_pos_manhattan = np.where(
         simScores_withinTopic_list_manhattan_avg == least_similarTopic_value_manhattan)
 
-    avg_similarTopic_cosine = sum(simScores_withinTopic_list_cosine_avg_clean) / len(
-        simScores_withinTopic_list_cosine_avg_clean)
-    avg_similarTopic_manhattan = sum(simScores_withinTopic_list_manhattan_avg_clean) / len(
-        simScores_withinTopic_list_manhattan_avg_clean)
+    avg_similarTopic_cosine = sum(simScores_withinTopic_list_cosine_avg) / len(
+        simScores_withinTopic_list_cosine_avg)
+    avg_similarTopic_manhattan = sum(simScores_withinTopic_list_manhattan_avg) / len(
+        simScores_withinTopic_list_manhattan_avg)
+
+
+
+    fig, ax = plt.subplots()
+    #plt.bar(range(len(simScores_withinTopic_list_cosine_avg)), simScores_withinTopic_list_cosine_avg, width=1.0, color='darkblue', label='Cosine Similarity')
+    #plt.bar(range(len(simScores_withinTopic_list_cosine_avg)), simScores_withinTopic_list_manhattan_avg, width=1.0, color='darkred', label='Manhattan Similarity', alpha=0.5)
+    plt.bar(range(100), simScores_withinTopic_list_cosine_avg[0:100], width=1.0, color='black', label='Cosine Similarity')
+    plt.bar(range(100), simScores_withinTopic_list_manhattan_avg[0:100], width=1.0, color='darkblue', label='Manhattan Similarity', alpha=0.5)
+    plt.legend(loc='center left') #, bbox_to_anchor=(0.5,0.6))
+    #plt.legend(loc='best')
+    #ax.set_ylim([0, 1.2])
+    #plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    plt.xlabel("Topic IDs")
+    plt.ylabel("Similarity")
+    #plt.show()
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Plots')
+    plt.savefig('TopicSimilarities_CCM.png')
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
+    plt.close()
+
 
     print('\n Topic Cosine Similarities between approaches:')
     print('Highest Similarity: ', most_similarTopic_value_cosine)
@@ -545,6 +617,11 @@ if __name__ == '__main__':
     # print('Number of columns excluded because both columns of each pair were always 0: ', len([x for x in simScores_withinTopic_list_manhattan_avg if x == -9999]))
     print('Number of columns excluded because both columns of each pair were always 0: ',
           len([x for x in simScores_withinTopic_list_manhattan_avg if x == 0]))
+
+
+
+    # USE FIND SEQUENCE EXEMPLARY
+
 
     print('end')
 

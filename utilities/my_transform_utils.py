@@ -138,8 +138,8 @@ class Transf_slidingWindow:
 
         pbar.close()
 
-        print(test)
-        print(test2)
+        #print(test)
+        #print(test2)
 
         #uniqueTopics_inAllWindows = [item for sublist in uniqueTopics_inAllWindows for item in sublist]
         #uniqueTopics_inAllWindows = np.unique(uniqueTopics_inAllWindows)

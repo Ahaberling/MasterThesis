@@ -178,11 +178,12 @@ class ComparativeMeasures:
 
                     cosine = ComparativeMeasures.cosine_sim_mod(patternArray1[:, column_id],
                                                                 patternArray2[:, column_id])
-                    manhattan = ComparativeMeasures.manhattan_sim_mod(patternArray1[:, column_id],
-                                                                      patternArray2[:, column_id])
+
 
                     cosine_list.append(cosine)
-                    manhattan_list.append(manhattan)
+                manhattan = ComparativeMeasures.manhattan_sim_mod(patternArray1[:, column_id],
+                                                                  patternArray2[:, column_id])
+                manhattan_list.append(manhattan)
 
             if len(cosine_list) != 0:               # this means: if at least in one column pair both columns were not completely 0
                 cosine_avg = sum(cosine_list) / len(cosine_list)
@@ -200,7 +201,7 @@ class ComparativeMeasures:
         return namePair_list, similarityPair_list_cosine, similarityPair_list_manhattan
 
     @staticmethod
-    def SCM_topic_similarities(list_of_allArrays_names, list_of_allArrays_threshold, slices_toExclude=None):
+    def SCM_topic_similarities(list_of_allArrays_names, list_of_allArrays_threshold):   #, slices_toExclude=None):
         namePair_list = []
         arrayPair_list = []
         namePair_list.append(list(itertools.combinations(list_of_allArrays_names, r=2)))
@@ -216,20 +217,20 @@ class ComparativeMeasures:
             simScores_withinTopic_cosine = []
             simScores_withinTopic_manhattan = []
 
-            namePair_list_withoutGM = list(np.delete(namePair_list, slices_toExclude, axis=0))
-            arrayPair_list_withoutGM = list(np.delete(arrayPair_list, slices_toExclude, axis=0))
-            for matrixPair in arrayPair_list_withoutGM:
+            #namePair_list_withoutGM = list(np.delete(namePair_list, slices_toExclude, axis=0))
+            #arrayPair_list_withoutGM = list(np.delete(arrayPair_list, slices_toExclude, axis=0))
+            for matrixPair in arrayPair_list:
                 patternArray1 = matrixPair[0]
                 patternArray2 = matrixPair[1]
 
                 if not (sum(patternArray1[:, column_id]) == 0 and sum(patternArray2[:, column_id]) == 0):
                     cosine = ComparativeMeasures.cosine_sim_mod(patternArray1[:, column_id],
                                                                 patternArray2[:, column_id])
-                    manhattan = ComparativeMeasures.manhattan_sim_mod(patternArray1[:, column_id],
-                                                                      patternArray2[:, column_id])
-
                     simScores_withinTopic_cosine.append(cosine)
-                    simScores_withinTopic_manhattan.append(manhattan)
+                manhattan = ComparativeMeasures.manhattan_sim_mod(patternArray1[:, column_id],
+                                                                  patternArray2[:, column_id])
+
+                simScores_withinTopic_manhattan.append(manhattan)
 
             if len(simScores_withinTopic_cosine) != 0:
                 simScores_withinTopic_list_cosine_avg.append(

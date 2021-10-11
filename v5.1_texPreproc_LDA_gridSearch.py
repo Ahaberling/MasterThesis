@@ -112,25 +112,25 @@ if __name__ == '__main__':
 
     #Number of words in Abstracts pre preprocessing
 
-    number_of_unqiue_lowercaseWords, numberOfWords_abstract, numberOfWords_abstract_unique, number_less_20_abstract = AbstractCleaning.number_of_word_pre_preprocessing(patents_english_cleaned[:, 6])
-    print('Number of all words after removing non-alphabetic characters and erasing case sensitivity: ', sum(numberOfWords_abstract))
-    print('Number of all unique words after removing non-alphabetic characters and erasing case sensitivity: ', number_of_unqiue_lowercaseWords)
+    number_of_unqiue_lowercaseWords, numberOfWords_abstract, numberOfWords_abstract_unique, number_less_20_abstract = AbstractCleaning.number_of_word_pre_preprocessing(patents_english_cleaned[:, 6], 20)
+    #print('Number of all words after removing non-alphabetic characters and erasing case sensitivity: ', sum(numberOfWords_abstract))
+    #print('Number of all unique words after removing non-alphabetic characters and erasing case sensitivity: ', number_of_unqiue_lowercaseWords)
 
-    print('Average Number of words per abstract: ', sum(numberOfWords_abstract) / len(numberOfWords_abstract))
-    print('Median Number of words per abstract: ', np.median(numberOfWords_abstract))
-    print('Mode Number of words per abstract: ', statistics.mode(numberOfWords_abstract))
-    print('Max Number of words per abstract: ', max(numberOfWords_abstract))
-    print('Min Number of words per abstract: ', min(numberOfWords_abstract))
+    #print('Average Number of words per abstract: ', sum(numberOfWords_abstract) / len(numberOfWords_abstract))
+    #print('Median Number of words per abstract: ', np.median(numberOfWords_abstract))
+    #print('Mode Number of words per abstract: ', statistics.mode(numberOfWords_abstract))
+    #print('Max Number of words per abstract: ', max(numberOfWords_abstract))
+    #print('Min Number of words per abstract: ', min(numberOfWords_abstract))
 
-    print('Average Number of unique words per abstract: ', sum(numberOfWords_abstract_unique) / len(numberOfWords_abstract_unique))
-    print('Median Number of unique words per abstract: ', np.median(numberOfWords_abstract_unique))
-    print('Mode Number of unique words per abstract: ', statistics.mode(numberOfWords_abstract_unique))
-    print('Max Number of unique words per abstract: ', max(numberOfWords_abstract_unique))
-    print('Min Number of unique words per abstract: ', min(numberOfWords_abstract_unique))
+    #print('Average Number of unique words per abstract: ', sum(numberOfWords_abstract_unique) / len(numberOfWords_abstract_unique))
+    #print('Median Number of unique words per abstract: ', np.median(numberOfWords_abstract_unique))
+    #print('Mode Number of unique words per abstract: ', statistics.mode(numberOfWords_abstract_unique))
+    #print('Max Number of unique words per abstract: ', max(numberOfWords_abstract_unique))
+    #print('Min Number of unique words per abstract: ', min(numberOfWords_abstract_unique))
 
     print('Number of patents with 20 words or less: ', number_less_20_abstract)
-    print('All of these patents are kept for now. More domain knowledge might advise otherwise')
-    print('The value of 20 is chosen rather arbitrary for now. More domain knowledge might advise otherwise')
+    #print('All of these patents are kept for now. More domain knowledge might advise otherwise')
+    #print('The value of 20 is chosen rather arbitrary for now. More domain knowledge might advise otherwise')
 
     # Remove non-alphabetic characters and single character terms; make all terms lower case
 
@@ -169,8 +169,8 @@ if __name__ == '__main__':
     print('Number of all tokens after removing non-alphabetic characters, single letter terms and uppercasing: ', len(token_list)) # keep this
     print('Vocabulary size after " : ', len(np.unique(token_list))) # keep this
 
-    print(len(token_list))
-    print(len(xdf))
+    #print(len(token_list))
+    #print(len(xdf))
     #print('Average Number of tokens per abstract after step 1: ', len(token_list) / len(xdf))
     print('Average Number of tokens per abstract after step 1: ', sum(helper) / len(xdf))
     print('Median Number of tokens per abstract after step 1: ', np.median(helper))
@@ -214,7 +214,7 @@ if __name__ == '__main__':
     abst_bigrams = AbstractCleaning.make_bigrams(abst_nostops, bigram_mod)
 
     bigram_list = AbstractCleaning.count_bigrams(abst_bigrams)
-    print('Exemplary bigrams mentioned in thesis: ', bigram_list[5], bigram_list[6] , bigram_list[16])
+    print('Exemplary bigrams mentioned in thesis: ', bigram_list[5], bigram_list[16])
     print('Number of unique bigrams in whole dictionary: ', len(bigram_list))
 
     # Apply lemmatization
@@ -447,7 +447,7 @@ if __name__ == '__main__':
         patent_topicDistribution_mallet = patent_topicDistribution
         patent_topicDistribution_mallet.T[8, :] = topicDistribution_mallet
 
-        pd.DataFrame(patent_topicDistribution_mallet).to_csv('patent_topicDistribution_mallet.csv', index=None)
+        pd.DataFrame(patent_topicDistribution_mallet).to_csv('patent_topicDistribution_mallet_new.csv', index=None)
         pd.DataFrame(topics_mallet).to_csv('patent_topics_mallet.csv', index=None)
 
     """

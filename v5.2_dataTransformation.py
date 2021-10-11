@@ -22,6 +22,7 @@ if __name__ == '__main__':
     os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
 
     patent_topicDist = pd.read_csv('patent_topicDist_mallet.csv', quotechar='"', skipinitialspace=True)
+    #patent_topicDist = pd.read_csv('patent_topicDistribution_mallet.csv', quotechar='"', skipinitialspace=True)
     patent_topicDist = patent_topicDist.to_numpy()
 
     patent_IPC = pd.read_csv('cleaning_robot_EP_patents_IPC.csv', quotechar='"', skipinitialspace=True)
@@ -39,8 +40,8 @@ if __name__ == '__main__':
     from utilities.my_transform_utils import Transf_misc
 
     topic_list_helper, max_topics = Transf_misc.max_number_topics(patent_topicDist)
-    print('Maximum number of topics a patent has: ', max_topics)               # 7 is the maximum of topics abstracts have
-    print('Number of new columns needed: ',   max_topics*2)             # space needed = 21 (7 topic_ids + 7 topic_names + 7 topic_coverages)
+    #print('Maximum number of topics a patent has: ', max_topics)               # 7 is the maximum of topics abstracts have
+    #print('Number of new columns needed: ',   max_topics*2)             # space needed = 21 (7 topic_ids + 7 topic_names + 7 topic_coverages)
 
     # descriptives
     numTopic_list = []
@@ -63,29 +64,31 @@ if __name__ == '__main__':
     print('min number of topics per abstract: ', min(numTopic_list))
     print('max number of topics per abstract: ', max(numTopic_list))
 
-    print(coverageFrequency_list)
-    print(sum(coverageFrequency_list))
-    print(len(coverageFrequency_list))
+    #print(coverageFrequency_list)
+    #print(sum(coverageFrequency_list))
+    #print(len(coverageFrequency_list))
 
-    print(sum(coverageFrequency_list))
+    #print(sum(coverageFrequency_list))
     print('Average coverage of topics: ', sum(coverageFrequency_list) / len(coverageFrequency_list))
     print('median coverage of topics: ', np.median(coverageFrequency_list))
     print('mode coverage of topics: ', statistics.mode(coverageFrequency_list))
-    print('min coverage of topics: ', min(coverageFrequency_list))
     print('max coverage of topics: ', max(coverageFrequency_list))
+    print('min coverage of topics: ', min(coverageFrequency_list))
 
     val, count = np.unique(topicFrequency_list, return_counts=True)
     min_pos = np.where(count == (min(count)))
     max_pos = np.where(count == (max(count)))
     average = np.mean(count)
-    print(val[min_pos])
+    print('Most common topic: ', val[max_pos])
+    print('Least  common topic: ', val[min_pos])
+
     print('Average number of abstracts a topic appears in: ', average)
     print('Median number of abstracts a topic appears in: ', np.median(count))
     print('Mode number of abstracts a topic appears in: ', statistics.mode(count))
     print('Max number of abstracts a topic appears in: ', max(count))
     print('Min number of abstracts a topic appears in: ', min(count))
-    print('least common topics: ', val[min_pos])
-    print('most common topics: ', statistics.mode(topicFrequency_list))
+    #print('least common topics: ', val[min_pos])
+    #print('most common topics: ', statistics.mode(topicFrequency_list))
 
 
 
@@ -105,7 +108,7 @@ if __name__ == '__main__':
     plt.close()
 
     topicFrequency_list.sort()
-    print(np.unique(topicFrequency_list))
+    #print(np.unique(topicFrequency_list))
 
     fig, ax = plt.subplots(1, 1)
     ax.hist(topicFrequency_list, bins=np.arange(0, 331), color='darkblue')
@@ -148,7 +151,7 @@ if __name__ == '__main__':
 
 
     ### Review patent_transf and patent_IPC ###
-    print('Review patent_transf and patent_IPC:\n')
+    #print('Review patent_transf and patent_IPC:\n')
 
     # check if all patents in patent_transf are unique
     val, count = np.unique(patent_transf[:, 0], return_counts=True)
@@ -164,13 +167,14 @@ if __name__ == '__main__':
     val, count = np.unique(patent_IPC_clean, return_counts=True)
     #print(count)
     new_space_needed = max(count) * 3       # x * 3 = x3 additional columns are needed in the new array
-    print(max(count))   # x * 3 = x3 additional columns are needed in the new array
-    print(min(count))   # x * 3 = x3 additional columns are needed in the new array
-    print(np.mean(count))   # x * 3 = x3 additional columns are needed in the new array
-    print(np.median(count))   # x * 3 = x3 additional columns are needed in the new array
-    print(statistics.mode(count))   # x * 3 = x3 additional columns are needed in the new array
 
-    ### New array, including space for IPC's ###
+    #print('Average number of topic within a patent', np.mean(count))
+    #print('Median number of topic within a patent', np.median(count))
+    #print('Mode number of topic within a patent', statistics.mode(count))
+    #print('Max number of topic within a patent', max(count))
+    #print('Min number of topic within a patent', min(count))
+
+### New array, including space for IPC's ###
     patent_join = np.empty((np.shape(patent_transf)[0], np.shape(patent_transf)[1] + new_space_needed), dtype=object)
     patent_join[:, :-new_space_needed] = patent_transf
 
@@ -197,26 +201,26 @@ if __name__ == '__main__':
                 #ipc_list_2.append(patent[23:][ipc][0:2])
                 ipc_list_1.append(patent[23:][ipc][0:1])
 
-                if patent[23:][ipc][0] == 'D':
-                    print(patent)
+                #if patent[23:][ipc][0] == 'D':
+                    #print(patent)
 
-    print("\n full:")
-    print(ipc_list_full[0])
-    print(len(ipc_list_full))
+    #print("\n full:")
+    #print(ipc_list_full[0])
+    #print(len(ipc_list_full))
     ipc_list_full = np.unique(ipc_list_full)
-    print(len(ipc_list_full))
+    #print('Number of unqiue main groups represented in the data: ', len(ipc_list_full))
 
-    print("\n 4:")
-    print(ipc_list_4[0])
-    print(len(ipc_list_4))
+    #print("\n 4:")
+    #print(ipc_list_4[0])
+    #print(len(ipc_list_4))
     ipc_list_4 = np.unique(ipc_list_4)
-    print(len(ipc_list_4))
+    #print('Number of unqiue subclasses represented in the data: ', len(ipc_list_4))
 
-    print("\n 3:")
-    print(ipc_list_3[0])
-    print(len(ipc_list_3))
+    #print("\n 3:")
+    #print(ipc_list_3[0])
+    #print(len(ipc_list_3))
     ipc_list_3 = np.unique(ipc_list_3)
-    print(len(ipc_list_3))
+    #print('Number of unqiue classes represented in the data: ', len(ipc_list_3))
 
     #print("\n 2:")
     #print(ipc_list_2[0])
@@ -224,17 +228,17 @@ if __name__ == '__main__':
     #ipc_list_2 = np.unique(ipc_list_2)
     #print(len(ipc_list_2))
 
-    print("\n 1:")
-    print(ipc_list_1[0])
-    print(len(ipc_list_1))
+    #print("\n 1:")
+    #print(ipc_list_1[0])
+    #print(len(ipc_list_1))
     ipc_list_1_clean = np.unique(ipc_list_1)
-    print(ipc_list_1_clean)
-    print(len(ipc_list_1_clean))
+    #print(ipc_list_1_clean)
+    #print('Number of unqiue sections represented in the data: ', len(ipc_list_1_clean))
 
 
 
 
-
+    '''
     fig, ax = plt.subplots(1, 1)
     ax.hist(ipc_list_1, bins=8, color='darkred')
     #locator = mdates.AutoDateLocator()
@@ -245,11 +249,10 @@ if __name__ == '__main__':
     plt.ylabel("Number of Patents")
     #plt.show()
 
-    #os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Plots')
-
-    #plt.savefig('hist_publications.png')
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Plots')
+    plt.savefig('hist_publications.png')
     plt.close()
-
+    '''
 
         #ipc_list.append(patent[1,23:])
 
@@ -281,14 +284,14 @@ if __name__ == '__main__':
 
     patent_time = patent_lda_ipc[:,3].astype('datetime64')
 
-    print('Earliest day with publication: ', min(patent_time))          # earliest day with publication 2001-08-01
-    print('Latest day with publication: ', max(patent_time))            # latest  day with publication 2018-01-31
+    #print('Earliest day with publication: ', min(patent_time))          # earliest day with publication 2001-08-01
+    #print('Latest day with publication: ', max(patent_time))            # latest  day with publication 2018-01-31
 
     max_timeSpan = int((max(patent_time) - min(patent_time)) / np.timedelta64(1, 'D'))
-    print('Days inbetween: ', max_timeSpan)                             # 6027 day between earliest and latest publication
+    #print('Days inbetween: ', max_timeSpan)                             # 6027 day between earliest and latest publication
 
     val, count = np.unique(patent_time, return_counts=True)
-    print('Number of days with publications: ', len(val))               # On 817 days publications were made
+    #print('Number of days with publications: ', len(val))               # On 817 days publications were made
                                                                         # -> on average every 7.37698898409 days a patent was published
     # todo check size of last window
 
@@ -302,6 +305,8 @@ if __name__ == '__main__':
     #print(slidingWindow_dict.keys())
     #print(slidingWindow_dict['window_5640'][:,3])
     print('new latest patent date: ', max(slidingWindow_dict['window_5640'][:,3]))
+    print('new earliest patent date: ', min(slidingWindow_dict['window_0'][:,3]))
+
 
     print('Average number of patents per window : ', np.average(patents_perWindow))
     print('Median number of patents per window : ', np.median(patents_perWindow))
@@ -495,7 +500,7 @@ if __name__ == '__main__':
         print('Every topic node in every window is active')
 
     #print('active_topicNode_distribution :', active_topicNode_distribution)
-
+    print('---- network transformation ----')
     print('Average number of topic nodes per window : ', np.average(topicNode_distribution))
     print('Median number of topic nodes per window : ', np.median(topicNode_distribution))
     print('Mode number of topic nodes per window : ', statistics.mode(topicNode_distribution))
@@ -547,7 +552,7 @@ if __name__ == '__main__':
         edgeWeight_distribution_patentNetwork.append(np.average([float(list(w.values())[0]) for (u, v, w) in graph.edges(data=True)]))
         centrality_distribution_patentNetwork.append(np.average([graph.degree[n] for n in graph.nodes()]))
         density_distribution_patentNetwork.append(nx.density(graph))
-
+    print('--------patent network ---------------')
     print('Average patent network edge weight per window : ', np.average(edgeWeight_distribution_patentNetwork))
     print('Median patent network edge weight per window : ', np.median(edgeWeight_distribution_patentNetwork))
     print('Mode patent network edge weight per window : ', statistics.mode(edgeWeight_distribution_patentNetwork))
@@ -604,6 +609,7 @@ if __name__ == '__main__':
             print(allTopicNodes_inPatentNet[i])
             raise Exception('not all topic nodes were transfered')
 
+    print('--------topic network ---------------')
     print('Average topic network edge weight per window : ', np.average(edgeWeight_distribution_topicNetwork))
     print('Median topic network edge weight per window : ', np.median(edgeWeight_distribution_topicNetwork))
     print('Mode topic network edge weight per window : ', statistics.mode(edgeWeight_distribution_topicNetwork))
@@ -660,7 +666,7 @@ if __name__ == '__main__':
     print(len(bipartite_graphs))
 
     G = bipartite_graphs['window_3000']
-    print(G.nodes())
+    #print(G.nodes())
 
     egNodes = []
     egNodes.append(273953397)
@@ -684,9 +690,9 @@ if __name__ == '__main__':
             break
         c = c + 1
 
-    print(egNodes)
+    #print(egNodes)
 
-    print(np.unique(egNodes))
+    #print(np.unique(egNodes))
 
 
 
@@ -697,7 +703,7 @@ if __name__ == '__main__':
     for node in G.nodes():
         neighboor_list.append((node, list(G[node])))
         #break
-    print(neighboor_list)
+    #print(neighboor_list)
 
     list_length = []
     for neighborList in neighboor_list:
@@ -712,7 +718,7 @@ if __name__ == '__main__':
     res = [291106478, 315726604, 317462158, 323152249, 323944922, 'topic_104', 'topic_109', 'topic_117', 'topic_12', 'topic_212', 'topic_296']
     bipart = [x for x,y in G.subgraph(res).nodes(data=True) if y['bipartite']==0]
 
-    print(G.edges(data=True))
+    #print(G.edges(data=True))
 
     pos = nx.bipartite_layout(G.subgraph(res), bipart, align='horizontal')  #setting the positions with respect to G, not k.
     k = G.subgraph(res)

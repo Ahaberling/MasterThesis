@@ -7,8 +7,6 @@ import gensim.models as gensim_models
 
 class PatentCleaning:
 
-# Do I want self in here?
-
     @staticmethod
     def remove_foreign_patents(patents, language, count):
         number_of_patents_removed = 0
@@ -101,7 +99,7 @@ class PatentCleaning:
 class AbstractCleaning:
 
     @staticmethod
-    def number_of_word_pre_preprocessing(patents):
+    def number_of_word_pre_preprocessing(patents, min_abstract_size):
         word_list = []
         numberOfWords_abstract = []
         numberOfWords_abstract_unique = []
@@ -118,7 +116,7 @@ class AbstractCleaning:
 
             words_inAbstract_unique = np.unique(words_inAbstract)
 
-            if len(words_inAbstract) <= 20:
+            if len(words_inAbstract) <= min_abstract_size:
                 number_less_20_abstract = number_less_20_abstract + 1
 
             numberOfWords_abstract.append(len(words_inAbstract))

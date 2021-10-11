@@ -199,18 +199,6 @@ class ReferenceMeasures:
 
     @staticmethod
     def search_sequence_helper(arr, seq):
-        """
-        Parameters
-        ----------
-        arr    : input 1D array
-        seq    : input 1D array
-
-        Output
-        ------
-        Output : 1D Array of indices in the input array that satisfy the
-        matching of input sequence in the input array.
-        In case of no match, an empty list is returned.
-        """
 
         # Store sizes of input array and sequence
         Na, Nseq = arr.size, seq.size
@@ -407,9 +395,12 @@ class CommunityMeasures:
     @staticmethod
     def community_cleaning(community_dict_transf, min_community_size):
         community_dict_clean = {}
+        communities_removed_list = []
         for window_id, window in community_dict_transf.items():
             community_dict_clean[window_id] = [x for x in window if len(x) >= min_community_size]
-        return community_dict_clean
+            communities_removed_list.append([len(x) for x in window if len(x) <= min_community_size-1])
+        communities_removed_list = len([item for sublist in communities_removed_list for item in sublist])
+        return community_dict_clean, communities_removed_list
 
     @staticmethod
     def identify_topDegree(community_dict_clean, patentProject_graphs):
@@ -1187,8 +1178,8 @@ class CommunityMeasures:
         for i in range(len(topD_communityID_association_accumulated_cleanID)):
             window_id = 'window_{0}'.format(i * 30)
             window = topD_communityID_association_accumulated_cleanID[window_id]
-            if i == 79:
-                print(1+1)
+            #if i == 79:
+                #print(1+1)
 
             for cleaning_entry in window:
                 community_id = cleaning_entry[1]
@@ -1824,40 +1815,47 @@ class EdgeWeightMeasures:
         all_nodes_unique.sort()
 
         diffusion_array = np.zeros((row_length, column_length), dtype=int)
-        diffusion_array_frac = np.zeros((row_length, column_length), dtype=float)
+        #diffusion_array_frac = np.zeros((row_length, column_length), dtype=float)
 
         pbar = tqdm.tqdm(total=len(diffusion_array))
 
         for i in range(len(diffusion_array)):
 
-            weight_list = []
-            for (u, v, wt) in topicProject_graphs['window_{0}'.format(i * 30)].edges.data('weight'):
-                weight_list.append(wt)
+            #if i == 145:
+                #print(1+1)
+            #weight_list = []
+            #for (u, v, wt) in topicProject_graphs['window_{0}'.format(i * 30)].edges.data('weight'):
+                #weight_list.append(wt)
 
-            weight_threshold = np.quantile(weight_list, edge_threshold_quantil)
+            #weight_threshold = np.quantile(weight_list, edge_threshold_quantil)
 
 
             all_edgeNodes = []
             for (u, v, wt) in topicProject_graphs['window_{0}'.format(i * 30)].edges.data('weight'):
                 # to get rid of noice
-                if wt >= weight_threshold:
-                    all_edgeNodes.append(int(u[6:]))
-                    all_edgeNodes.append(int(v[6:]))
+                #if wt >= weight_threshold:
+                all_edgeNodes.append(int(u[6:]))
+                all_edgeNodes.append(int(v[6:]))
+
 
             for j in range(len(diffusion_array.T)):
 
+                #if j == 5:
+                    #print(1+1)
+
                 diffusion_array[i, j] = all_edgeNodes.count(all_nodes_unique[j])
+
 
             pbar.update(1)
             #print(len(topicProject_graphs['window_{0}'.format(i * 30)].edges()))
-            diffusion_array_frac[i] = diffusion_array[i] / len(topicProject_graphs['window_{0}'.format(i * 30)].edges())
+            #diffusion_array_frac[i] = diffusion_array[i] / len(topicProject_graphs['window_{0}'.format(i * 30)].edges())
 
         pbar.close()
-        diffusion_array_thresh = np.where(diffusion_array_frac < threshold, 0, 1)
+        #diffusion_array_thresh = np.where(diffusion_array_frac < threshold, 0, 1)
 
 
 
-        return diffusion_array, diffusion_array_frac, diffusion_array_thresh, all_nodes_unique
+        return diffusion_array, all_nodes_unique #diffusion_array_frac,  #diffusion_array_thresh,
 
     @staticmethod
     def create_recombination_array(topicProject_graphs, threshold):
@@ -1929,6 +1927,7 @@ class Misc:
     @staticmethod
     def find_diffusionSequenceAndLength(diffusionPatternPos, CM):
         diff_sequence_list = []
+        diff_sequence_sum_list = []
         diff_list = []
         for pos in diffusionPatternPos:
             diffusion = 0
@@ -1940,30 +1939,38 @@ class Misc:
                 diffusion = diffusion + 1
                 diff_sequence.append(CM[pos[0] + i, pos[1]])
 
+
                 i = i + 1
                 if pos[0] + i == len(CM):
                     break
 
+            #if diff_sequence == [2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 6, 6, 5, 5, 5, 3, 3, 3, 3, 3, 5, 5, 4, 4, 2, 2, 2, 2, 2,
+            #                     6, 6, 6, 4, 4, 4, 4, 4, 4, 4, 4, 4]:
+                #print(pos) # [145, 5]
+
             diff_list.append(diffusion)
             diff_sequence_list.append(diff_sequence)
+            diff_sequence_sum_list.append(sum(diff_sequence))
 
         # Merge both lists to get final data structure #
 
         for i in range(len(diffusionPatternPos)):
             diffusionPatternPos[i].append(diff_list[i])
-        return diffusionPatternPos, diff_sequence_list
+        return diffusionPatternPos, diff_sequence_list, diff_sequence_sum_list
 
     @staticmethod
     def find_diffusionStepsAndPatternPerDiffusion(diffusionPatternPos, diff_sequence_list):
         diffusion_counter_list = []
         PatentsPerDiffPattern_list = []
 
+        #for i in range(len(diff_sequence_list)):
+
         for diff_seq in diff_sequence_list:
             indicator_list = []
             diff_seq_mod = []
 
-            # if diff_seq == [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 1, 3, 3, 3, 3, 3, 4, 4, 5, 5, 5, 5, 5, 3, 4, 4, 5, 5, 4, 3, 2, 3, 3, 3, 5, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 10, 9, 8, 10, 10, 8, 8, 8, 8, 7, 6, 6, 5, 4, 4, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3]:
-            # print(1+1)
+            #if diff_seq == [2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 6, 6, 5, 5, 5, 3, 3, 3, 3, 3, 5, 5, 4, 4, 2, 2, 2, 2, 2, 6, 6, 6, 4, 4, 4, 4, 4, 4, 4, 4, 4]:
+                #print(1+1)
 
             indicator_list.append(0)
             diff_seq_mod.append(0)
@@ -1980,8 +1987,8 @@ class Misc:
                 # print(1+1)   # indicator pos 50 jumps from -1 to 1
                 # if i == 74-12:
                 # print(1+1)
-                # if i == 74:
-                # print(1+1)
+                #if i == 25:
+                    #print(1+1)
                 if i != 0:
                     if indicator_list[i] == 0:
                         if (diff_seq_mod[i] - diff_seq_mod[i - 1]) >= 1:
@@ -2001,7 +2008,7 @@ class Misc:
                             if i + 12 <= len(indicator_list) - 1:
                                 indicator_list[i + 12] = indicator_list[i] * (-1)
                             if indicator_list[i] <= -1:
-                                # print(diff_seq_mod)
+                                print(diff_seq_mod)
                                 raise Exception('current diff_seq_mod[i] is smaller then expected ')
                     else:
                         raise Exception('indicator_list[i] was positive before referencing')

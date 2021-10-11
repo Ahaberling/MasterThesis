@@ -17,10 +17,10 @@ if __name__ == '__main__':
     # --- Applying Community detection to each graph/window and populate respective dictionaries ---#
 
     ### Creating dictionaries to save communities ###
-
+    import numpy as np
     from utilities.my_measure_utils import CommunityMeasures
     '''
-    import numpy as np
+    
     import seaborn as sns
     import matplotlib.pyplot as plt
 
@@ -38,46 +38,65 @@ if __name__ == '__main__':
     plt.close()
     '''
 
-
+    '''
     import numpy as np
     
     community_dict_lp, modularity_dict_lp = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='label_propagation', weight_bool=True)
-    print(modularity_dict_lp['window_0'])                   # 0.8547171828975307
-    print(np.mean(list(modularity_dict_lp.values())))       # 0.7322156796307513
+    #print(community_dict_lp['window_0'])
+    #print(modularity_dict_lp['window_0'])                   # 0.8547171828975307
+    modularity_lp = list(modularity_dict_lp.values())
+    print('average modularity lp: ', np.mean(modularity_lp))       # 0.7322156796307513
 
     community_dict_gm, modularity_dict_gm = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='greedy_modularity')
-    print(modularity_dict_gm['window_0'])                   # -0.05733820147057286
-    helper = []
+    #print(community_dict_gm['window_0'])
+   # print(modularity_dict_gm['window_0'])                   # -0.05733820147057286
+    modularity_gm = []
     for i in modularity_dict_gm.values():
-        helper.append(i[2])
-    print(helper[0])
-    print(np.mean(helper))                                  # 0.06982563520602868
+        modularity_gm.append(i[2])
+    #print(helper[0])
+    print(np.mean(modularity_gm))                                  # 0.06982563520602868
 
     community_dict_kc, modularity_dict_kc = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='k_clique', k_clique_size=3)
-    print(modularity_dict_kc['window_0'])                   # 0.19167160178624776 newman_girvan_modularity
-    helper = []                                             # 0.048218915888596885 link
+    #print(modularity_dict_kc['window_0'])                   # 0.19167160178624776 newman_girvan_modularity
+    modularity_kc = []                                             # 0.048218915888596885 link
     for i in modularity_dict_kc.values():
-        helper.append(i[2])
-    print(helper[0])
-    print(np.mean(helper))                                  # 0.3798751013811473  newman_girvan_modularity
+        modularity_kc.append(i[2])
+    #print(helper[0])
+    print(np.mean(modularity_kc))                                  # 0.3798751013811473  newman_girvan_modularity
                                                             # 0.09104628306679274 link
 
     community_dict_l2, modularity_dict_l2 = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='lais2')
-    print(modularity_dict_l2['window_0'])                   # 0.796357503685926 newman_girvan_modularity
-    helper = []                                             # 0.1350135445281584 link
+    #print(modularity_dict_l2['window_0'])                   # 0.796357503685926 newman_girvan_modularity
+    modularity_l2 = []                                             # 0.1350135445281584 link
     for i in modularity_dict_l2.values():
-        helper.append(i[2])
-    print(helper[0])
-    print(np.mean(helper))                                  # 0.4571296942392671 newman_girvan_modularity
+        modularity_l2.append(i[2])
+    #print(helper[0])
+    print(np.mean(modularity_l2))                                  # 0.4571296942392671 newman_girvan_modularity
                                                             # 0.1041329499095561 link
+    import matplotlib.pyplot as plt
+
     
-    community_dict_lp = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='label_propagation', weight_bool=True)    
-    community_dict_gm = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='greedy_modularity')
-    community_dict_kc = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='k_clique', k_clique_size=3)
-    community_dict_l2 = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='lais2')
 
-
-
+    fig, ax = plt.subplots()
+    ax.plot(range(len(patentProject_graphs)), modularity_lp, color='darkblue', label='Label Propagation')
+    ax.plot(range(len(patentProject_graphs)), modularity_gm, color='darkred', label='Greedy Modularity')
+    ax.plot(range(len(patentProject_graphs)), modularity_kc, color='darkgreen', label='K-Clique')
+    ax.plot(range(len(patentProject_graphs)), modularity_l2, color='black', label='Lais2')
+    ax.set_ylim([-0.2, 1.2])
+    plt.legend(loc='upper left')
+    plt.xlabel("Patent Network Representation of Sliding Windows")
+    plt.ylabel("Modularity")
+    #plt.show()
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Plots')
+    plt.savefig('Modularities.png')
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
+    plt.close()
+    
+    #community_dict_lp = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='label_propagation', weight_bool=True)
+    #community_dict_gm = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='greedy_modularity')
+    #community_dict_kc = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='k_clique', k_clique_size=3)
+    #community_dict_l2 = CommunityMeasures.detect_communities(patentProject_graphs, cD_algorithm='lais2')
+    '''
     '''
     filename = 'community_dict_lp'
     outfile = open(filename, 'wb')
@@ -127,6 +146,8 @@ if __name__ == '__main__':
     # [ 3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 36 37 38 39 40 45 49 50]
     # [  2  24  21  20  43  65  95 103  86  76  77  57  52  72  56  59  33  39 23  26  26  16  21  17   9  15   5   6   3   6   3   3   3   2   1   2  1   2   1   2]
 
+
+
     '''
     lengthList = []
     for windowid, window in community_dict_transf_lp.items():
@@ -145,13 +166,85 @@ if __name__ == '__main__':
 
     # --- Clean Communties ---#
 
-    community_dict_clean_lp = CommunityMeasures.community_cleaning(community_dict_transf_lp,min_community_size=3)
-    community_dict_clean_gm = CommunityMeasures.community_cleaning(community_dict_transf_gm,min_community_size=3)
-    community_dict_clean_kc = CommunityMeasures.community_cleaning(community_dict_transf_kc,min_community_size=3)
-    community_dict_clean_l2 = CommunityMeasures.community_cleaning(community_dict_transf_l2,min_community_size=3)
+    community_dict_clean_lp, communities_removed_lp = CommunityMeasures.community_cleaning(community_dict_transf_lp,min_community_size=3)
+    community_dict_clean_gm, communities_removed_gm = CommunityMeasures.community_cleaning(community_dict_transf_gm,min_community_size=3)
+    community_dict_clean_kc, communities_removed_kc = CommunityMeasures.community_cleaning(community_dict_transf_kc,min_community_size=3)
+    community_dict_clean_l2, communities_removed_l2 = CommunityMeasures.community_cleaning(community_dict_transf_l2,min_community_size=3)
+
+    community_length_list = []
+    community_size_list = []
+    for window_id, window in community_dict_clean_lp.items():
+        community_length_list.append(len(window))
+
+        for community in window:
+            community_size_list.append(len(community))
+
+    import statistics
+
+    print('Average Size of communities in Window LP: ', np.mean(community_size_list))
+    print('Average Number of communities in Window LP: ', np.mean(community_length_list))
+    print('Median Number of communities in Window LP: ', np.median(community_length_list))
+    print('Mode Number of communities in Window LP: ', statistics.mode(community_length_list))
+    print('Max Number of communities in Window LP: ', max(community_length_list))
+    print('Min Number of communities in Window LP: ', min(community_length_list))
+
+    community_length_list = []
+    community_size_list = []
+    for window_id, window in community_dict_clean_gm.items():
+        community_length_list.append(len(window))
+
+        for community in window:
+            community_size_list.append(len(community))
+
+    print('Average Size of communities in Window gm: ', np.mean(community_size_list))
+    print('Average Number of communities in Window gm: ', np.mean(community_length_list))
+    print('Median Number of communities in Window gm: ', np.median(community_length_list))
+    print('Mode Number of communities in Window gm: ', statistics.mode(community_length_list))
+    print('Max Number of communities in Window gm: ', max(community_length_list))
+    print('Min Number of communities in Window gm: ', min(community_length_list))
+
+    community_length_list = []
+    community_size_list = []
+    for window_id, window in community_dict_clean_kc.items():
+        community_length_list.append(len(window))
+
+        for community in window:
+            community_size_list.append(len(community))
+    print('Average Size of communities in Window kc: ', np.mean(community_size_list))
+    print('Average Number of communities in Window kc: ', np.mean(community_length_list))
+    print('Median Number of communities in Window kc: ', np.median(community_length_list))
+    print('Mode Number of communities in Window kc: ', statistics.mode(community_length_list))
+    print('Max Number of communities in Window kc: ', max(community_length_list))
+    print('Min Number of communities in Window kc: ', min(community_length_list))
+
+    community_length_list = []
+    community_size_list = []
+    for window_id, window in community_dict_clean_l2.items():
+        community_length_list.append(len(window))
+
+        for community in window:
+            community_size_list.append(len(community))
+    print('Average Size of communities in Window L2: ', np.mean(community_size_list))
+    print('Average Number of communities in Window L2: ', np.mean(community_length_list))
+    print('Median Number of communities in Window L2: ', np.median(community_length_list))
+    print('Mode Number of communities in Window L2: ', statistics.mode(community_length_list))
+    print('Max Number of communities in Window L2: ', max(community_length_list))
+    print('Min Number of communities in Window L2: ', min(community_length_list))
 
 
-### New File ###
+    #--- removed communities
+    print('Average Number of removed communities lp: ', communities_removed_lp / len(community_dict_clean_lp))
+
+    print('Average Number of removed communities gm: ', communities_removed_gm / len(community_dict_clean_lp))
+
+    print('Average Number of removed communities kc: ', communities_removed_kc / len(community_dict_clean_lp))
+    print('actually 0. Only 3 communities of size zero were filtered out')
+
+    print('Average Number of removed communities l2: ', communities_removed_l2 / len(community_dict_clean_lp))
+
+
+
+    ### New File ###
 
 
 #--- Identify TopD degree nodes of communities ---#
@@ -367,11 +460,158 @@ if __name__ == '__main__':
     communityTopicAssociation_dict_gm, avg_confidence_gm = CommunityMeasures.create_dict_communityTopicAssociation(topicDistriburionOfCommunities_dict_gm)
     communityTopicAssociation_dict_kc, avg_confidence_kc = CommunityMeasures.create_dict_communityTopicAssociation(topicDistriburionOfCommunities_dict_kc)
     communityTopicAssociation_dict_l2, avg_confidence_l2 = CommunityMeasures.create_dict_communityTopicAssociation(topicDistriburionOfCommunities_dict_l2)
+
+    # list of confidence averages for every topic
+    avgConfidence_perTopic = []
+    for i in range(330):
+        confidences_inTopic = []
+        for window in communityTopicAssociation_dict_lp.values():
+            for commuTopic in window:
+                #[community id, topic, confidence]
+                topic = list(commuTopic)[1]
+                confidence = list(commuTopic)[2]
+                if topic == i:
+                    confidences_inTopic.append(confidence)
+        avgConfidence_perTopic.append(np.mean(confidences_inTopic))
+
+    avgConfidence_perTopic = [x for x in avgConfidence_perTopic if x == x]
+    print(avgConfidence_perTopic)
+
+    print('Averaged confidence average over all topics -LP: ', np.mean(avgConfidence_perTopic))
+    print('Median confidence average over all topics -LP: ', np.median(avgConfidence_perTopic))
+    print('Mode confidence average over all topics -LP: ', statistics.mode(avgConfidence_perTopic))
+    print('Max confidence average over all topics -LP: ', max(avgConfidence_perTopic))
+    print('Min confidence average over all topics -LP: ', min(avgConfidence_perTopic))
+
+    avgConfidence_perTopic = []
+    for i in range(330):
+        confidences_inTopic = []
+        for window in communityTopicAssociation_dict_gm.values():
+            for commuTopic in window:
+                #[community id, topic, confidence]
+                topic = list(commuTopic)[1]
+                confidence = list(commuTopic)[2]
+                if topic == i:
+                    confidences_inTopic.append(confidence)
+        avgConfidence_perTopic.append(np.mean(confidences_inTopic))
+
+    avgConfidence_perTopic = [x for x in avgConfidence_perTopic if x == x]
+    print(avgConfidence_perTopic)
+
+    print('Averaged confidence average over all topics -gm: ', np.mean(avgConfidence_perTopic))
+    print('Median confidence average over all topics -gm: ', np.median(avgConfidence_perTopic))
+    print('Mode confidence average over all topics -gm: ', statistics.mode(avgConfidence_perTopic))
+    print('Max confidence average over all topics -gm: ', max(avgConfidence_perTopic))
+    print('Min confidence average over all topics -gm: ', min(avgConfidence_perTopic))
+
+    avgConfidence_perTopic = []
+    for i in range(330):
+        confidences_inTopic = []
+        for window in communityTopicAssociation_dict_kc.values():
+            for commuTopic in window:
+                #[community id, topic, confidence]
+                topic = list(commuTopic)[1]
+                confidence = list(commuTopic)[2]
+                if topic == i:
+                    confidences_inTopic.append(confidence)
+        avgConfidence_perTopic.append(np.mean(confidences_inTopic))
+
+    avgConfidence_perTopic = [x for x in avgConfidence_perTopic if x == x]
+    print(avgConfidence_perTopic)
+
+    print('Averaged confidence average over all topics -kc: ', np.mean(avgConfidence_perTopic))
+    print('Median confidence average over all topics -kc: ', np.median(avgConfidence_perTopic))
+    print('Mode confidence average over all topics -kc: ', statistics.mode(avgConfidence_perTopic))
+    print('Max confidence average over all topics -kc: ', max(avgConfidence_perTopic))
+    print('Min confidence average over all topics -kc: ', min(avgConfidence_perTopic))
+
+    avgConfidence_perTopic = []
+    for i in range(330):
+        confidences_inTopic = []
+        for window in communityTopicAssociation_dict_l2.values():
+            for commuTopic in window:
+                #[community id, topic, confidence]
+                topic = list(commuTopic)[1]
+                confidence = list(commuTopic)[2]
+                if topic == i:
+                    confidences_inTopic.append(confidence)
+        avgConfidence_perTopic.append(np.mean(confidences_inTopic))
+
+    avgConfidence_perTopic = [x for x in avgConfidence_perTopic if x == x]
+    print(avgConfidence_perTopic)
+
+    print('Averaged confidence average over all topics -L2: ', np.mean(avgConfidence_perTopic))
+    print('Median confidence average over all topics -L2: ', np.median(avgConfidence_perTopic))
+    print('Mode confidence average over all topics -L2: ', statistics.mode(avgConfidence_perTopic))
+    print('Max confidence average over all topics -L2: ', max(avgConfidence_perTopic))
+    print('Min confidence average over all topics -L2: ', min(avgConfidence_perTopic))
+
+
+
+
+
+
+
+
+
+
+
+
     # CORRECT
     diffusionArray_Topics_lp, diffusionArray_Topics_lp_columns = CommunityMeasures.create_diffusionArray_Topics(communityTopicAssociation_dict_lp)
     diffusionArray_Topics_gm, diffusionArray_Topics_gm_columns = CommunityMeasures.create_diffusionArray_Topics(communityTopicAssociation_dict_gm)
     diffusionArray_Topics_kc, diffusionArray_Topics_kc_columns = CommunityMeasures.create_diffusionArray_Topics(communityTopicAssociation_dict_kc)
     diffusionArray_Topics_l2, diffusionArray_Topics_l2_columns = CommunityMeasures.create_diffusionArray_Topics(communityTopicAssociation_dict_l2)
+
+    from utilities.my_measure_utils import Misc
+
+    diffusionPatternPos_SCM_LP = Misc.find_diffusionPatterns(diffusionArray_Topics_lp)
+    diffusionPatternPos_SCM_LP, diff_sequence_list_SCM, irrelevant = Misc.find_diffusionSequenceAndLength(diffusionPatternPos_SCM_LP, diffusionArray_Topics_lp)
+    # diff_pos = [ row, column, diffLength, diffSteps, patentsInDiff ]
+    diffusionPatternPos_SCM_LP = np.array(diffusionPatternPos_SCM_LP)
+    print('SCM Number of diffusion cycles / patterns in the scm - LP: ', len(diffusionPatternPos_SCM_LP))
+    print('SCM Average diffusion pattern length - LP: ', np.mean(diffusionPatternPos_SCM_LP[:, 2]))
+    print('SCM median diffusion pattern length - LP: ', np.median(diffusionPatternPos_SCM_LP[:, 2]))
+    print('SCM mode diffusion pattern length - LP: ', statistics.mode(diffusionPatternPos_SCM_LP[:, 2]))
+    print('SCM max diffusion pattern length - LP: ', max(diffusionPatternPos_SCM_LP[:, 2]))
+    print('SCM min diffusion pattern length - LP: ', min(diffusionPatternPos_SCM_LP[:, 2]))
+
+
+    diffusionPatternPos_SCM_GM = Misc.find_diffusionPatterns(diffusionArray_Topics_gm)
+    diffusionPatternPos_SCM_GM, diff_sequence_list_SCM, irrelevant = Misc.find_diffusionSequenceAndLength(diffusionPatternPos_SCM_GM, diffusionArray_Topics_gm)
+    # diff_pos = [ row, column, diffLength, diffSteps, patentsInDiff ]
+    diffusionPatternPos_SCM_GM = np.array(diffusionPatternPos_SCM_GM)
+    print('SCM Number of diffusion cycles / patterns in the scm - GM: ', len(diffusionPatternPos_SCM_GM))
+    print('SCM Average diffusion pattern length - GM: ', np.mean(diffusionPatternPos_SCM_GM[:, 2]))
+    print('SCM median diffusion pattern length - LP: ', np.median(diffusionPatternPos_SCM_GM[:, 2]))
+    print('SCM mode diffusion pattern length - LP: ', statistics.mode(diffusionPatternPos_SCM_GM[:, 2]))
+    print('SCM max diffusion pattern length - LP: ', max(diffusionPatternPos_SCM_GM[:, 2]))
+    print('SCM min diffusion pattern length - LP: ', min(diffusionPatternPos_SCM_GM[:, 2]))
+
+
+    diffusionPatternPos_SCM_KC = Misc.find_diffusionPatterns(diffusionArray_Topics_kc)
+    diffusionPatternPos_SCM_KC, diff_sequence_list_SCM, irrelevant = Misc.find_diffusionSequenceAndLength(diffusionPatternPos_SCM_KC, diffusionArray_Topics_kc)
+    # diff_pos = [ row, column, diffLength, diffSteps, patentsInDiff ]
+    diffusionPatternPos_SCM_KC = np.array(diffusionPatternPos_SCM_KC)
+    print('SCM Number of diffusion cycles / patterns in the scm - KC: ', len(diffusionPatternPos_SCM_KC))
+    print('SCM Average diffusion pattern length - KC: ', np.mean(diffusionPatternPos_SCM_KC[:, 2]))
+    print('SCM median diffusion pattern length - LP: ', np.median(diffusionPatternPos_SCM_KC[:, 2]))
+    print('SCM mode diffusion pattern length - LP: ', statistics.mode(diffusionPatternPos_SCM_KC[:, 2]))
+    print('SCM max diffusion pattern length - LP: ', max(diffusionPatternPos_SCM_KC[:, 2]))
+    print('SCM min diffusion pattern length - LP: ', min(diffusionPatternPos_SCM_KC[:, 2]))
+
+
+    diffusionPatternPos_SCM_L2 = Misc.find_diffusionPatterns(diffusionArray_Topics_l2)
+    diffusionPatternPos_SCM_L2, diff_sequence_list_SCM, irrelevant = Misc.find_diffusionSequenceAndLength(diffusionPatternPos_SCM_L2, diffusionArray_Topics_l2)
+    # diff_pos = [ row, column, diffLength, diffSteps, patentsInDiff ]
+    diffusionPatternPos_SCM_L2 = np.array(diffusionPatternPos_SCM_L2)
+    print('SCM Number of diffusion cycles / patterns in the scm - L2: ', len(diffusionPatternPos_SCM_L2))
+    print('SCM Average diffusion pattern length - L2: ', np.mean(diffusionPatternPos_SCM_L2[:, 2]))
+    print('SCM median diffusion pattern length - LP: ', np.median(diffusionPatternPos_SCM_L2[:, 2]))
+    print('SCM mode diffusion pattern length - LP: ', statistics.mode(diffusionPatternPos_SCM_L2[:, 2]))
+    print('SCM max diffusion pattern length - LP: ', max(diffusionPatternPos_SCM_L2[:, 2]))
+    print('SCM min diffusion pattern length - LP: ', min(diffusionPatternPos_SCM_L2[:, 2]))
+
 
     import matplotlib.pyplot as plt
     import seaborn as sns
@@ -386,8 +626,8 @@ if __name__ == '__main__':
     sns.heatmap(diffusionArray_Topics_gm[0:80,20:30], ax=axes[1], cbar=True,
                 cmap="bone_r")
 
-    axes[0].set_title('lp')
-    axes[1].set_title('gm')
+    axes[0].set_title('SCM - Label Propagation')
+    axes[1].set_title('SCM - Greedy Modularity')
     axes[0].set_xticklabels(range(20, 30))
     axes[0].set_yticks(range(0, 80, 10))
     axes[0].set_yticklabels(range(0, 80, 10))
@@ -396,7 +636,14 @@ if __name__ == '__main__':
     axes[1].set_yticklabels(range(0, 80, 10))
 
     plt.tight_layout()
+    #plt.xlabel('Knowledge Component ID')
+    #plt.ylabel('Sliding Window ID')
     #plt.show()
+
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Plots')
+    plt.savefig('SCM_LP_GM.png')
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
+
     plt.close()
 
 
@@ -411,8 +658,8 @@ if __name__ == '__main__':
     sns.heatmap(diffusionArray_Topics_l2[0:80,20:30], ax=axes[1], cbar=True,
                 cmap="bone_r")
 
-    axes[0].set_title('kc')
-    axes[1].set_title('l2')
+    axes[0].set_title('SCM - K-Clique')
+    axes[1].set_title('SCM - Lais2')
     axes[0].set_xticklabels(range(20, 30))
     axes[0].set_yticks(range(0, 80, 10))
     axes[0].set_yticklabels(range(0, 80, 10))
@@ -421,7 +668,13 @@ if __name__ == '__main__':
     axes[1].set_yticklabels(range(0, 80, 10))
 
     plt.tight_layout()
+    #plt.xlabel('Knowledge Component ID')
+    #plt.ylabel('Sliding Window ID')
     #plt.show()
+
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Plots')
+    plt.savefig('SCM_KC_L2.png')
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
     plt.close()
 
 
@@ -532,6 +785,42 @@ if __name__ == '__main__':
     plt.close()
     '''
 
+
+    diffusionPatternPos_CCM_LP = Misc.find_diffusionPatterns(recombinationArray_Topics_lp)
+    diffusionPatternPos_CCM_LP, diff_sequence_list_CCM_LP, diff_sequence_sum_list_CCM_LP = Misc.find_diffusionSequenceAndLength(diffusionPatternPos_CCM_LP, recombinationArray_Topics_lp)
+    # diff_pos = [ row, column, diffLength, diffSteps, patentsInDiff ]
+    diffusionPatternPos_CCM_LP = np.array(diffusionPatternPos_CCM_LP)
+    print('CCM Number of diffusion cycles / patterns in the scm - LP: ', len(diffusionPatternPos_CCM_LP))
+    print('CCM Average diffusion pattern length - LP: ', np.mean(diffusionPatternPos_CCM_LP[:, 2]))
+    print('CCM Average diffusion pattern patent engagement - LP: ', np.mean(diff_sequence_sum_list_CCM_LP))
+
+    diffusionPatternPos_CCM_GM = Misc.find_diffusionPatterns(recombinationArray_Topics_gm)
+    diffusionPatternPos_CCM_GM, diff_sequence_list_CCM_GM, diff_sequence_sum_list_CCM_GM = Misc.find_diffusionSequenceAndLength(diffusionPatternPos_CCM_GM, recombinationArray_Topics_gm)
+    # diff_pos = [ row, column, diffLength, diffSteps, patentsInDiff ]
+    diffusionPatternPos_CCM_GM = np.array(diffusionPatternPos_CCM_GM)
+    print('CCM Number of diffusion cycles / patterns in the scm - GM: ', len(diffusionPatternPos_CCM_GM))
+    print('CCM Average diffusion pattern length - GM: ', np.mean(diffusionPatternPos_CCM_GM[:, 2]))
+    print('CCM Average diffusion pattern patent engagement - GM: ', np.mean(diff_sequence_sum_list_CCM_GM))
+
+    diffusionPatternPos_CCM_KC = Misc.find_diffusionPatterns(recombinationArray_Topics_kc)
+    diffusionPatternPos_CCM_KC, diff_sequence_list_CCM_KC, diff_sequence_sum_list_CCM_KC = Misc.find_diffusionSequenceAndLength(diffusionPatternPos_CCM_KC, recombinationArray_Topics_kc)
+    # diff_pos = [ row, column, diffLength, diffSteps, patentsInDiff ]
+    diffusionPatternPos_CCM_KC = np.array(diffusionPatternPos_CCM_KC)
+    print('CCM Number of diffusion cycles / patterns in the scm - KC: ', len(diffusionPatternPos_CCM_KC))
+    print('CCM Average diffusion pattern length - KC: ', np.mean(diffusionPatternPos_CCM_KC[:, 2]))
+    print('CCM Average diffusion pattern patent engagement - KC: ', np.mean(diff_sequence_sum_list_CCM_KC))
+
+    diffusionPatternPos_CCM_L2 = Misc.find_diffusionPatterns(recombinationArray_Topics_l2)
+    diffusionPatternPos_CCM_L2, diff_sequence_list_CCM_L2, diff_sequence_sum_list_CCM_L2 = Misc.find_diffusionSequenceAndLength(diffusionPatternPos_CCM_L2, recombinationArray_Topics_l2)
+    # diff_pos = [ row, column, diffLength, diffSteps, patentsInDiff ]
+    diffusionPatternPos_CCM_L2 = np.array(diffusionPatternPos_CCM_L2)
+    print('CCM Number of diffusion cycles / patterns in the scm - L2: ', len(diffusionPatternPos_CCM_L2))
+    print('CCM Average diffusion pattern length - L2: ', np.mean(diffusionPatternPos_CCM_L2[:, 2]))
+    print('CCM Average diffusion pattern patent engagement - L2: ', np.mean(diff_sequence_sum_list_CCM_L2))
+
+
+
+
     fig, axes = plt.subplots(1, 2)  # , figsize=(15, 5), sharey=True)
     # fig.suptitle('test')
     sns.heatmap(recombinationArray_Topics_lp[100:180, 5:11], ax=axes[0], cbar=True, cmap="bone_r", cbar_kws={
@@ -540,8 +829,8 @@ if __name__ == '__main__':
     sns.heatmap(recombinationArray_Topics_gm[100:180, 5:11], ax=axes[1], cbar=True,
                 cmap="bone_r")
 
-    axes[0].set_title('lp')
-    axes[1].set_title('gm')
+    axes[0].set_title('CCM - Label Propagation')
+    axes[1].set_title('CCM - Greedy Modularity')
     axes[0].set_xticklabels(range(5, 11))
     axes[0].set_yticks(range(0, 80, 10))
     axes[0].set_yticklabels(range(100, 180, 10))
@@ -550,7 +839,14 @@ if __name__ == '__main__':
     axes[1].set_yticklabels(range(100, 180, 10))
 
     plt.tight_layout()
+    #plt.xlabel('Knowledge Component Combination ID')
+    #plt.ylabel('Sliding Window ID')
     #plt.show()
+
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Plots')
+    plt.savefig('CCM_LP_GM.png')
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
+    plt.close()
     plt.close()
 
 
@@ -567,8 +863,8 @@ if __name__ == '__main__':
                             #'label': 'Component Combination Count in Window',
                             'ticks': [0, 1, 2, 3, 4, 5, 6]}, vmax=6, vmin=0)  # , cmap="YlGnBu") #, annot=True, fmt="d", linewidths=.5, ax=ax)
 
-    axes[0].set_title('kc')
-    axes[1].set_title('l2')
+    axes[0].set_title('CCM - K-Clique')
+    axes[1].set_title('CCM - Lais2')
     #axes[1, 0].set_title('kc')
     # axes[1, 1].set_title('l2')
 
@@ -581,7 +877,14 @@ if __name__ == '__main__':
     axes[1].set_yticklabels(range(100, 180, 10))
 
     plt.tight_layout()
+    #plt.xlabel('Knowledge Component Combination ID')
+    #plt.ylabel('Sliding Window ID')
     #plt.show()
+
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Plots')
+    plt.savefig('CCM_KC_L2.png')
+    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
+    plt.close()
     plt.close()
 
 

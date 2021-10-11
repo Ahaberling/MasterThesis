@@ -1,6 +1,8 @@
 if __name__ == '__main__':
 
-    # --- Import Libraries ---#
+
+
+    #--- Import Libraries ---#
     print('\n#--- Import Libraries ---#\n')
 
     # Utility
@@ -12,15 +14,39 @@ if __name__ == '__main__':
     import pandas as pd
     import pickle as pk
 
-    # Visulization
+    # Visualization
     import matplotlib.pyplot as plt
 
+    # Custom functions
+    from utilities_final.Data_Preparation_utils import PatentCleaning
+    from utilities_final.Data_Preparation_utils import TransformationMisc
 
-    # --- Initialization ---#
+
+
+    #--- Initialization ---#
     print('\n#--- Initialization ---#\n')
 
-    # Import data
-    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
+    # directory
+    path = 'D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/new'
+
+    # terms to be searched in the raw patent abstracts
+    terms_toBeSearched = ['robot', 'clean']
+
+    # Configurations for draw_stochastic_IPC_sample. The function draws samples from the merge
+    # patents_raw and patents_IPC data set. These samples can be investigated to identify unfitting
+    # IPC section/classes/subclasses/... or unfitting patents
+    level = 'class'
+    searched_ipc = 'A61'
+    sample_size = 3
+
+    # Adapt ids_unfitting_patents to remove identified unfitting patents and their IPCs from the data set
+    ids_unfitting_patents = []
+
+
+
+    #--- Import Data ---#
+    print('\n#--- Import Data ---#\n')
+    os.chdir(path)
 
     patents_raw = pd.read_csv('cleaning_robot_EP_patents.csv', quotechar='"', skipinitialspace=True)
     patents_raw = patents_raw.to_numpy()
@@ -28,68 +54,77 @@ if __name__ == '__main__':
     patents_IPC = pd.read_csv('cleaning_robot_EP_patents_IPC.csv', quotechar='"', skipinitialspace=True)
     patents_IPC = patents_IPC.to_numpy()
 
+    print('Exemplary, patents_raw row: \n', patents_raw[0], '\n')
+    print('Variables of interest:')
+    print('Patent id: ', patents_raw[0][0])
+    print('Publication date: ', patents_raw[0][3])
+    print('Patent abstract: ', patents_raw[0][6], '\n')
 
-    # --- Patent Cleaning - Language ---#
+    print('Exemplary, patents_IPC row: \n', patents_IPC[0], '\n')
+    print('Variables of interest:')
+    print('Patent id: ', patents_IPC[0][0])
+    print('Patent IPC: ', patents_IPC[0][1], '\n')
+
+
+
+    #--- Patent Cleaning - Language ---#
     print('\n#--- Patent Cleaning - Language ---#\n')
 
-    from utilities.my_text_utils import PatentCleaning
-
-    print('Number of all patents : ', len(patents_raw))
+    print('Number of patents before language cleaning: ', len(patents_raw))
 
     # Remove non-english patents
     patents_raw, number_removed_patents_ger = PatentCleaning.remove_foreign_patents(patents_raw, language='ger', count=True)
     patents_english, number_removed_patents_fr = PatentCleaning.remove_foreign_patents(patents_raw, language='fr', count=True)
 
-    print('Number of all english patents: ', len(patents_english))
-    print('Number of german patents removed: ', number_removed_patents_ger)
-    print('Number of french patents removed: ', number_removed_patents_fr)
+    print('Number of german patents removed: ', number_removed_patents_ger, 'of', len(patents_english))
+    print('Number of french patents removed: ', number_removed_patents_fr, 'of', len(patents_english))
 
     # Count patents with term
-    term_clean, number_abstracts_term_clean = PatentCleaning.count_abstracts_with_term(patents_english, term='clean')
-    term_robot, number_abstracts_robot = PatentCleaning.count_abstracts_with_term(patents_english, term='robot')
-
-    print('Number abstracts containing', term_clean, ': ', number_abstracts_term_clean)
-    print('Number abstracts containing', term_robot, ': ', number_abstracts_robot)
+    for term in terms_toBeSearched:
+        number_abstracts_with_term = PatentCleaning.count_abstracts_with_term(patents_english, term=term)
+        print('Number abstracts containing', term, ': ', number_abstracts_with_term, 'of', len(patents_english))
 
 
 
-    # --- Patent Cleaning - IPCs ---#
-    print('\n#--- Patent Cleaning - IPCs ---#\n')
+    #--- Appending IPCs ---#
+    print('\n#--- Appending IPCs ---#\n')
     # Finding which IPCs are present in the data and to what extend.
 
     # Check if patent ids in patents_english are unique
-    val, count = np.unique(patents_english[:, 0], return_counts=True)
+    val = np.unique(patents_english[:, 0])
     if len(val) != len(patents_english):
         raise Exception("Error: patents_english contains non-unqiue patents")
 
-    # patents_IPC contains the IPCs of more patents then just the one listed in patents_english
-    # -> Get only those patents_IPC entries that have a match in patents_english (via patent id)
+    # The patents_IPC data set contains the IPCs of more patents then just the one contained in the patents_english data set
+    # patents_IPC is reduced to only the patents matching with patents_english (via patent id)
     patents_IPC_clean = [patent[0] for patent in patents_IPC if patent[0] in patents_english[:, 0]]
     val, count = np.unique(patents_IPC_clean, return_counts=True)
 
     # Merging patents_english and patents_IPC
     new_space_needed = max(count) * 3       # x * 3 = x3 additional columns are needed in the new array
+
     patents_english_IPC = np.empty((np.shape(patents_english)[0], np.shape(patents_english)[1] + new_space_needed), dtype=object)
     patents_english_IPC[:, :-new_space_needed] = patents_english
+    patents_english_IPC = TransformationMisc.fill_with_IPC(patents_english_IPC, patents_IPC, new_space_needed)
 
-    from utilities.my_transform_utils import Transf_misc
-    patents_english_IPC = Transf_misc.fill_with_IPC(patents_english_IPC, patents_IPC, new_space_needed)
 
-    # Stochastic investigation
-    print('Closer Investigation into patent/s')
-    print("('IPC', ['patent id', 'title', 'abstract')")
-    x = PatentCleaning.stochastic_inestigation_IPCs(patents_english_IPC, 'class', 'A61', 3)
-    for i in range(len(x)):
-        print(x[i])
+    #--- Investigating IPCs ---#
+    print('\n#--- Investigating IPCs ---#\n')
 
-    # No super unfitting patents identified with stochastic search
-    # if unfitting patents are identified in future, then adapt this list to remove them from the data set
-    ids_unfitting_patents = []
+    # Stochastic investigation of IPC fitness
+    print('Randomly sampled IPC: ')
+    print("Structure: ('IPC', ['patent id', 'title', 'abstract')")
 
-    # - patents_english_cleaned is used for following files. IPCs are appended in file v5.2_dataTransformation.py later on
-    #   This redundancy can be resolved in future work. Write now the redundancy is kept,
-    #   because I neither have the head space nor the time, to adjust the other files accordingly (list position/slicing shenanigans)
-    # - patents_english_IPC_cleaned is used for the following descriptives in this file
+    test_sample = PatentCleaning.draw_stochastic_IPC_sample(patents_english_IPC, level, searched_ipc, sample_size)
+
+    for i in range(len(test_sample)):
+        print(test_sample[i])
+
+
+
+    #--- Excluding unfitting patents based on IPC ---#
+    print('\n#--- Excluding unfitting patents based on IPC ---#\n')
+
     patents_english_cleaned = patents_english
     patents_english_IPC_cleaned = patents_english_IPC
 
@@ -102,19 +137,21 @@ if __name__ == '__main__':
         patents_english_IPC_cleaned = np.delete(patents_english_IPC_cleaned, position2, 0)
 
 
-    # Descriptives: IPC distribution
+
+    #--- Generate IPC Descriptives ---#
+    print('\n#--- Generate IPC Descriptives ---#\n')
 
     # Get only those patents_IPC entries that have a match in patents_english_IPC_cleaned (via patent id)
     patents_IPC_clean = [i[0] for i in patents_IPC if i[0] in patents_english_IPC_cleaned[:, 0]]
     val, count = np.unique(patents_IPC_clean, return_counts=True)
 
-    print('Max number of IPCs a patent has: ', max(count))
-    print('Min number of IPCs a patent has: ', min(count))
     print('Average number of IPCs a patent has: ', np.mean(count))
     print('Median number of IPCs a patent has: ', np.median(count))
     print('Mode number of IPCs a patent has: ', statistics.mode(count))
+    print('Max number of IPCs a patent has: ', max(count))
+    print('Min number of IPCs a patent has: ', min(count), '\n')
 
-    # Distribution of IPCs on different levels
+    # Get distribution of IPCs on different levels
     ipc_list_group = []
     ipc_list_subClass = []
     ipc_list_class = []
@@ -141,7 +178,6 @@ if __name__ == '__main__':
     print('\n')
 
     # Visualization on section level
-
     val, count = np.unique(ipc_list_section, return_counts=True)
     print('IPC sections present in the data set: ', val)
     print('Distribution of these sections: ', count)
@@ -150,48 +186,41 @@ if __name__ == '__main__':
     ax.hist(sorted(ipc_list_section), bins=8, color='darkred')
     plt.xlabel("International Patent Classification (IPC) - Sections")
     plt.ylabel("Frequency")
-
-    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Plots')
     plt.savefig('IPC_distribution.png')
-    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
     plt.close()
+
+
+
+    #--- Generate Longitudinal Descriptives ---#
+    print('\n#--- Generate Longitudinal Descriptives ---#\n')
+
+    patent_time = patents_english_cleaned[:, 3].astype('datetime64')
+
+    print('Earliest publication day: ', min(patent_time))
+    print('Latest publication day: ', max(patent_time))
+
+    max_timeSpan = int((max(patent_time) - min(patent_time)) / np.timedelta64(1, 'D'))
+    print('Size of publication time span in days: ', max_timeSpan)
+
+    val, count = np.unique(patent_time, return_counts=True)
+    print('Number of days on which publications were made: ', len(val))
+    print('Average number of days between publication dates: ', max_timeSpan / len(val))
+
+    # Visualization of publications per time
+    fig, ax = plt.subplots(1, 1)
+    ax.hist(patent_time, bins=198, color='darkblue')
+    plt.xlabel("Publication time span")
+    plt.ylabel("Number of patents published")
+    plt.savefig('hist_publications.png')
+    plt.close()
+
+    #--- Save data set ---#
+    print('\n#--- Save data set ---#\n')
+
+    # The data set saved and utilized in the next code file is the cleaned patent_raw.
+    # The IPCs are added again in later steps. This is somewhat redundant, but not yet adjusted.
 
     filename = 'patents_english_cleaned'
     outfile = open(filename, 'wb')
     pk.dump(patents_english_cleaned, outfile)
     outfile.close()
-
-
-    # --- Longitudinal Descriptives ---#
-    print('\n# --- Overview ---#\n')
-
-    patent_time = patents_english_cleaned[:, 3].astype('datetime64')
-
-    print('Earliest day with publication: ', min(patent_time))  # earliest day with publication 2001-08-01
-    print('Latest day with publication: ', max(patent_time))  # latest  day with publication 2018-01-31
-
-    max_timeSpan = int((max(patent_time) - min(patent_time)) / np.timedelta64(1, 'D'))
-    print('Days inbetween: ', max_timeSpan)  # 6027 day between earliest and latest publication
-
-    val, count = np.unique(patent_time, return_counts=True)
-    print('Number of days with publications: ', len(val))  # On 817 days publications were made
-    # -> on average every 7.37698898409 days a patent was published
-    print('Average publication cycle: ', max_timeSpan / len(val))
-
-    import matplotlib.pyplot as plt
-
-    # number of months: 5*1              + 12        * 16       + 1*1               = 198
-    #                   5 months of 2001 + 12 months * 16 years + 1 months of 2018
-
-    fig, ax = plt.subplots(1, 1)
-    ax.hist(patent_time, bins=198, color='darkblue')
-    #plt.title("Histogram: Monthly number of patent publications")
-    plt.xlabel("Publication time span")
-    plt.ylabel("Number of patents published")
-
-    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Plots')
-    plt.savefig('hist_publications.png')
-    os.chdir('D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/Cleaning Robots')
-
-    plt.close()
-

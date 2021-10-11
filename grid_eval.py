@@ -94,7 +94,7 @@ plt.xticks(np.arange(min(x), max(x)+1000, 1000))
 #plt.xticks(np.arange(0, 2001, 400))
 #plt.xticks(np.arange(min(x), max(x)+0.05, 0.05), labels=x2)
 #plt.xlabel()
-plt.xlabel("Number of training interations")
+plt.xlabel("Number of training iterations")
 plt.ylabel("Coherency Score C_V")
 
 #plt.show()

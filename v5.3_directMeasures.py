@@ -120,7 +120,7 @@ if __name__ == '__main__':
     from utilities.my_measure_utils import Misc
 
     diffusionPatternPos_SCM = Misc.find_diffusionPatterns(pattern_array_reference_diff)
-    diffusionPatternPos_SCM, diff_sequence_list_SCM = Misc.find_diffusionSequenceAndLength(diffusionPatternPos_SCM, pattern_array_reference_diff)
+    diffusionPatternPos_SCM, diff_sequence_list_SCM, irrelevant = Misc.find_diffusionSequenceAndLength(diffusionPatternPos_SCM, pattern_array_reference_diff)
     diffusionPatternPos_SCM = Misc.find_diffusionStepsAndPatternPerDiffusion(diffusionPatternPos_SCM, diff_sequence_list_SCM)
     # diff_pos = [ row, column, diffLength, diffSteps, patentsInDiff ]
     diffusionPatternPos_SCM = np.array(diffusionPatternPos_SCM)
@@ -282,7 +282,7 @@ if __name__ == '__main__':
     from utilities.my_measure_utils import Misc
 
     diffusionPatternPos_CCM = Misc.find_diffusionPatterns(pattern_array_reference_reco)
-    diffusionPatternPos_CCM, diff_sequence_list_SCM = Misc.find_diffusionSequenceAndLength(diffusionPatternPos_CCM, pattern_array_reference_reco)
+    diffusionPatternPos_CCM, diff_sequence_list_SCM, irrelevant = Misc.find_diffusionSequenceAndLength(diffusionPatternPos_CCM, pattern_array_reference_reco)
     diffusionPatternPos_CCM = Misc.find_diffusionStepsAndPatternPerDiffusion(diffusionPatternPos_CCM, diff_sequence_list_SCM)
     # diff_pos = [ row, column, diffLength, diffSteps, patentsInDiff ]
     diffusionPatternPos_CCM = np.array(diffusionPatternPos_CCM)
