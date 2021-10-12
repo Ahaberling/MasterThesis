@@ -1157,7 +1157,7 @@ class Similarities:
         return recombinationPos
 
     @staticmethod
-    def SCM_similarities_byPair(list_of_allArrays_names, list_of_allArrays_threshold):
+    def CM_similarities_byPair(list_of_allArrays_names, list_of_allArrays_threshold):
         namePair_list = []
         arrayPair_list = []
 

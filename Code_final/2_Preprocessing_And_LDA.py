@@ -55,6 +55,7 @@ if __name__ == '__main__':
     for word in ['above', 'below', 'up', 'down', 'over', 'under', 'won']:
         nltk_filter.remove(word)
 
+
     # Custom filters:
     numbers_filter = [
                       'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven',

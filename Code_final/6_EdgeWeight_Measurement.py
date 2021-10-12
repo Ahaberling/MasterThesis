@@ -75,6 +75,7 @@ if __name__ == '__main__':
     diffusionPatternPos_CCM = np.array(diffusionPatternPos_CCM)
 
     print('----- CCM Descriptives -----')
+    print('CCM size: ', np.shape(EdgeWeight_CCM))
     print('Number of diffusion cycles / patterns in the -CCM-: ', len(diffusionPatternPos_CCM))
     print('Average diffusion pattern length -CCM-: ', np.mean(diffusionPatternPos_CCM[:, 2]))
 

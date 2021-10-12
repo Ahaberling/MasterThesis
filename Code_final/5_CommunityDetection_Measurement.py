@@ -202,7 +202,6 @@ if __name__ == '__main__':
     print('Average Number of removed communities lp: ', communities_removed_lp / len(community_dict_clean_lp))
     print('Average Number of removed communities gm: ', communities_removed_gm / len(community_dict_clean_lp))
     print('Average Number of removed communities kc: ', communities_removed_kc / len(community_dict_clean_lp))
-    print('actually kc = 0. Only 3 communities of size zero were filtered out')
     print('Average Number of removed communities l2: ', communities_removed_l2 / len(community_dict_clean_lp), '\n')
 
     # --- Flawed Approach Partly Utilized ---#
@@ -293,7 +292,6 @@ if __name__ == '__main__':
         avgConfidence_perTopic.append(np.mean(confidences_inTopic))
 
     avgConfidence_perTopic = [x for x in avgConfidence_perTopic if x == x]
-    print(avgConfidence_perTopic)
 
     print('Averaged confidence average over all topics -LP: ', np.mean(avgConfidence_perTopic))
     print('Median confidence average over all topics -LP: ', np.median(avgConfidence_perTopic))
@@ -314,7 +312,6 @@ if __name__ == '__main__':
         avgConfidence_perTopic.append(np.mean(confidences_inTopic))
 
     avgConfidence_perTopic = [x for x in avgConfidence_perTopic if x == x]
-    print(avgConfidence_perTopic)
 
     print('Averaged confidence average over all topics -gm: ', np.mean(avgConfidence_perTopic))
     print('Median confidence average over all topics -gm: ', np.median(avgConfidence_perTopic))
@@ -335,7 +332,6 @@ if __name__ == '__main__':
         avgConfidence_perTopic.append(np.mean(confidences_inTopic))
 
     avgConfidence_perTopic = [x for x in avgConfidence_perTopic if x == x]
-    print(avgConfidence_perTopic)
 
     print('Averaged confidence average over all topics -kc: ', np.mean(avgConfidence_perTopic))
     print('Median confidence average over all topics -kc: ', np.median(avgConfidence_perTopic))
@@ -356,7 +352,6 @@ if __name__ == '__main__':
         avgConfidence_perTopic.append(np.mean(confidences_inTopic))
 
     avgConfidence_perTopic = [x for x in avgConfidence_perTopic if x == x]
-    print(avgConfidence_perTopic)
 
     print('Averaged confidence average over all topics -L2: ', np.mean(avgConfidence_perTopic))
     print('Median confidence average over all topics -L2: ', np.median(avgConfidence_perTopic))

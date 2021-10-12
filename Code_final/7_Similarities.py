@@ -137,7 +137,7 @@ if __name__ == '__main__':
 
     #--- SCMs Similarities ---#
     print('\n#--- SCMs Similarities ---#\n')
-    namePair_list, SimilaritiesPair_list_cosine, SimilaritiesPair_list_manhattan = Similarities.SCM_similarities_byPair(list_allSCM_names, list_allSCM_threshold)
+    namePair_list, SimilaritiesPair_list_cosine, SimilaritiesPair_list_manhattan = Similarities.CM_similarities_byPair(list_allSCM_names, list_allSCM_threshold)
 
     print('Name of SCM Pairs: ', namePair_list)
     print('Mod Cosine by SCM Pair: ', SimilaritiesPair_list_cosine)
@@ -261,14 +261,14 @@ if __name__ == '__main__':
         print('Number of diffusion cycles / patterns in the ccm -CCM-: ', len(diffusionPatternPos_SCM))
         print('Average diffusion pattern length-CCM-: ', np.mean(diffusionPatternPos_SCM[:, 2]))
 
-    for array in resized_threshold_arrays:
-        print(np.shape(array))
+    print('shape of resized CCMs: ', np.shape(resized_threshold_arrays[0]))
 
 
-    namePair_list, similarityPair_list_cosine, similarityPair_list_manhattan = Similarities.SCM_similarities_byPair(CCM_column_list_names, resized_threshold_arrays)
+
+    namePair_list, similarityPair_list_cosine, similarityPair_list_manhattan = Similarities.CM_similarities_byPair(CCM_column_list_names, resized_threshold_arrays)
     print('Name of CCM Pairs: ', namePair_list)
-    print('Mod Cosine by CCM Pair: ', SimilaritiesPair_list_cosine)
-    print('Mod Manhattan by CCM Pair: ', SimilaritiesPair_list_manhattan)
+    print('Mod Cosine by CCM Pair: ', similarityPair_list_cosine)
+    print('Mod Manhattan by CCM Pair: ', similarityPair_list_manhattan)
 
     # Similarities between all CCMs
 
