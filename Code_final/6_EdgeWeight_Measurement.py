@@ -18,14 +18,14 @@ if __name__ == '__main__':
     import seaborn as sns
 
     # Custom functions
-    from utilities_final.Measurement_utils import EdgeWeight_Measurement
-    from utilities_final.Measurement_utils import Misc
+    from utilities.Measurement_utils import EdgeWeight_Measurement
+    from utilities.Measurement_utils import Misc
 
 
     # --- Initialization ---#
     print('\n# --- Initialization ---#\n')
 
-    path = 'D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/new'
+    path = 'D:/'
 
     # load data
     os.chdir(path)

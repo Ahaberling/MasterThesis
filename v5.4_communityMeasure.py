@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
     ### Creating dictionaries to save communities ###
     import numpy as np
-    from utilities.my_measure_utils import CommunityMeasures
+    from utilities_old.my_measure_utils import CommunityMeasures
     '''
     
     import seaborn as sns
@@ -563,7 +563,7 @@ if __name__ == '__main__':
     diffusionArray_Topics_kc, diffusionArray_Topics_kc_columns = CommunityMeasures.create_diffusionArray_Topics(communityTopicAssociation_dict_kc)
     diffusionArray_Topics_l2, diffusionArray_Topics_l2_columns = CommunityMeasures.create_diffusionArray_Topics(communityTopicAssociation_dict_l2)
 
-    from utilities.my_measure_utils import Misc
+    from utilities_old.my_measure_utils import Misc
 
     diffusionPatternPos_SCM_LP = Misc.find_diffusionPatterns(diffusionArray_Topics_lp)
     diffusionPatternPos_SCM_LP, diff_sequence_list_SCM, irrelevant = Misc.find_diffusionSequenceAndLength(diffusionPatternPos_SCM_LP, diffusionArray_Topics_lp)

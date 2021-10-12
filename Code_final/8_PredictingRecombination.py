@@ -27,7 +27,7 @@ if __name__ == '__main__':
     print('\n#--- Initialization ---#\n')
 
     # directory
-    path = 'D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/new'
+    path = 'D:/'
 
     # --- Import Data ---#
     with open('topicProject_graphs', 'rb') as handle:

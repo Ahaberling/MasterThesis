@@ -32,7 +32,7 @@ if __name__ == '__main__':
     # --- Patent Cleaning - Language ---#
     print('\n#--- Patent Cleaning - Language ---#\n')
 
-    from utilities.my_text_utils import PatentCleaning
+    from utilities_old.my_text_utils import PatentCleaning
 
     print('Number of all patents : ', len(patents_raw))
 
@@ -72,7 +72,7 @@ if __name__ == '__main__':
     patents_english_IPC = np.empty((np.shape(patents_english)[0], np.shape(patents_english)[1] + new_space_needed), dtype=object)
     patents_english_IPC[:, :-new_space_needed] = patents_english
 
-    from utilities.my_transform_utils import Transf_misc
+    from utilities_old.my_transform_utils import Transf_misc
     patents_english_IPC = Transf_misc.fill_with_IPC(patents_english_IPC, patents_IPC, new_space_needed)
 
     # Stochastic investigation

@@ -87,7 +87,7 @@ if __name__ == '__main__':
     # --- Patent Cleaning ---#
     print('\n#--- Patent Cleaning ---#\n')
 
-    from utilities.my_text_utils import PatentCleaning
+    from utilities_old.my_text_utils import PatentCleaning
 
     # Remove non-english patents
     patent_raw, number_removed_patents_ger = PatentCleaning.remove_foreign_patents(patent_raw, language='ger', count=True)
@@ -108,7 +108,7 @@ if __name__ == '__main__':
 
     # --- Abstract Cleaning ---#
 
-    from utilities.my_text_utils import AbstractCleaning
+    from utilities_old.my_text_utils import AbstractCleaning
 
     #Number of words in Abstracts pre preprocessing
 
@@ -308,7 +308,7 @@ if __name__ == '__main__':
                  gamma_threshold=0.001, random_state=None, minimum_probability=0.01,
                  minimum_phi_value=0.01, per_word_topics=False, dtype=np.float32):'''
 
-    from utilities.my_text_utils import LDA_functions
+    from utilities_old.my_text_utils import LDA_functions
 
     mode = 'mallet'
 

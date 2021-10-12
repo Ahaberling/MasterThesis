@@ -20,21 +20,20 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
     # Custom functions
-    from utilities_final.Data_Preparation_utils import TransformationMisc
-    from utilities_final.Data_Preparation_utils import Transformation_SlidingWindows
-    from utilities_final.Data_Preparation_utils import Transformation_Network
+    from utilities.Data_Preparation_utils import TransformationMisc
+    from utilities.Data_Preparation_utils import Transformation_SlidingWindows
+    from utilities.Data_Preparation_utils import Transformation_Network
 
 
     #--- Initialization ---#
     print('\n#--- Initialization ---#\n')
 
-    path = 'D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/new'
+    path = 'D:/'
 
     # Import data
     os.chdir(path)
 
     patent_topicDist = pd.read_csv('patent_topicDistribution_mallet.csv', quotechar='"', skipinitialspace=True)
-    #patent_topicDist = pd.read_csv('patent_topicDist_mallet.csv', quotechar='"', skipinitialspace=True)
     patent_topicDist = patent_topicDist.to_numpy()
 
     patent_IPC = pd.read_csv('cleaning_robot_EP_patents_IPC.csv', quotechar='"', skipinitialspace=True)

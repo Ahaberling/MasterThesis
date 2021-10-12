@@ -130,7 +130,7 @@ if __name__ == '__main__':
     list_cdSCM_names = ['diffusionArray_Topics_lp', 'diffusionArray_Topics_gm', 'diffusionArray_Topics_kc', 'diffusionArray_Topics_l2']
 
 
-    from utilities.my_comparative_utils import ComparativeMeasures
+    from utilities_old.my_comparative_utils import ComparativeMeasures
 
 
     # test if all SCMs have the appropriate column length
@@ -157,7 +157,7 @@ if __name__ == '__main__':
         pattern_length = [entry for entry in pattern_length if entry[2] >= min_length_threshold] 
         pattern_length_list.append(pattern_length)
 
-    from utilities.my_measure_utils import Misc
+    from utilities_old.my_measure_utils import Misc
 
     # Alligned SCM descriptives
     for i in range(len(list_allSCM_threshold)):

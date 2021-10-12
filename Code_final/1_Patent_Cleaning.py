@@ -18,8 +18,8 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
     # Custom functions
-    from utilities_final.Data_Preparation_utils import PatentCleaning
-    from utilities_final.Data_Preparation_utils import TransformationMisc
+    from utilities.Data_Preparation_utils import PatentCleaning
+    from utilities.Data_Preparation_utils import TransformationMisc
 
 
 
@@ -27,7 +27,7 @@ if __name__ == '__main__':
     print('\n#--- Initialization ---#\n')
 
     # directory
-    path = 'D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/new'
+    path = 'D:/'
 
     # terms to be searched in the raw patent abstracts
     terms_toBeSearched = ['robot', 'clean']

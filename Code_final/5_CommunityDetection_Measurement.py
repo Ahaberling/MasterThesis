@@ -19,8 +19,8 @@ if __name__ == '__main__':
     import seaborn as sns
 
     # Custom functions
-    from utilities_final.Measurement_utils import Community_Measurement
-    from utilities_final.Measurement_utils import Misc
+    from utilities.Measurement_utils import Community_Measurement
+    from utilities.Measurement_utils import Misc
 
 
 
@@ -30,7 +30,7 @@ if __name__ == '__main__':
     # Hyperparameter value given to LDA
     maxTopicNumber = 330 
     
-    path = 'D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/new'
+    path = 'D:/'
 
     #load data
     os.chdir(path)
@@ -41,7 +41,7 @@ if __name__ == '__main__':
     with open('patentProject_graphs', 'rb') as handle:
         patentProject_graphs = pk.load(handle)
 
-    '''
+    #'''
     #--- Applying Community detection to each graph/window and populate respective dictionaries ---#
     print('\n#--- Applying Community detection to each graph/window and populate respective dictionaries ---#\n')
 
@@ -81,10 +81,10 @@ if __name__ == '__main__':
     plt.ylabel("Modularity")
     plt.savefig('Modularities.png')
     plt.close()
-    '''
+    #'''
 
     # saving intermediate results because Lais2 takes a while
-    '''
+    #'''
     filename = 'community_dict_lp'
     outfile = open(filename, 'wb')
     pk.dump(community_dict_lp, outfile)
@@ -104,7 +104,7 @@ if __name__ == '__main__':
     outfile = open(filename, 'wb')
     pk.dump(community_dict_l2, outfile)
     outfile.close()
-    '''
+    #'''
 
     #--- Community Measurement Preprocessing ---#
     print('\n#--- Community Measurement Preprocessing ---#\n')

@@ -154,7 +154,7 @@ if __name__ == '__main__':
     removal_list_all = [item for sublist in removal_list_all for item in sublist]
     '''
 
-    from utilities.my_text_utils import PatentCleaning
+    from utilities_old.my_text_utils import PatentCleaning
 
     print('Number of all patents: ', len(patent_raw))
     patent_raw, number_removed_patents = PatentCleaning.remove_foreign_patents(patent_raw, language='ger', count=True)

@@ -37,7 +37,7 @@ if __name__ == '__main__':
 #--- Transforming topic representation ---#
     print('\n#--- Transforming topic representation ---#\n')
 
-    from utilities.my_transform_utils import Transf_misc
+    from utilities_old.my_transform_utils import Transf_misc
 
     topic_list_helper, max_topics = Transf_misc.max_number_topics(patent_topicDist)
     #print('Maximum number of topics a patent has: ', max_topics)               # 7 is the maximum of topics abstracts have
@@ -298,7 +298,7 @@ if __name__ == '__main__':
 #--- slinding window approache ---#
     print('\n#--- slinding window approach ---#\n')
 
-    from utilities.my_transform_utils import Transf_slidingWindow
+    from utilities_old.my_transform_utils import Transf_slidingWindow
 
     slidingWindow_dict, patents_perWindow, topics_perWindow, topics_perWindow_unique = Transf_slidingWindow.sliding_window_slizing(windowSize, slidingInterval, patent_lda_ipc,)
 
@@ -376,7 +376,7 @@ if __name__ == '__main__':
 
 #--- Preparing overall node attributes ---#
 
-    from utilities.my_transform_utils import Transf_network
+    from utilities_old.my_transform_utils import Transf_network
 
     node_att_name = ['publn_auth', 'publn_nr', 'publn_date', 'publn_claims', 'nb_IPC']
 
@@ -398,7 +398,7 @@ if __name__ == '__main__':
     patentProject_graphs = {}
     topicProject_graphs = {}
 
-    from utilities.my_transform_utils import Transf_network
+    from utilities_old.my_transform_utils import Transf_network
 
     pbar = tqdm.tqdm(total=len(slidingWindow_dict))
 

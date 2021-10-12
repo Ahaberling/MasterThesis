@@ -56,7 +56,7 @@ if __name__ == '__main__':
 
 
 
-    from utilities.my_measure_utils import ReferenceMeasures
+    from utilities_old.my_measure_utils import ReferenceMeasures
 
     knowledgeComponent_dict_diff = ReferenceMeasures.extract_knowledgeComponent_per_window(slidingWindow_dict, kC='topic', unit=1)
     knowledgeComponent_dict_reco = ReferenceMeasures.extract_knowledgeComponent_per_window(slidingWindow_dict, kC='topic', unit=2)
@@ -117,7 +117,7 @@ if __name__ == '__main__':
     #print(np.count_nonzero(pattern_array_reference_diff))
     #print(np.sum(pattern_array_reference_diff[np.nonzero(pattern_array_reference_diff)]) / np.count_nonzero(pattern_array_reference_diff))
 
-    from utilities.my_measure_utils import Misc
+    from utilities_old.my_measure_utils import Misc
 
     diffusionPatternPos_SCM = Misc.find_diffusionPatterns(pattern_array_reference_diff)
     diffusionPatternPos_SCM, diff_sequence_list_SCM, irrelevant = Misc.find_diffusionSequenceAndLength(diffusionPatternPos_SCM, pattern_array_reference_diff)
@@ -279,7 +279,7 @@ if __name__ == '__main__':
 
     print('number of recombinations: ', len(columns_reference_reco))
 
-    from utilities.my_measure_utils import Misc
+    from utilities_old.my_measure_utils import Misc
 
     diffusionPatternPos_CCM = Misc.find_diffusionPatterns(pattern_array_reference_reco)
     diffusionPatternPos_CCM, diff_sequence_list_SCM, irrelevant = Misc.find_diffusionSequenceAndLength(diffusionPatternPos_CCM, pattern_array_reference_reco)

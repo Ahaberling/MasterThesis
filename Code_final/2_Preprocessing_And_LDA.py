@@ -21,16 +21,16 @@ if __name__ == '__main__':
     import gensim.models as gensim_models
 
     # Custom functions
-    from utilities_final.Data_Preparation_utils import AbstractCleaning
-    from utilities_final.Data_Preparation_utils import LDA_functions
+    from utilities.Data_Preparation_utils import AbstractCleaning
+    from utilities.Data_Preparation_utils import LDA_functions
 
 
 
     #--- Initialization ---#
     print('\n#--- Initialization ---#\n')
 
-    path = 'D:/Universitaet Mannheim/MMDS 7. Semester/Master Thesis/Outline/Data/new'
-    mallet_path = r'C:/mallet/bin/mallet'
+    path = 'D:/'
+    mallet_path = r'C:/'
 
     # Import data
     os.chdir(path)

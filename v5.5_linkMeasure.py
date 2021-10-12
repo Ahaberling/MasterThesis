@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
     # --- pattern array ---#
 
-    from utilities.my_measure_utils import EdgeWeightMeasures
+    from utilities_old.my_measure_utils import EdgeWeightMeasures
 
     x = [1,2,3,4,5,6,7,8,9,10]
     print(np.quantile(x, 0.25))
@@ -43,7 +43,7 @@ if __name__ == '__main__':
 
     import statistics
 
-    from utilities.my_measure_utils import Misc
+    from utilities_old.my_measure_utils import Misc
 
     diffusionPatternPos_SCM = Misc.find_diffusionPatterns(diffusion_array_edgeWeight)
     diffusionPatternPos_SCM, diff_sequence_list_SCM, irrelevant = Misc.find_diffusionSequenceAndLength(diffusionPatternPos_SCM,
