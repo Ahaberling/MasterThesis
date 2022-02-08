@@ -1,7 +1,5 @@
 if __name__ == '__main__':
 
-
-
     #--- Import Libraries ---#
     print('\n#--- Import Libraries ---#\n')
 
@@ -124,7 +122,7 @@ if __name__ == '__main__':
         community_dict_l2 = pk.load(handle)
     #'''
 
-    # --- Aligne Communties Data Structure---#
+    # --- Aligne Data Structure of Communties ---#
     community_dict_transf_lp = Community_Measurement.align_cD_dataStructure(community_dict_lp, cD_algorithm='label_propagation')
     community_dict_transf_gm = Community_Measurement.align_cD_dataStructure(community_dict_gm, cD_algorithm='greedy_modularity')
     community_dict_transf_kc = Community_Measurement.align_cD_dataStructure(community_dict_kc, cD_algorithm='k_clique')
@@ -191,6 +189,7 @@ if __name__ == '__main__':
 
         for community in window:
             community_size_list.append(len(community))
+            
     print('Average Size of communities in Window L2: ', np.mean(community_size_list))
     print('Average Number of communities in Window L2: ', np.mean(community_length_list))
     print('Median Number of communities in Window L2: ', np.median(community_length_list))
@@ -204,8 +203,8 @@ if __name__ == '__main__':
     print('Average Number of removed communities kc: ', communities_removed_kc / len(community_dict_clean_lp))
     print('Average Number of removed communities l2: ', communities_removed_l2 / len(community_dict_clean_lp), '\n')
 
-    # --- Flawed Approach Partly Utilized ---#
-    print('\n#--- Flawed Approach Partly Utilized ---#\n')
+    #---  Correct parts of the Flawed Approach are partly utilized below  ---#
+    print('\n#--- Correct parts of the Flawed Approach are partly utilized below ---#\n')
 
     # --- Identify TopD degree nodes of communities ---#
     community_dict_topD_lp = Community_Measurement.identify_topDegree(community_dict_clean_lp, patentProject_graphs)
@@ -233,7 +232,7 @@ if __name__ == '__main__':
     tracingArray_kc = Community_Measurement.create_tracing_array(max_number_community_kc, community_dict_topD_kc, patentProject_graphs)
     tracingArray_l2 = Community_Measurement.create_tracing_array(max_number_community_l2, community_dict_topD_l2, patentProject_graphs)
 
-    # ---  Community Labeling ---#
+    #--- Community Labeling ---#
 
     community_dict_labeled_lp, topD_communityID_association_perWindow_lp, topD_communityID_association_accumulated_lp = Community_Measurement.community_labeling(tracingArray_lp, community_dict_topD_lp, patentProject_graphs)
     community_dict_labeled_gm, topD_communityID_association_perWindow_gm, topD_communityID_association_accumulated_gm = Community_Measurement.community_labeling(tracingArray_gm, community_dict_topD_gm, patentProject_graphs)
@@ -271,7 +270,7 @@ if __name__ == '__main__':
     topicDistriburionOfCommunities_dict_kc = Community_Measurement.creat_dict_topicDistriburionOfCommunities(community_dict_labeled_kc, patent_lda_ipc)
     topicDistriburionOfCommunities_dict_l2 = Community_Measurement.creat_dict_topicDistriburionOfCommunities(community_dict_labeled_l2, patent_lda_ipc)
 
-    # COMMUNITY ID , MOST DOMINANT TOPIC, CONFIDENCE
+    # community id , most dominant topic, confidence
     communityTopicAssociation_dict_lp, avg_confidence_lp = Community_Measurement.create_dict_communityTopicAssociation(topicDistriburionOfCommunities_dict_lp)
     communityTopicAssociation_dict_gm, avg_confidence_gm = Community_Measurement.create_dict_communityTopicAssociation(topicDistriburionOfCommunities_dict_gm)
     communityTopicAssociation_dict_kc, avg_confidence_kc = Community_Measurement.create_dict_communityTopicAssociation(topicDistriburionOfCommunities_dict_kc)
@@ -635,11 +634,3 @@ if __name__ == '__main__':
     outfile = open(filename, 'wb')
     pk.dump(CommunityMeasure_CCM_L2_columns, outfile)
     outfile.close()
-
-
-
-
-
-
-
-
