@@ -13,7 +13,7 @@ if __name__ == '__main__':
     import pandas as pd
     import pickle as pk
 
-    # Network X
+    # NetworkX
     import networkx as nx
 
     # Visualization
@@ -51,7 +51,7 @@ if __name__ == '__main__':
 
     topic_list_helper, max_topics = TransformationMisc.max_number_topics(patent_topicDist)
 
-    # descriptives
+    # Descriptives
     numTopic_list = []
     topicFrequency_list = []
     coverageFrequency_list = []
@@ -116,7 +116,7 @@ if __name__ == '__main__':
     # Filling the new array
     patent_transf = TransformationMisc.fill_with_topics(patent_transf, topic_list_helper, np.shape(patent_topicDist)[1])
 
-    # check Topic transformation
+    # Check topic transformation
     if sum(x is not None for x in patent_transf[:,np.shape(patent_transf)[1]-1]) == 0:
         raise Exception("Error: Not all created columns in patent_transf have been filled")
 
@@ -125,13 +125,13 @@ if __name__ == '__main__':
     #--- Append IPC ---#
     print('\n#--- Append IPC ---#\n')
 
-    # check if all patents in patent_transf are unique
+    # Check if all patents in patent_transf are unique
     val, count = np.unique(patent_transf[:, 0], return_counts=True)
     if len(val) != len(patent_transf):
         raise Exception("Error: patent_transf contains non-unqiue patents")
 
 
-    # Find biggest number of IPCs a patent has (new space)
+    # Find biggest number of IPCs a patent has (space needed for new array)
     patent_IPC_clean = [i[0] for i in patent_IPC if i[0] in patent_transf[:, 0]]
 
     val, count = np.unique(patent_IPC_clean, return_counts=True)
@@ -147,7 +147,7 @@ if __name__ == '__main__':
     patent_join = TransformationMisc.fill_with_IPC(patent_lda_ipc, patent_IPC, new_space_needed)
 
 
-    # check if all created columns are used
+    # Check if all created columns are used
     if sum(x is not None for x in patent_join[:, np.shape(patent_join)[1] - 1]) == 0:
         raise Exception("Error: Not all created columns in patent_join have been filled")
 
@@ -224,7 +224,7 @@ if __name__ == '__main__':
         node_att_name.append('IpcSubCat1_{0}'.format(i))
         node_att_name.append('IpcSubCat2_{0}'.format(i))
 
-    # --- Creating a Network Representation for each windows---#
+    #--- Creating a Network Representation for each windows---#
 
     bipartite_graphs = {}
     patentProject_graphs = {}
@@ -237,7 +237,7 @@ if __name__ == '__main__':
         # Create Graph
         sliding_graph = nx.Graph()
 
-        # Create Nodes - Paents
+        # Create Nodes - Patents
         nodes = window[:, 0]  # extract patent ids in window
         window_reduc = window[:, np.r_[1:5, 7, 9:len(window.T)]]
 
@@ -461,15 +461,3 @@ if __name__ == '__main__':
     outfile = open(filename, 'wb')
     pk.dump(patentProject_graphs, outfile)
     outfile.close()
-
-
-
-
-
-
-
-
-
-
-
-
