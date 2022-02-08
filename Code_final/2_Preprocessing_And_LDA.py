@@ -436,5 +436,3 @@ if __name__ == '__main__':
 
             pd.DataFrame(model_results).to_csv('mallet_gridSearch.csv', index=False)
             pbar.close()
-
-
