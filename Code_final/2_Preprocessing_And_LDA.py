@@ -1,4 +1,6 @@
 if __name__ == '__main__':
+    
+    
 
     #--- Import Libraries ---#
     print('\n#--- Import Libraries ---#\n')
@@ -30,7 +32,7 @@ if __name__ == '__main__':
     print('\n#--- Initialization ---#\n')
 
     path = 'D:/'
-    mallet_path = r'C:/'
+    mallet_path = 'D:/'
 
     # Import data
     os.chdir(path)
@@ -50,7 +52,8 @@ if __name__ == '__main__':
     #--- Prepare stop word filters ---#
     print('\n#--- Prepare stop word filters ---#\n')
 
-    # Use the nltk stop word list as basis, but exclude following words
+    # Use the nltk stop word list as basis, but exclude following words (conservative 
+    # approach - they might carry relevant information for LDA)
     nltk_filter = nltk.corpus.stopwords.words('english')
     for word in ['above', 'below', 'up', 'down', 'over', 'under', 'won']:
         nltk_filter.remove(word)
@@ -97,12 +100,12 @@ if __name__ == '__main__':
 
     print('Number of patents with 20 words or less: ', len(smallestAbstracts))
     print('Abstracts at question: \n')
-    # all are kept
+    # all are kept (conservative approach)
     for i in smallestAbstracts:
         print(i)
 
 
-    # Descriptives: get vocabulary size before preprosessing
+    # Descriptives: report vocabulary size before preprosessing
     tokens_prePreprocessing = [nltk.word_tokenize(abstract) for abstract in patents_english_cleaned[:, 6]]
     tokens_prePreprocessing_list = []
     for i in tokens_prePreprocessing:
@@ -116,7 +119,7 @@ if __name__ == '__main__':
     abs_intermed_preproc = AbstractCleaning.vectorize_preprocessing(patents_english_cleaned[:, 6])
 
 
-    # Get descriptives after preprocessing step 1:
+    # Report descriptives after preprocessing step 1:
     helper = []
     helper_unique = []
     abstracts_intermed = [nltk.word_tokenize(abstract) for abstract in abs_intermed_preproc]
@@ -334,9 +337,9 @@ if __name__ == '__main__':
         topics_range_fixed = [330]
 
         # specify alpha range
-        # small alpha = few fitting topics per documents
-        # big alpha = more, less fitting topics per document
-        # Keep in mind: Gensim handles the 'alpha' parameter normally as alpha
+        # small alpha = few, but fitting topics per documents
+        # big alpha = more, but less fitting topics per document
+        # Keep in mind: Gensim handles the 'alpha' parameter as alpha
         #               Mallet handles the 'alpha' parameter as value that is used to compute the real alpha ('alpha'/'num_topics'=alpha)
 
         alpha_gensim = list(np.arange(0.05, 0.55, 0.05))
@@ -402,8 +405,8 @@ if __name__ == '__main__':
                              'Coherence': []
                              }
 
-            pbar = tqdm.tqdm(total=len(iterations))  # adjust with hyperparameter change # 21*7*6*1
-
+            pbar = tqdm.tqdm(total=len(iterations))  # adjust with hyperparameter change 
+            
             for k in topics_range:
                 for a in alpha_mallet:
                     for op in optimize_interval:
