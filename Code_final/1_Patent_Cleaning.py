@@ -32,8 +32,8 @@ if __name__ == '__main__':
     # terms to be searched in the raw patent abstracts
     terms_toBeSearched = ['robot', 'clean']
 
-    # Configurations for draw_stochastic_IPC_sample. The function draws samples from the merge
-    # patents_raw and patents_IPC data set. These samples can be investigated to identify unfitting
+    # Configurations for function draw_stochastic_IPC_sample. The function draws samples from the merge 
+    # of the patents_raw and patents_IPC data set. These samples can be investigated to identify unfitting
     # IPC section/classes/subclasses/... or unfitting patents
     level = 'class'
     searched_ipc = 'A61'
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     # Adapt ids_unfitting_patents to remove identified unfitting patents and their IPCs from the data set
     ids_unfitting_patents = []
 
-
+    
 
     #--- Import Data ---#
     print('\n#--- Import Data ---#\n')
@@ -217,7 +217,7 @@ if __name__ == '__main__':
     #--- Save data set ---#
     print('\n#--- Save data set ---#\n')
 
-    # The data set saved and utilized in the next code file is the cleaned patent_raw.
+    # The data set that is saved below and later utilized is the cleaned patent_raw.
     # The IPCs are added again in later steps. This is somewhat redundant, but not yet adjusted.
 
     filename = 'patents_english_cleaned'
