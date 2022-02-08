@@ -6,7 +6,7 @@ This thesis aimes to explore novel approaches identifying knowledge diffusion an
 
 ## Instructions
 
-The files contained in folder \'Code\' are supposed to run in the order indicated by their prefix.
+The files contained in folder \'Code\' are expected to exectued in the order indicated by their prefix.
 The subfolder \'utilities\' contains files with custom functions, outsourced for the sake of readability.
 
 The files with prefix 1-7 are based on Python 3.8
