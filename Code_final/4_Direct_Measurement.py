@@ -1,4 +1,3 @@
-
 if __name__ == '__main__':
 
     # --- Import Libraries ---#
@@ -113,7 +112,7 @@ if __name__ == '__main__':
     # Descriptives SCM
     diffusionPatternPos_SCM = Misc.find_diffusionPatterns(direct_SCM)
     diffusionPatternPos_SCM, diff_sequence_list_SCM, placeholder = Misc.find_diffusionSequenceAndLength(diffusionPatternPos_SCM, direct_SCM)
-    #diffusionPatternPos_SCM = Misc.find_diffusionStepsAndPatternPerDiffusion(diffusionPatternPos_SCM, diff_sequence_list_SCM)
+    #diffusionPatternPos_SCM = Misc.find_diffusionStepsAndPatternPerDiffusion(diffusionPatternPos_SCM, diff_sequence_list_SCM)  # needs to be revisited
 
     # diff_pos = [ row, column, diffLength, diffSteps, patentsInDiff ]
     diffusionPatternPos_SCM = np.array(diffusionPatternPos_SCM)
@@ -220,7 +219,7 @@ if __name__ == '__main__':
     # Descriptives
     diffusionPatternPos_CCM = Misc.find_diffusionPatterns(direct_CCM)
     diffusionPatternPos_CCM, diff_sequence_list_CCM, placeholder = Misc.find_diffusionSequenceAndLength(diffusionPatternPos_CCM, direct_CCM)
-    #diffusionPatternPos_CCM = Misc.find_diffusionStepsAndPatternPerDiffusion(diffusionPatternPos_CCM, diff_sequence_list_CCM)
+    #diffusionPatternPos_CCM = Misc.find_diffusionStepsAndPatternPerDiffusion(diffusionPatternPos_CCM, diff_sequence_list_CCM) # needs to be revisited
 
     # diff_pos = [ row, column, diffLength, diffSteps, patentsInDiff ]
     diffusionPatternPos_CCM = np.array(diffusionPatternPos_CCM)
