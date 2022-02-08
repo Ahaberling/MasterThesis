@@ -55,7 +55,7 @@ if __name__ == '__main__':
     nltk_filter = nltk.corpus.stopwords.words('english')
     for word in ['above', 'below', 'up', 'down', 'over', 'under', 'won']:
         nltk_filter.remove(word)
-
+ 
 
     # Custom filters:
     numbers_filter = [
