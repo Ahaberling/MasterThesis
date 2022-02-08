@@ -33,10 +33,9 @@ if __name__ == '__main__':
     with open('topicProject_graphs', 'rb') as handle:
         topicNetwork = pk.load(handle)
 
+        
 
-    #########################################################################
-    # --- Extract and transform the edges and their weight of window 4500 ---#
-    #########################################################################
+    #--- Extract and transform the edges and their weight of window 4500 ---#
 
     edges_4500 = []
 
@@ -66,9 +65,10 @@ if __name__ == '__main__':
     # Make weights undirectional
     edge_weights_4500 = np.append(edge_weights_4500, edge_weights_4500)
 
-    #########################################################################
-    # --- Extract and transform the edges and their weight of window 4860 ---#
-    #########################################################################
+    
+    
+    #--- Extract and transform the edges and their weight of window 4860 ---#
+
     edges_4860 = []
 
     # extract all edges
@@ -89,9 +89,9 @@ if __name__ == '__main__':
     # Split into weights
     edge_weights_4860 = edges_4860[:, 2:3].T[0]
 
-    ############################
-    # --- Create fake edges ---#
-    ############################
+
+    
+    # --- Create false edges ---#
 
     rd.seed(0)
 
@@ -122,7 +122,7 @@ if __name__ == '__main__':
 
 
 
-    #--- specify node2vec embedding model and optimized ---#
+    #--- specify node2vec embedding model and optimizer ---#
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -133,6 +133,7 @@ if __name__ == '__main__':
     optimizer = torch.optim.SparseAdam(list(model.parameters()), lr=0.01)
 
 
+    
     #--- train node2vec embedding model ---#
 
     def train():
@@ -156,6 +157,7 @@ if __name__ == '__main__':
             plot_x.append(epoch)
             plot_y.append(loss)
 
+            
 
     #--- Visualization Loss ---#
     fig, ax = plt.subplots()
@@ -165,13 +167,11 @@ if __name__ == '__main__':
     plt.ylabel("Node2Vec Loss")
     plt.savefig('Node2Vec_loss_300.png')
     plt.close()
-
-
+    
 
     z = model()
     # from tensor to numpy
     emb_128 = z.detach().cpu().numpy()
-
 
 
     edge_embedding_4860 = []
@@ -185,10 +185,3 @@ if __name__ == '__main__':
                              scoring='neg_mean_squared_error', cv=10)
     print((-scores) ** 0.5)  # root mean squared error
     print(np.mean((-scores) ** 0.5))
-
-
-
-
-
-
-
