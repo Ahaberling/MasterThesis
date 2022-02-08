@@ -9,12 +9,12 @@ import networkx.algorithms.community as nx_comm
 import operator
 import copy
 
-
+###--- Class Direct_Measurement ---### ------------------------------------------------------------------------
 
 class Direct_Measurement:
 
     @staticmethod
-    def extract_knowledgeComponent_per_window(slidingWindow_dict, kC, unit):
+    def extract_knowledgeComponent_per_window(slidingWindow_dict, kC, unit): # kC = knowledgeComponent
 
         if kC == 'topic':
             position = np.r_[range(9, 25, 2)]
@@ -78,8 +78,8 @@ class Direct_Measurement:
             column_list.sort()
 
         else:
-            ind = np.lexsort((column_list[:, 1], column_list[:, 0]))  # if 'unite' exceeds tuples, it is not sorted once more here
-            # However this sort is redundant non the lest in the current version
+            ind = np.lexsort((column_list[:, 1], column_list[:, 0]))  # if 'unite' exceeds tuples, it is not sorted once again here
+            # This sort would be redundant non the lest in the current version
             column_list = column_list[ind]
 
         pattern_array = np.zeros((len(row_list), len(column_list)), dtype=int)
@@ -118,10 +118,9 @@ class Direct_Measurement:
 
         return pattern_array, column_list
 
+    
 
-
-
-###---------------------------------------------------------------------------------------------------------------------
+###--- Class Community_Measurement ---### ------------------------------------------------------------------------
 
 class Community_Measurement:
 
@@ -171,8 +170,8 @@ class Community_Measurement:
         elif cD_algorithm == 'lais2':
             pbar = tqdm.tqdm(total=len(patentProject_graphs))
             for window_id, window in patentProject_graphs.items():
-                lais2 = algorithms.lais2(window)  # no seed needed i think
-                community_dict[window_id] = lais2.to_node_community_map()           # link_mod 0.1350135445281584
+                lais2 = algorithms.lais2(window) 
+                community_dict[window_id] = lais2.to_node_community_map()           
                 modularity_dict[window_id] = modularity_dict[window_id] = evaluation.newman_girvan_modularity(window, lais2)
                 pbar.update(1)
             pbar.close()
@@ -280,7 +279,7 @@ class Community_Measurement:
             cd_window = community_dict_clean['window_{0}'.format(i * 30)]
             topD_window = []
 
-            # First find nodes that are in more than one community, they shall not be topD (otherwise identifying recombination gets iffy) #
+            # First find nodes that are in more than one community, they shall not be topD (otherwise identifying recombination gets iffy)
             multi_community_patents = []
 
             for node in patentProject_graphs['window_{0}'.format(i * 30)].nodes():
@@ -393,7 +392,7 @@ class Community_Measurement:
             current_window = community_dict_topD['window_{0}'.format(row * 30)]
 
             # Part1: Trace existing TopD's #
-            if row != 0:  # skip in first row, since there is nothing to trace
+            if row != 0:  # skiping first row, since there is nothing to trace
                 prev_window = community_dict_topD['window_{0}'.format((row - 1) * 30)]
 
                 for column in range(len(community_tracing_array.T)):
@@ -501,11 +500,11 @@ class Community_Measurement:
 
                     # wouldnt there be cases where 0 is added to the list as well? No, this is never 0 because: new columns (community sequences)
                     # are only opened, if a topD appears, that is not linkable to previous topDs. if one of the pos in column_pos is linked to a previous id
-                    # then the other one is as well. Casesin which two identical topDs appear in two columns/sequences are not possible, because they would
+                    # then the other one is as well. Cases in which two identical topDs appear in two columns/sequences are not possible, because they would
                     # just be subsumed in one sequence/one topD
-                    # THIS MEANS SOME COMMUNITIES MUST HAVEMERGED.
+                    # THIS MEANS SOME COMMUNITIES MUST HAVE MERGED.
                     # Now has to be decided how to label this merged community. Which column id is chosen?
-                    # we take the previous topDs and ... see below
+                    # Take the previous topDs and ... see below
 
                     # if the current multiple occuring topD was already a topD in the previous window, then simply take the same column id as in the last window
                     # this is never ambigious, because topDs are always only associated with one column/ sequence id per window.
@@ -513,7 +512,8 @@ class Community_Measurement:
 
                         column_pos = [prev_topD[1] for prev_topD in topD_associ['window_{0}'.format((i - 1) * 30)] if
                                       prev_topD[0] == topD]
-                        # first row does not have to be accounted for, because ambigious topDs could only occure in Lais2, but 'After all core are identified, communities with the same core are merged.'
+                        # first row does not have to be accounted for, because ambigious topDs could only occure in Lais2,
+                        # but 'After all core are identified, communities with the same core are merged.'
 
                     # case: ambigious topD, but topD not observed in any previous sequence points
                     else:
@@ -535,9 +535,6 @@ class Community_Measurement:
                         current_community = [community for community in community_dict_topD['window_{0}'.format(i * 30)]
                                              if topD in community[1][0]]
 
-                        # Assumption. if topD is identifier for a community, the it is the identifier for
-                        # only that community and not for multiple
-
                         current_community_degree_list = []
                         for patent in current_community[0][0]:
                             current_community_degree_list.append(
@@ -548,18 +545,18 @@ class Community_Measurement:
                         for candidate in current_community_degree_list:
                             checklist_inMultipleCommunities = []
 
-                            # get me all communities of previous topDs
+                            # get all communities of previous topDs
                             prev_topD_communities_withColumn_mod = [prev_community[0][0] for prev_community in
                                                                     prev_topD_communities_withColumn]
 
-                            # get me only the unqiue ones.
+                            # get only the unqiue ones.
                             community_helper_list = []
                             for community_helper in prev_topD_communities_withColumn_mod:
                                 if community_helper not in community_helper_list:
                                     community_helper_list.append(community_helper)
                             prev_topD_communities_withColumn_unique = community_helper_list
 
-                            # check if my candidate node is in one and only one community
+                            # check if candidate node is in one and only one community
                             for prev_community in prev_topD_communities_withColumn_unique:
                                 if candidate[0] in prev_community[0]:
                                     checklist_inMultipleCommunities.append(prev_community)
@@ -568,7 +565,7 @@ class Community_Measurement:
                             # and the previous column position. This one is used then.
                             if len(checklist_inMultipleCommunities) == 1:
 
-                                # is this is the case:
+                                # if this is the case:
                                 new_topD = checklist_inMultipleCommunities[0][1][0][0]
 
                                 column_pos = [prev_topD[1] for prev_topD in
@@ -580,10 +577,7 @@ class Community_Measurement:
                             elif len(checklist_inMultipleCommunities) >= 2:
                                 multi_community_edgeCase.append(checklist_inMultipleCommunities)
 
-                        # if column_pos has not be narrowed down, but is still a list (multiple colum pos) then:
-                        # if isinstance(column_pos[0], int) == False:
-                        # if isinstance(column_pos, int) == False:
-
+                                
                         # multi_community_edgeCase_unique now equals all communties that inhibit node candidates that are not
                         # unique to one community
                         if len(column_pos) != 1:
@@ -619,6 +613,7 @@ class Community_Measurement:
 
             topD_associ['window_{0}'.format(i * 30)] = tuple_list  # list of tuples (topD, community_id)
 
+            
         ### Relabel all communities in cd_topD with static community id instead of dynamic TopD ###
         cd_labeled = {}
 
@@ -804,7 +799,7 @@ class Community_Measurement:
     @staticmethod
     def create_dict_communityTopicAssociation(community_topicDist_dic):
 
-        # 1. create dic with: each window, list of tuple with (communityID, highest topic)
+        # create dic with: each window, list of tuple with (communityID, highest topic)
 
         community_topTopic_dic = {}
         confidence_list = []
@@ -965,10 +960,7 @@ class Community_Measurement:
 
 
 
-
-
-
-###---------------------------------------------------------------------------------------------------------------------
+###--- Class EdgeWeight_Measurement ---### ------------------------------------------------------------------------
 
 class EdgeWeight_Measurement:
 
@@ -993,7 +985,6 @@ class EdgeWeight_Measurement:
 
         for i in range(len(diffusion_array)):
 
-
             all_edgeNodes = []
             for (u, v, wt) in topicProject_graphs['window_{0}'.format(i * 30)].edges.data('weight'):
 
@@ -1008,7 +999,6 @@ class EdgeWeight_Measurement:
         pbar.close()
 
         return diffusion_array, all_nodes_unique
-
 
     @staticmethod
     def create_recombination_array(topicProject_graphs):
@@ -1055,7 +1045,7 @@ class EdgeWeight_Measurement:
         return recombinationDiffusion, all_edges_unique
 
 
-###---------------------------------------------------------------------------------------------------------------------
+###--- Class Similarities ---### ------------------------------------------------------------------------
 
 class Similarities:
 
@@ -1297,10 +1287,7 @@ class Similarities:
 
 
 
-
-
-
-###---------------------------------------------------------------------------------------------------------------------
+###--- Class Misc ---### ------------------------------------------------------------------------
 
 class Misc:
 
@@ -1349,7 +1336,7 @@ class Misc:
         return diffusionPatternPos, diff_sequence_list, diff_sequence_sum_list
 
     @staticmethod
-    def find_diffusionStepsAndPatternPerDiffusion(diffusionPatternPos, diff_sequence_list):
+    def find_diffusionStepsAndPatternPerDiffusion(diffusionPatternPos, diff_sequence_list): # still faulty
         diffusion_counter_list = []
         PatentsPerDiffPattern_list = []
 
