@@ -115,10 +115,3 @@ if __name__ == '__main__':
     outfile = open(filename, 'wb')
     pk.dump(EdgeWeight_CCM_columns, outfile)
     outfile.close()
-
-
-    
-    
-
-    
-    
