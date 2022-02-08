@@ -29,7 +29,7 @@ if __name__ == '__main__':
 
     # terms to be searched in the raw patent abstracts
     terms_toBeSearched = ['robot', 'clean']
-
+ 
     # Configurations for function draw_stochastic_IPC_sample. The function draws samples from the merge 
     # of the patents_raw and patents_IPC data set. These samples can be investigated to identify unfitting
     # IPC section/classes/subclasses/... or unfitting patents
