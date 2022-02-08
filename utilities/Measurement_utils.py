@@ -1,13 +1,18 @@
 import numpy as np
 import tqdm
 import itertools
-import scipy.signal as sciSignal
-from cdlib import algorithms
-from cdlib import evaluation
-import networkx as nx
-import networkx.algorithms.community as nx_comm
 import operator
 import copy
+
+import scipy.signal as sciSignal
+
+from cdlib import algorithms
+from cdlib import evaluation
+
+import networkx as nx
+import networkx.algorithms.community as nx_comm
+
+
 
 ###--- Class Direct_Measurement ---### ------------------------------------------------------------------------
 
