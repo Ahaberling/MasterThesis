@@ -1,9 +1,9 @@
 ## Knowledge Recombination and Diffusion in Patent Data
 ### An Explorative Framework
 
-This thesis aimes to explore novel approaches identifying knowledge diffusion and recombination. The provided approaches utilizing Latent Dirichlet Allocation and Network Analysis novel. Further details are provided in \'MasterThesis_Haberling.pdf\'. 
+This thesis aimes to explore novel approaches identifying knowledge diffusion and recombination. The provided approaches utilize Latent Dirichlet Allocation and Network Analysis. Further details are provided in \'MasterThesis_Haberling.pdf\'. 
 
--------------------------------------------------
+
 ## Instructions
 
 The files contained in folder \'Code\' are supposed to run in the order indicated by their prefix.
