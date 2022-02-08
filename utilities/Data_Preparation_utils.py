@@ -10,7 +10,7 @@ import tqdm
 
 
 
-###---------------------------------------------------------------------------------------------------------------------
+###--- Class PatentCleaning ---### ------------------------------------------------------------------------
 
 class PatentCleaning:
 
@@ -88,7 +88,6 @@ class PatentCleaning:
 
         return sample_list
 
-
     @staticmethod
     def count_abstracts_with_term(patents, term):
         check_list_term = []
@@ -102,7 +101,7 @@ class PatentCleaning:
 
 
 
-###---------------------------------------------------------------------------------------------------------------------
+###--- Class AbstractCleaning ---### ------------------------------------------------------------------------
 
 class AbstractCleaning:
 
@@ -130,10 +129,10 @@ class AbstractCleaning:
     @staticmethod
     def preprocessing(text):
 
-        text = re.sub('[^A-Za-z]', ' ', text)  # Remove non alphabetic characters
+        text = re.sub('[^A-Za-z]', ' ', text)  # Remove non-alphabetic characters
         text = re.sub('\s[A-Za-z]\s', ' ',
-                      text)  # Remove single letters ('x', 'y', 'z' occur in abstracts, when refering to axes.
-        # These references are assumed to be irrelevant for now)
+                      text)  # Remove single letters ('x', 'y', 'z' occur in abstracts, when refering to axes)
+        # These references are assumed to be irrelevant for now, see thesis)
         text = text.lower()  # Make all the strings lowercase and
         return text
 
@@ -185,7 +184,7 @@ class AbstractCleaning:
 
 
 
-###---------------------------------------------------------------------------------------------------------------------
+###--- Class LDA_functions ---### ------------------------------------------------------------------------
 
 class LDA_functions:
 
@@ -280,7 +279,7 @@ class LDA_functions:
 
 
 
-###---------------------------------------------------------------------------------------------------------------------
+###--- Class TransformationMisc ---### ------------------------------------------------------------------------
 
 class TransformationMisc:
 
@@ -356,7 +355,7 @@ class TransformationMisc:
 
 
 
-###---------------------------------------------------------------------------------------------------------------------
+###--- Class Transformation_SlidingWindows ---### ------------------------------------------------------------------------
 
 class Transformation_SlidingWindows:
 
@@ -388,7 +387,7 @@ class Transformation_SlidingWindows:
                 patents_perWindow.append(len(array_window))
 
                 topics_perWindow_helper = []
-                for topic_list in array_window[:, 9:25]:                    # adapt with max_topics
+                for topic_list in array_window[:, 9:25]:                    # not dynamic yet. Adapt with max_topics
                     for column_id in range(0, len(topic_list.T), 2):
                         if topic_list[column_id] != None:
                             topics_perWindow_helper.append(topic_list[column_id])
@@ -407,7 +406,7 @@ class Transformation_SlidingWindows:
 
 
 
-###---------------------------------------------------------------------------------------------------------------------
+###--- Class Transformation_Network ---### ------------------------------------------------------------------------
 
 class Transformation_Network:
 
@@ -418,7 +417,7 @@ class Transformation_Network:
 
         for i in range(len(window)):
 
-            dic_entry = dict(enumerate(window[i]))  # Here each patent is converted into a dictionary. dictionary keys are still numbers:
+            dic_entry = dict(enumerate(window[i]))  # Here each patent is converted into a dictionary. Dictionary keys are still numbers:
             # {0: 'EP', 1: nan, 2: '2007-10-10', ...} Note that the patent id is ommited, since it
             # serves as key for the outer dictionary encapsulating these inner once.
 
@@ -427,13 +426,13 @@ class Transformation_Network:
 
             node_att_dic_list.append(dic_entry)
 
-        nested_dic = dict(enumerate(node_att_dic_list))  # Here the nested (outer) dictionary is created. Each key is still represented as a number, each value as another dictionary
+        nested_dic = dict(enumerate(node_att_dic_list))  # Here the nested (outer) dictionary is created. Each key is still
+                                                         # represented as a number, each value as another dictionary
 
         for key, n_key in zip(nested_dic.copy().keys(),nodes):  # Here the key of the outer dictionary are renamed to the patent ids
             nested_dic[n_key] = nested_dic.pop(key)
 
         return nested_dic
-
 
     @staticmethod
     def prepare_topicNodes_Networkx(window, topic_position):
@@ -490,6 +489,3 @@ class Transformation_Network:
         projected_weight = sum(list_of_poducts) / len(list_of_poducts)
 
         return projected_weight
-
-
-
