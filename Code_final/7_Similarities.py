@@ -1,4 +1,3 @@
-
 if __name__ == '__main__':
 
     # --- Import Libraries ---#
@@ -103,19 +102,19 @@ if __name__ == '__main__':
                          'CommunityMeasure_SCM_KC', 'CommunityMeasure_SCM_L2', 'EdgeWeight_SCM']
 
 
-    # test if all SCMs have the appropriate column length
+    # check if all SCMs have the appropriate column length
     Similarities.check_columnLength(list_allSCM, CommunityMeasure_SCM_LP_columns)
 
     # transform all diffusion arrays to row normalized and threshold arrays
     list_allSCM_threshold, list_allSCM_rowNorm = Similarities.normalized_and_binarize(list_allSCM, threshold=0.01, leeway=True)
 
-    # find pattern start in SCM
+    # find pattern beginnings in SCM
     pattern_start_list = []
     for i in range(len(list_allSCM_threshold)):
         pattern_start = Similarities.find_patternStart(list_allSCM_threshold[i])  # [[row,column], ...]
         pattern_start_list.append(pattern_start)
 
-    # find pattern length
+    # find pattern lengths
     pattern_length_list = []
     min_length_threshold = 1
     for i in range(len(list_allSCM_threshold)):
@@ -147,11 +146,9 @@ if __name__ == '__main__':
     matrixSimilaritiesScore_cosine = 0
     matrixSimilaritiesScore_manhattan = 0
 
-    # one Similarities score
     if len(SimilaritiesPair_list_cosine) != 0:
         matrixSimilaritiesScore_cosine = sum(SimilaritiesPair_list_cosine) / len(SimilaritiesPair_list_cosine)
 
-    # one Similarities score
     if len(SimilaritiesPair_list_manhattan) != 0:
         matrixSimilaritiesScore_manhattan = sum(SimilaritiesPair_list_manhattan) / len(SimilaritiesPair_list_manhattan)
 
@@ -208,10 +205,8 @@ if __name__ == '__main__':
 
 
 
-
     #--- Comparing CCMs ---#
     print('\n#--- Comparing CCMs ---#\n')
-
 
     CCM_column_lists = [columns_direct_CCM, CommunityMeasure_CCM_LP_columns,
                         CommunityMeasure_CCM_GM_columns, CommunityMeasure_CCM_KC_columns,
@@ -232,7 +227,7 @@ if __name__ == '__main__':
 
     extended_threshold_arrays = Similarities.extend_recombination_columns(CCM_column_lists, recoArrays_threshold_list)
 
-    # delete columns if they are 0 in all matrices (after aligning)
+    # delete columns if they sum up to 0 in all matrices (after aligning)
     columSum_vec_list = []
     for array in extended_threshold_arrays:
         columSum_vec = np.sum(array, axis=0)
@@ -264,12 +259,12 @@ if __name__ == '__main__':
     print('shape of resized CCMs: ', np.shape(resized_threshold_arrays[0]))
 
 
-
     namePair_list, similarityPair_list_cosine, similarityPair_list_manhattan = Similarities.CM_similarities_byPair(CCM_column_list_names, resized_threshold_arrays)
     print('Name of CCM Pairs: ', namePair_list)
     print('Mod Cosine by CCM Pair: ', similarityPair_list_cosine)
     print('Mod Manhattan by CCM Pair: ', similarityPair_list_manhattan)
 
+    
     # Similarities between all CCMs
 
     # Initiallize
