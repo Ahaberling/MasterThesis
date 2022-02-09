@@ -16,7 +16,7 @@ The file with prefix 8 is based on Python 3.7
 The *cdlib* library utilized in *\'utilities/Measurement_utils.py\'* requires *Microsoft Visual C++ 14.0* or greater. (available at  
 https://docs.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-160)
 
-The *Mallet* LDA utilized in *\'Code/2_Preprocessing_And_LDA.py\'* and *\'utilities/Data_Preparation_utils.py\'* requires a manual download as well (http://mallet.cs.umass.edu/download.php). Additionally a system variable named "MALLET_HOME" needs to point to the directory, in which the manual 
+The *Mallet* LDA utilized in *\'Code/2_Preprocessing_And_LDA.py\'* and *\'utilities/Data_Preparation_utils.py\'* requires a manual download (http://mallet.cs.umass.edu/download.php). Additionally a system variable named "MALLET_HOME" needs to point to the directory, in which the manual 
 *Mallet* download was unpacked. At last the *Mallet* path variable in *\'Code/2_Preprocessing_And_LDA.py\'* need to be adjusted.
 
 The *Gensim* library employed in *\'Code/2_Preprocessing_And_LDA.py\'* is versioned 3.8.3. Later versions do not support the employed Mallet wrapper.
