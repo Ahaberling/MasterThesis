@@ -1,8 +1,9 @@
-## Knowledge Recombination and Diffusion in Patent Data
-### An Explorative Framework
+# Knowledge Recombination and Diffusion in Patent Data - An Explorative Framework
+MMDS Master Thesis 2021
 
-This thesis aimes to explore novel measurements concerned with knowledge diffusion and recombination. The provided approaches utilize Latent Dirichlet Allocation and Network Analysis. Further details are provided in \'MasterThesis_Haberling.pdf\'. 
-
+Objective: Exploring novel measurements concerned with knowledge diffusion and recombination by utilizing Latent Dirichlet Allocation and Network Analysis.
+Data used: PATSTAT data provided by the Mannheimer Chair of Organization and Innovation.
+Further details are provided in \'MasterThesis_Haberling.pdf\'. 
 
 ## Instructions
 
@@ -12,12 +13,10 @@ The subfolder \'utilities\' contains files with custom functions, outsourced for
 The files with prefix 1-7 are based on Python 3.8
 The file with prefix 8 is based on Python 3.7
 
-The cdlib library utilized requires Microsoft Visual C++ 14.0 or greater. (available at  
+The cdlib library utilized in \'utilities/Measurement_utils.py\' requires Microsoft Visual C++ 14.0 or greater. (available at  
 https://docs.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-160)
 
-Mallet LDA requires a manual download as well (http://mallet.cs.umass.edu/download.php).
-In file 2_Preprocessing_And_LDA.py a Mallet path variable need to be adjusted.
-Additionally a system variable named "MALLET_HOME" needs to point to the directory, in which the manual 
-Mallet download was unpacked. 
+The Mallet LDA utilized in \'Code/2_Preprocessing_And_LDA.py\' and \'utilities/Data_Preparation_utils.py\' requires a manual download as well (http://mallet.cs.umass.edu/download.php). Additionally a system variable named "MALLET_HOME" needs to point to the directory, in which the manual 
+Mallet download was unpacked. At last the Mallet path variable in \'Code/2_Preprocessing_And_LDA.py\' need to be adjusted.
 
 The Gensim library employed in 2_Preprocessing_And_LDA.py is versioned 3.8.3. Later versions do not support the employed Mallet wrapper.
