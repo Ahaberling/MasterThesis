@@ -2,7 +2,7 @@
 MMDS Master Thesis 2021
 
 Objective:  
-Exploring novel measurements concerned with knowledge diffusion and recombination by utilizing Latent Dirichlet Allocation and Network Analysis.
+Exploring novel measurements concerned with knowledge diffusion and recombination by utilizing Latent Dirichlet Allocation and Network Analysis.  
 Data used:  
 PATSTAT data provided by the Mannheimer Chair of Organization and Innovation.  
 Further details are provided in \'MasterThesis_Haberling.pdf\'. 
